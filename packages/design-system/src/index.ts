@@ -28,5 +28,17 @@ export type { CandidateCardProps, CandidateSkill } from './components/CandidateC
 export { SearchBar } from './components/SearchBar';
 export type { SearchBarProps } from './components/SearchBar';
 
+export { Select, selectVariants } from './components/Select';
+export type { SelectProps } from './components/Select';
+
+export { Textarea, textareaVariants } from './components/Textarea';
+export type { TextareaProps } from './components/Textarea';
+
+export { Checkbox } from './components/Checkbox';
+export type { CheckboxProps } from './components/Checkbox';
+
+export { Radio } from './components/Radio';
+export type { RadioProps } from './components/Radio';
+
 // Utils
 export { cn } from './lib/utils';
