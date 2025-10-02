@@ -80,18 +80,81 @@ Execute o script de verificação para validar seu ambiente:
 - Configure credenciais: `aws configure`
 - Entre em contato com admin do projeto para obter Access Keys
 
+## 🚀 Quick Start
+
+### 1. Clonar o Repositório
+
+```bash
+git clone <repo-url> talentbase-v1
+cd talentbase-v1
+```
+
+### 2. Setup Automático
+
+```bash
+# Executa instalação completa e inicia serviços
+pnpm setup
+```
+
+Este comando irá:
+- ✅ Instalar dependências Node (pnpm install)
+- ✅ Iniciar Docker services (PostgreSQL + Redis)
+- ✅ Instalar dependências Python (poetry install)
+- ✅ Executar migrations do Django
+
+### 3. Configurar Variáveis de Ambiente
+
+```bash
+# Copiar arquivos de exemplo
+cp .env.example .env
+cp packages/web/.env.example packages/web/.env
+cp apps/api/.env.example apps/api/.env
+```
+
+### 4. Iniciar Servidores de Desenvolvimento
+
+```bash
+# Terminal 1: Frontend (Remix)
+pnpm dev:web
+# Acesse: http://localhost:3000
+
+# Terminal 2: Backend (Django)
+pnpm dev:api
+# Acesse: http://localhost:8000/health/
+```
+
+Ou inicie ambos simultaneamente:
+
+```bash
+pnpm dev:all
+```
+
+### 5. Verificar Serviços
+
+```bash
+# Health check do backend
+curl http://localhost:8000/health/
+
+# Deve retornar:
+# {"status": "healthy", "database": "connected", "cache": "connected"}
+```
+
 ## 📦 Estrutura do Projeto
 
 ```
 talentbase-v1/
 ├── packages/
-│   └── design-system/        # Design System com Storybook
+│   ├── design-system/         # Shared UI components (React + Tailwind)
+│   └── web/                   # Remix SSR frontend
+├── apps/
+│   └── api/                   # Django REST backend
 ├── docs/
 │   ├── design-system/         # Documentação do DS
-│   ├── planejamento/          # Planejamento do projeto
-│   ├── layouts/               # Layouts e referências
-│   ├── basedados/             # Modelos de dados
+│   ├── epics/                 # Epic specs & architecture
+│   ├── stories/               # User stories & tasks
 │   └── site/                  # Assets da landing page
+├── docker-compose.yml         # PostgreSQL + Redis
+├── pnpm-workspace.yaml        # Monorepo config
 └── bmad/                      # BMad framework
 ```
 
@@ -128,11 +191,106 @@ Acesse: http://localhost:6006
 
 ## 🛠️ Stack Técnica
 
-- **Frontend:** React 18 + TypeScript
-- **Styling:** Tailwind CSS (customizado)
-- **Components:** Design System próprio
-- **Storybook:** Documentação interativa
-- **Deploy:** GitHub Actions + GitHub Pages
+**Frontend:**
+- **Framework:** Remix 2.14+ (SSR + client hydration)
+- **UI Library:** React 18.2+
+- **Styling:** Tailwind CSS 3.4+
+- **Components:** Design System próprio (workspace dependency)
+- **Build:** Vite 5.1+
+- **Language:** TypeScript 5.1+
+
+**Backend:**
+- **Framework:** Django 5.0+
+- **API:** Django REST Framework 3.14+
+- **Language:** Python 3.11+
+- **Package Manager:** Poetry 1.7+
+
+**Database & Cache:**
+- **Database:** PostgreSQL 15+ (Docker)
+- **Cache:** Redis 7.2+ (Docker)
+- **ORM:** Django ORM
+
+**Development:**
+- **Monorepo:** pnpm workspaces
+- **Containerization:** Docker Compose
+- **CI/CD:** GitHub Actions (to be configured)
+- **Deploy:** AWS (planned)
+
+## 📚 Comandos Úteis
+
+### Desenvolvimento
+
+```bash
+# Frontend
+pnpm dev:web                    # Inicia Remix dev server (porta 3000)
+pnpm build:web                  # Build production do frontend
+pnpm build:design-system        # Build do design system
+
+# Backend
+pnpm dev:api                    # Inicia Django dev server (porta 8000)
+cd apps/api && poetry run python manage.py migrate    # Rodar migrations
+cd apps/api && poetry run python manage.py createsuperuser    # Criar admin user
+
+# Docker
+pnpm docker:up                  # Inicia PostgreSQL + Redis
+pnpm docker:down                # Para e remove containers
+
+# Testes
+pnpm test                       # Roda testes em todos os packages
+```
+
+### Troubleshooting
+
+**Problema:** pnpm workspace dependency não resolve
+
+```bash
+# Solução: Reinstalar dependências
+rm -rf node_modules packages/*/node_modules
+pnpm install
+```
+
+**Problema:** PostgreSQL connection refused
+
+```bash
+# Verificar se container está rodando
+docker-compose ps
+
+# Ver logs do PostgreSQL
+docker-compose logs postgres
+
+# Reiniciar serviço
+docker-compose restart postgres
+```
+
+**Problema:** Django migrations fail
+
+```bash
+# Verificar conexão com database
+psql -h localhost -U talentbase -d talentbase_dev
+
+# Dropar e recriar database (cuidado!)
+docker-compose down -v
+docker-compose up -d
+cd apps/api && poetry run python manage.py migrate
+```
+
+**Problema:** CORS errors no browser
+
+```bash
+# Verificar configuração CORS no Django
+# Adicionar origem do frontend em CORS_ALLOWED_ORIGINS
+# Reiniciar servidor Django
+```
+
+**Problema:** Remix build falha
+
+```bash
+# Verificar design system build
+cd packages/design-system && pnpm build
+
+# Reinstalar dependências
+cd packages/web && pnpm install
+```
 
 ## 📝 Planejamento
 

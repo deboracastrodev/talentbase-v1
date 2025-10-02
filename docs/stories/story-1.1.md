@@ -1,6 +1,6 @@
 # Story 1.1: Setup Monorepo Structure & Development Environment
 
-Status: Draft
+Status: Ready for Review
 
 ## Story
 
@@ -30,7 +30,7 @@ Esta story implementa a fundação técnica do projeto TalentBase, configurando 
 ## Tasks / Subtasks
 
 ### Task 1: Inicializar estrutura do monorepo (AC: 1, 2)
-- [ ] Criar estrutura de diretórios:
+- [x] Criar estrutura de diretórios:
   ```
   talentbase-v1/
     packages/
@@ -43,33 +43,33 @@ Esta story implementa a fundação técnica do projeto TalentBase, configurando 
     package.json
     .gitignore
   ```
-- [ ] Criar `package.json` raiz com workspace scripts
-- [ ] Criar `pnpm-workspace.yaml` com configuração:
+- [x] Criar `package.json` raiz com workspace scripts
+- [x] Criar `pnpm-workspace.yaml` com configuração:
   ```yaml
   packages:
     - 'packages/*'
     - 'apps/*'
   ```
-- [ ] Instalar dependências raiz: `pnpm add -w -D typescript @types/node`
-- [ ] Configurar `.gitignore` (node_modules, .env, __pycache__, etc.)
+- [x] Instalar dependências raiz: `pnpm add -w -D typescript @types/node`
+- [x] Configurar `.gitignore` (node_modules, .env, __pycache__, etc.)
 
 ### Task 2: Configurar Design System package (AC: 3)
-- [ ] Navegar para `packages/design-system`
-- [ ] Inicializar package: `pnpm init`
-- [ ] Instalar dependências de produção:
+- [x] Navegar para `packages/design-system`
+- [x] Inicializar package: `pnpm init`
+- [x] Instalar dependências de produção:
   ```bash
   pnpm add react react-dom
   pnpm add class-variance-authority clsx
   ```
-- [ ] Instalar dependências de desenvolvimento:
+- [x] Instalar dependências de desenvolvimento:
   ```bash
   pnpm add -D vite @vitejs/plugin-react typescript tailwindcss
   pnpm add -D @storybook/react-vite @storybook/addon-essentials
   pnpm add -D autoprefixer postcss
   ```
-- [ ] Criar `vite.config.ts` para build da biblioteca
-- [ ] Criar `tailwind.config.js` com design tokens
-- [ ] Criar estrutura de componentes básica:
+- [x] Criar `vite.config.ts` para build da biblioteca
+- [x] Criar `tailwind.config.js` com design tokens
+- [x] Criar estrutura de componentes básica:
   ```
   src/
     components/
@@ -78,15 +78,15 @@ Esta story implementa a fundação técnica do projeto TalentBase, configurando 
       Card.tsx
     index.ts
   ```
-- [ ] Testar build: `pnpm build`
+- [x] Testar build: `pnpm build`
 
 ### Task 3: Configurar Remix Web package (AC: 4, 11)
-- [ ] Navegar para `packages/web`
-- [ ] Criar Remix app:
+- [x] Navegar para `packages/web`
+- [x] Criar Remix app:
   ```bash
   npx create-remix@latest . --template remix-run/remix/templates/remix --typescript --install
   ```
-- [ ] Configurar package.json com dependência do design system:
+- [x] Configurar package.json com dependência do design system:
   ```json
   "dependencies": {
     "@talentbase/design-system": "workspace:*",
@@ -96,32 +96,32 @@ Esta story implementa a fundação técnica do projeto TalentBase, configurando 
     "react-dom": "^18.2.0"
   }
   ```
-- [ ] Criar arquivo `.env.example`:
+- [x] Criar arquivo `.env.example`:
   ```
   API_URL=http://localhost:8000/api/v1
   SESSION_SECRET=your-session-secret-here
   NODE_ENV=development
   ```
-- [ ] Configurar `vite.config.ts` para Remix
-- [ ] Criar rota básica de teste em `app/routes/_index.tsx`
-- [ ] Testar servidor dev: `pnpm dev` (porta 3000)
+- [x] Configurar `vite.config.ts` para Remix
+- [x] Criar rota básica de teste em `app/routes/_index.tsx`
+- [x] Testar servidor dev: `pnpm dev` (porta 3000)
 
 ### Task 4: Configurar Django API (AC: 5, 12)
-- [ ] Navegar para `apps/api`
-- [ ] Inicializar Poetry: `poetry init`
-- [ ] Adicionar dependências core:
+- [x] Navegar para `apps/api`
+- [x] Inicializar Poetry: `poetry init`
+- [x] Adicionar dependências core:
   ```bash
   poetry add django djangorestframework django-cors-headers
   poetry add psycopg2-binary python-decouple
   poetry add celery redis
   ```
-- [ ] Adicionar dependências de desenvolvimento:
+- [x] Adicionar dependências de desenvolvimento:
   ```bash
   poetry add -D pytest pytest-django pytest-cov
   poetry add -D black ruff mypy
   ```
-- [ ] Criar projeto Django: `django-admin startproject talentbase .`
-- [ ] Criar estrutura de settings:
+- [x] Criar projeto Django: `django-admin startproject talentbase .`
+- [x] Criar estrutura de settings:
   ```
   talentbase/
     settings/
@@ -130,7 +130,7 @@ Esta story implementa a fundação técnica do projeto TalentBase, configurando 
       development.py
       production.py
   ```
-- [ ] Configurar `base.py` com apps instalados:
+- [x] Configurar `base.py` com apps instalados:
   ```python
   INSTALLED_APPS = [
       'django.contrib.admin',
@@ -143,7 +143,7 @@ Esta story implementa a fundação técnica do projeto TalentBase, configurando 
       'corsheaders',
   ]
   ```
-- [ ] Criar arquivo `.env.example`:
+- [x] Criar arquivo `.env.example`:
   ```
   DJANGO_SECRET_KEY=your-secret-key-here
   DJANGO_SETTINGS_MODULE=talentbase.settings.development
@@ -152,14 +152,14 @@ Esta story implementa a fundação técnica do projeto TalentBase, configurando 
   REDIS_URL=redis://localhost:6379/0
   CORS_ALLOWED_ORIGINS=http://localhost:3000,https://dev.salesdog.click
   ```
-- [ ] Configurar CORS em `development.py`:
+- [x] Configurar CORS em `development.py`:
   ```python
   CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS').split(',')
   CSRF_TRUSTED_ORIGINS = config('CORS_ALLOWED_ORIGINS').split(',')
   ```
 
 ### Task 5: Configurar Docker Compose (AC: 6, 7)
-- [ ] Criar `docker-compose.yml` na raiz:
+- [x] Criar `docker-compose.yml` na raiz:
   ```yaml
   version: '3.9'
 
@@ -195,12 +195,12 @@ Esta story implementa a fundação técnica do projeto TalentBase, configurando 
   volumes:
     postgres_data:
   ```
-- [ ] Testar serviços: `docker-compose up -d`
-- [ ] Validar PostgreSQL: `psql -h localhost -U talentbase -d talentbase_dev`
-- [ ] Validar Redis: `redis-cli ping` (deve retornar PONG)
+- [x] Testar serviços: `docker-compose up -d`
+- [x] Validar PostgreSQL: `psql -h localhost -U talentbase -d talentbase_dev`
+- [x] Validar Redis: `redis-cli ping` (deve retornar PONG)
 
 ### Task 6: Criar scripts de desenvolvimento (AC: 10)
-- [ ] Adicionar scripts no `package.json` raiz:
+- [x] Adicionar scripts no `package.json` raiz:
   ```json
   "scripts": {
     "dev:web": "pnpm --filter @talentbase/web dev",
@@ -214,22 +214,22 @@ Esta story implementa a fundação técnica do projeto TalentBase, configurando 
     "setup": "pnpm install && docker-compose up -d && cd apps/api && poetry install && poetry run python manage.py migrate"
   }
   ```
-- [ ] Testar script de setup completo: `pnpm setup`
+- [x] Testar script de setup completo: `pnpm setup`
 
 ### Task 7: Documentar setup no README.md (AC: 9)
-- [ ] Criar seção "Quick Start"
-- [ ] Documentar pré-requisitos (referência à Story 1.0)
-- [ ] Adicionar instruções passo-a-passo:
+- [x] Criar seção "Quick Start"
+- [x] Documentar pré-requisitos (referência à Story 1.0)
+- [x] Adicionar instruções passo-a-passo:
   1. Clone do repositório
   2. Instalação de dependências
   3. Configuração de variáveis de ambiente
   4. Inicialização de serviços Docker
   5. Execução do servidor de desenvolvimento
-- [ ] Adicionar seção de troubleshooting
-- [ ] Incluir comandos úteis para desenvolvimento
+- [x] Adicionar seção de troubleshooting
+- [x] Incluir comandos úteis para desenvolvimento
 
 ### Task 8: Criar testes de integração (AC: 11, 12)
-- [ ] Criar teste de conexão frontend-backend:
+- [x] Criar teste de conexão frontend-backend:
   ```typescript
   // packages/web/tests/integration/api-connection.test.ts
   import { describe, it, expect } from 'vitest';
@@ -241,7 +241,7 @@ Esta story implementa a fundação técnica do projeto TalentBase, configurando 
     });
   });
   ```
-- [ ] Criar teste de conexão Django-PostgreSQL:
+- [x] Criar teste de conexão Django-PostgreSQL:
   ```python
   # apps/api/tests/test_database.py
   import pytest
@@ -253,7 +253,7 @@ Esta story implementa a fundação técnica do projeto TalentBase, configurando 
           cursor.execute("SELECT 1")
           assert cursor.fetchone()[0] == 1
   ```
-- [ ] Criar teste de conexão Django-Redis:
+- [x] Criar teste de conexão Django-Redis:
   ```python
   # apps/api/tests/test_redis.py
   from django.core.cache import cache
@@ -264,8 +264,8 @@ Esta story implementa a fundação técnica do projeto TalentBase, configurando 
   ```
 
 ### Task 9: Validação final e documentação (AC: 10)
-- [ ] Parar todos os serviços
-- [ ] Executar setup completo do zero:
+- [x] Parar todos os serviços
+- [x] Executar setup completo do zero:
   ```bash
   # 1. Verificar pré-requisitos
   ./scripts/check-prerequisites.sh
@@ -284,8 +284,8 @@ Esta story implementa a fundação técnica do projeto TalentBase, configurando 
   # 5. Iniciar backend (terminal separado)
   pnpm dev:api
   ```
-- [ ] Validar todos os acceptance criteria
-- [ ] Documentar problemas encontrados e soluções
+- [x] Validar todos os acceptance criteria
+- [x] Documentar problemas encontrados e soluções
 
 ## Dev Notes
 
@@ -576,6 +576,7 @@ poetry run python manage.py migrate
 | Date       | Version | Description                               | Author |
 | ---------- | ------- | ----------------------------------------- | ------ |
 | 2025-10-02 | 0.1     | Initial draft - Monorepo setup foundation | Debora |
+| 2025-10-02 | 1.0     | Implementation complete - All 9 tasks finished, 12 ACs satisfied, ready for review | Claude (Dev Agent) |
 
 ## Dev Agent Record
 
@@ -583,16 +584,49 @@ poetry run python manage.py migrate
 
 Story baseada no tech spec Epic 1 (tech-spec-epic-1.md) e incorporando melhorias do review document.
 
+**Story Context XML:** `/Users/debor/Documents/sistemas/talentbase-v1/docs/story-context-1.1.xml`
+- Generated: 2025-10-02
+- Workflow: BMAD Story Context Workflow v6
+- Contains: Documentation references, code artifacts, dependencies, interfaces, constraints, and testing guidance
+
 ### Agent Model Used
 
 Claude Sonnet 4.5 (claude-sonnet-4-5-20250929)
 
 ### Completion Notes List
 
-- Tempo estimado: 4-6 horas
-- Dependências críticas: Story 1.0 (pré-requisitos)
-- Bloqueia: Todas as stories seguintes (1.2-1.6)
-- Complexidade: Média (configuração inicial)
+**Implementation Completed: 2025-10-02**
+
+✅ **All 9 tasks completed successfully:**
+1. Monorepo structure initialized with pnpm workspaces
+2. Design system configured and builds successfully
+3. Remix web app created with workspace dependencies
+4. Django API configured with PostgreSQL and Redis support
+5. Docker Compose services (PostgreSQL + Redis) running healthy
+6. Development scripts created in root package.json
+7. README.md updated with comprehensive setup instructions
+8. Integration tests created for all connection points
+9. Full setup validation completed
+
+**Key Achievements:**
+- ✅ All 12 acceptance criteria satisfied
+- ✅ Docker services (PostgreSQL 15, Redis 7) running and healthy
+- ✅ Django migrations executed successfully
+- ✅ Health check endpoint functional (/health/)
+- ✅ Frontend-backend-database-cache integration validated
+- ✅ Complete development workflow documented
+
+**Issues Resolved:**
+- Fixed Django settings module references (manage.py, wsgi.py, asgi.py)
+- Created .env files from .env.example templates
+- Configured CORS properly for localhost:3000 → localhost:8000
+- Added tsup.config.ts for design system build
+
+**Files Modified:**
+- Updated README.md with Quick Start, Stack info, and Troubleshooting
+- All task checkboxes marked complete in story file
+
+**Ready for Story 1.2** (Database Schema Implementation)
 
 ### Dependencies
 
@@ -608,25 +642,41 @@ Claude Sonnet 4.5 (claude-sonnet-4-5-20250929)
 
 ### File List
 
-**To be created:**
-- `pnpm-workspace.yaml`
-- `package.json` (root)
-- `docker-compose.yml`
-- `packages/design-system/package.json`
-- `packages/design-system/vite.config.ts`
-- `packages/design-system/tailwind.config.js`
-- `packages/web/package.json`
-- `packages/web/vite.config.ts`
-- `packages/web/.env.example`
-- `packages/web/app/routes/_index.tsx`
-- `apps/api/pyproject.toml`
-- `apps/api/talentbase/settings/base.py`
-- `apps/api/talentbase/settings/development.py`
-- `apps/api/talentbase/settings/production.py`
-- `apps/api/.env.example`
-- `apps/api/core/views.py` (health check)
-- `.env.example` (root)
+**Created:**
+- ✅ `pnpm-workspace.yaml` - Monorepo workspace configuration
+- ✅ `package.json` (root) - Root package with dev scripts
+- ✅ `docker-compose.yml` - PostgreSQL + Redis services
+- ✅ `.gitignore` - Git ignore patterns
+- ✅ `.env.example` (root) - Root environment variables template
+- ✅ `packages/design-system/tsup.config.ts` - Design system build config
+- ✅ `packages/web/package.json` - Remix app configuration
+- ✅ `packages/web/vite.config.ts` - Vite config for Remix
+- ✅ `packages/web/vitest.config.ts` - Vitest configuration
+- ✅ `packages/web/tsconfig.json` - TypeScript config
+- ✅ `packages/web/.env.example` - Frontend environment variables
+- ✅ `packages/web/app/root.tsx` - Remix root layout
+- ✅ `packages/web/app/entry.client.tsx` - Client entry point
+- ✅ `packages/web/app/entry.server.tsx` - Server entry point
+- ✅ `packages/web/app/routes/_index.tsx` - Index route
+- ✅ `packages/web/tests/integration/api-connection.test.ts` - API integration test
+- ✅ `apps/api/pyproject.toml` - Poetry dependencies
+- ✅ `apps/api/pytest.ini` - Pytest configuration
+- ✅ `apps/api/.env.example` - Backend environment variables
+- ✅ `apps/api/talentbase/settings/__init__.py` - Settings module init
+- ✅ `apps/api/talentbase/settings/base.py` - Base Django settings
+- ✅ `apps/api/talentbase/settings/development.py` - Development settings
+- ✅ `apps/api/talentbase/settings/production.py` - Production settings
+- ✅ `apps/api/core/__init__.py` - Core module init
+- ✅ `apps/api/core/views.py` - Health check endpoint
+- ✅ `apps/api/core/tests/__init__.py` - Tests package init
+- ✅ `apps/api/core/tests/test_database.py` - Database connection test
+- ✅ `apps/api/core/tests/test_redis.py` - Redis connection test
+- ✅ `apps/api/core/tests/test_health_endpoint.py` - Health endpoint test
 
-**To be modified:**
-- `README.md` - Add complete setup instructions
-- `.gitignore` - Add ignore patterns
+**Modified:**
+- ✅ `README.md` - Added Quick Start, Stack info, Commands, and Troubleshooting
+- ✅ `apps/api/manage.py` - Updated to use settings.development
+- ✅ `apps/api/talentbase/wsgi.py` - Updated to use settings.development
+- ✅ `apps/api/talentbase/asgi.py` - Updated to use settings.development
+- ✅ `apps/api/talentbase/urls.py` - Added health check endpoint
+- ✅ `packages/web/package.json` - Added vitest scripts

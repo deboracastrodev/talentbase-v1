@@ -1,0 +1,499 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context id="epic-1-story-1.1" version="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>1.1</storyId>
+    <title>Setup Monorepo Structure &amp; Development Environment</title>
+    <status>Approved</status>
+    <generatedAt>2025-10-02</generatedAt>
+    <generator>BMAD Story Context Workflow v6</generator>
+    <sourceStoryPath>/Users/debor/Documents/sistemas/talentbase-v1/docs/stories/story-1.1.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>desenvolvedor (developer)</asA>
+    <iWant>a estrutura do monorepo configurada com todas as ferramentas necessárias</iWant>
+    <soThat>o time possa desenvolver frontend e backend de forma eficiente</soThat>
+
+    <context>
+      Esta story implementa a fundação técnica do projeto TalentBase, configurando o monorepo com pnpm workspaces, Django, Remix, PostgreSQL e Redis. É a base para todas as stories subsequentes do Epic 1.
+    </context>
+
+    <tasks>
+      <task id="1" acs="1,2">
+        <title>Inicializar estrutura do monorepo</title>
+        <description>Criar estrutura de diretórios com pnpm-workspace.yaml, package.json raiz, e arquivos de configuração base</description>
+      </task>
+
+      <task id="2" acs="3">
+        <title>Configurar Design System package</title>
+        <description>Instalar dependências, criar vite.config.ts, tailwind.config.js, e estrutura de componentes básica</description>
+      </task>
+
+      <task id="3" acs="4,11">
+        <title>Configurar Remix Web package</title>
+        <description>Criar Remix app com dependência do design system, configurar vite, criar .env.example e rota básica de teste</description>
+      </task>
+
+      <task id="4" acs="5,12">
+        <title>Configurar Django API</title>
+        <description>Inicializar Poetry, adicionar dependências core, criar projeto Django, estrutura de settings e configurar CORS</description>
+      </task>
+
+      <task id="5" acs="6,7">
+        <title>Configurar Docker Compose</title>
+        <description>Criar docker-compose.yml com PostgreSQL 15 e Redis 7, incluir healthchecks e volumes</description>
+      </task>
+
+      <task id="6" acs="10">
+        <title>Criar scripts de desenvolvimento</title>
+        <description>Adicionar scripts no package.json raiz para dev, build, test e setup completo</description>
+      </task>
+
+      <task id="7" acs="9">
+        <title>Documentar setup no README.md</title>
+        <description>Criar seções Quick Start, pré-requisitos, instruções passo-a-passo e troubleshooting</description>
+      </task>
+
+      <task id="8" acs="11,12">
+        <title>Criar testes de integração</title>
+        <description>Testes de conexão frontend-backend, Django-PostgreSQL e Django-Redis</description>
+      </task>
+
+      <task id="9" acs="10">
+        <title>Validação final e documentação</title>
+        <description>Executar setup do zero, validar todos os acceptance criteria e documentar problemas/soluções</description>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1" status="pending">Monorepo criado com estrutura de pastas packages/design-system, packages/web, apps/api</criterion>
+    <criterion id="2" status="pending">pnpm workspace configurado (arquivo pnpm-workspace.yaml)</criterion>
+    <criterion id="3" status="pending">Design system package compila com sucesso usando Vite + React</criterion>
+    <criterion id="4" status="pending">Remix app (packages/web) roda localmente na porta 3000</criterion>
+    <criterion id="5" status="pending">Django project (apps/api) roda localmente na porta 8000</criterion>
+    <criterion id="6" status="pending">PostgreSQL database rodando via Docker Compose (porta 5432)</criterion>
+    <criterion id="7" status="pending">Redis rodando via Docker Compose (porta 6379)</criterion>
+    <criterion id="8" status="pending">Variáveis de ambiente configuradas (arquivos .env.example fornecidos)</criterion>
+    <criterion id="9" status="pending">README.md com instruções completas de setup</criterion>
+    <criterion id="10" status="pending">Todos os serviços iniciam sem erros</criterion>
+    <criterion id="11" status="pending">Frontend consegue conectar ao backend via HTTP</criterion>
+    <criterion id="12" status="pending">Backend consegue conectar ao PostgreSQL e Redis</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc priority="critical">
+        <path>/Users/debor/Documents/sistemas/talentbase-v1/docs/epics/tech-spec-epic-1.md</path>
+        <title>Technical Specification - Epic 1</title>
+        <section>Story 1.1: Setup Monorepo Structure &amp; Development Environment</section>
+        <relevance>Primary technical specification with detailed implementation steps, environment configuration, and validation checklist</relevance>
+        <keyPoints>
+          - Monorepo structure with pnpm workspaces
+          - Environment configuration (.env.example files)
+          - Docker Compose setup for PostgreSQL and Redis
+          - Testing approach and acceptance validation
+        </keyPoints>
+      </doc>
+
+      <doc priority="critical">
+        <path>/Users/debor/Documents/sistemas/talentbase-v1/docs/epics/solution-architecture.md</path>
+        <title>Solution Architecture - TalentBase</title>
+        <section>Technology Stack and Application Architecture</section>
+        <relevance>Defines the complete technology stack, architecture pattern (modular monolith), and directory structure</relevance>
+        <keyPoints>
+          - Stack: Remix 2.5+, Django 5.0+, PostgreSQL 15+, Redis 7.2+
+          - Modular monolith pattern with 7 Django apps
+          - Frontend rendering strategy (SSR + client hydration)
+          - Performance targets: &lt;3s page load, &lt;200ms API latency
+        </keyPoints>
+      </doc>
+
+      <doc priority="high">
+        <path>/Users/debor/Documents/sistemas/talentbase-v1/docs/PRD.md</path>
+        <title>TalentBase Product Requirements Document</title>
+        <section>Description, Context and Goals</section>
+        <relevance>Business context for the platform and MVP deployment intent</relevance>
+        <keyPoints>
+          - TalentBase is a recruitment SaaS for tech sales professionals
+          - Deployment to AWS (salesdog.click domain)
+          - MVP urgency: 3-4 months timeline
+          - Critical success factor: simple, functional, avoid over-engineering
+        </keyPoints>
+      </doc>
+
+      <doc priority="high">
+        <path>/Users/debor/Documents/sistemas/talentbase-v1/docs/epics/tech-spec-epic-1-review.md</path>
+        <title>Tech Spec Epic 1 - Revisão e Recomendações</title>
+        <section>Gaps Identificados</section>
+        <relevance>Review document highlighting gaps and improvements for Epic 1 implementation</relevance>
+        <keyPoints>
+          - Gap crítico: App Django 'matching' não criado
+          - Validação de YouTube URL ausente
+          - Documentação de ambiente melhorada
+        </keyPoints>
+      </doc>
+
+      <doc priority="medium">
+        <path>/Users/debor/Documents/sistemas/talentbase-v1/docs/epics/dependency-map.md</path>
+        <title>TalentBase - Mapa de Dependências</title>
+        <section>Dependências Externas</section>
+        <relevance>Complete dependency analysis for frontend and backend packages</relevance>
+        <keyPoints>
+          - Frontend: Remix ^2.14.0, React ^18.2.0, Vite ^5.1.0, TypeScript ^5.1.6
+          - Backend: Django 5.0+, DRF 3.14+, Python 3.11+
+          - Tools: pnpm ^8.14+, Poetry ^1.7+
+        </keyPoints>
+      </doc>
+
+      <doc priority="medium">
+        <path>/Users/debor/Documents/sistemas/talentbase-v1/docs/design-system/README.md</path>
+        <title>TalentBase Design System Documentation</title>
+        <section>Overview and Component Library</section>
+        <relevance>Design system components already built and deployed to Storybook</relevance>
+        <keyPoints>
+          - Pre-built components: Button, Input, Card, Badge, Select, Checkbox, Avatar, CandidateCard
+          - Tailwind CSS with custom theme
+          - Storybook for component documentation
+        </keyPoints>
+      </doc>
+    </docs>
+
+    <code>
+      <artifact>
+        <path>/Users/debor/Documents/sistemas/talentbase-v1/packages/design-system</path>
+        <kind>package</kind>
+        <description>Existing design system package with React components, Tailwind config, and Storybook setup</description>
+        <relevance>Pre-existing design system that will be integrated as workspace dependency in Story 1.3</relevance>
+        <components>
+          - Button.tsx, Input.tsx, Card.tsx, Badge.tsx, Select.tsx, Checkbox.tsx
+          - Radio.tsx, Textarea.tsx, Avatar.tsx, CandidateCard.tsx, SearchBar.tsx
+          - Storybook stories and documentation
+        </components>
+      </artifact>
+
+      <artifact>
+        <path>/Users/debor/Documents/sistemas/talentbase-v1/packages/design-system/package.json</path>
+        <kind>config</kind>
+        <description>Design system package configuration with dependencies and build scripts</description>
+        <relevance>Reference for understanding design system dependencies and peer dependencies</relevance>
+        <keyDependencies>
+          - react ^18.3.1 (peerDependency)
+          - class-variance-authority ^0.7.1
+          - tailwindcss ^3.4.16 (devDependency)
+        </keyDependencies>
+      </artifact>
+
+      <artifact>
+        <path>/Users/debor/Documents/sistemas/talentbase-v1/packages/design-system/tailwind.config.js</path>
+        <kind>config</kind>
+        <description>Tailwind CSS configuration with design tokens</description>
+        <relevance>Will be imported by Remix web package to share design tokens (Story 1.3)</relevance>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <frontend>
+        <ecosystem>node</ecosystem>
+        <packageManager>pnpm ^8.14.0</packageManager>
+        <nodeVersion>20</nodeVersion>
+        <packages>
+          <package name="@remix-run/node" version="^2.14.0" type="production" critical="true"/>
+          <package name="@remix-run/react" version="^2.14.0" type="production" critical="true"/>
+          <package name="@remix-run/serve" version="^2.14.0" type="production" critical="true"/>
+          <package name="react" version="^18.2.0" type="production" critical="true"/>
+          <package name="react-dom" version="^18.2.0" type="production" critical="true"/>
+          <package name="@talentbase/design-system" version="workspace:*" type="production" critical="true"/>
+          <package name="vite" version="^5.1.0" type="development"/>
+          <package name="typescript" version="^5.1.6" type="development"/>
+          <package name="tailwindcss" version="^3.4.1" type="development"/>
+          <package name="@remix-run/dev" version="^2.14.0" type="development"/>
+        </packages>
+      </frontend>
+
+      <backend>
+        <ecosystem>python</ecosystem>
+        <packageManager>poetry ^1.7+</packageManager>
+        <pythonVersion>3.11+</pythonVersion>
+        <packages>
+          <package name="django" version="^5.0" type="production" critical="true"/>
+          <package name="djangorestframework" version="^3.14" type="production" critical="true"/>
+          <package name="django-cors-headers" version="latest" type="production" critical="true"/>
+          <package name="psycopg2-binary" version="latest" type="production" critical="true"/>
+          <package name="python-decouple" version="latest" type="production"/>
+          <package name="celery" version="^5.3" type="production"/>
+          <package name="redis" version="latest" type="production"/>
+          <package name="pytest" version="latest" type="development"/>
+          <package name="pytest-django" version="latest" type="development"/>
+          <package name="pytest-cov" version="latest" type="development"/>
+          <package name="black" version="latest" type="development"/>
+          <package name="ruff" version="latest" type="development"/>
+          <package name="mypy" version="latest" type="development"/>
+        </packages>
+      </backend>
+
+      <infrastructure>
+        <service name="PostgreSQL" version="15-alpine" port="5432" critical="true">
+          <purpose>Primary database for all application data</purpose>
+          <connectionString>postgresql://talentbase:dev_password@localhost:5432/talentbase_dev</connectionString>
+        </service>
+
+        <service name="Redis" version="7-alpine" port="6379" critical="true">
+          <purpose>Cache, session store, and Celery broker</purpose>
+          <connectionString>redis://localhost:6379/0</connectionString>
+        </service>
+
+        <service name="Remix Dev Server" port="3000" critical="true">
+          <purpose>Frontend development server with HMR</purpose>
+        </service>
+
+        <service name="Django Dev Server" port="8000" critical="true">
+          <purpose>Backend API development server</purpose>
+        </service>
+      </infrastructure>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <architectural>
+      <constraint type="pattern" priority="critical">
+        Monorepo Pattern: pnpm workspaces para compartilhamento de dependências. Packages isolados mas com linking automático. Build caching entre packages.
+      </constraint>
+
+      <constraint type="structure" priority="critical">
+        Project Structure: packages/ para shared libraries (design-system, web), apps/ para applications (api). Root package.json com scripts centralizados.
+      </constraint>
+
+      <constraint type="technology" priority="critical">
+        Stack Tecnológico: Frontend (Remix 2.14+, React 18.2+, Tailwind 3.4+), Backend (Django 5.0+, DRF 3.14+, Python 3.11+), Database (PostgreSQL 15+), Cache (Redis 7.2+)
+      </constraint>
+
+      <constraint type="cors" priority="high">
+        CORS Configuration: Django deve permitir requests do frontend Remix. CORS_ALLOWED_ORIGINS deve incluir http://localhost:3000 e https://dev.salesdog.click
+      </constraint>
+
+      <constraint type="environment" priority="high">
+        Environment Variables: Todos os serviços devem ter arquivos .env.example documentando variáveis necessárias. Nunca commitar arquivos .env reais.
+      </constraint>
+    </architectural>
+
+    <development>
+      <constraint type="workflow" priority="high">
+        Development Workflow: Todos os serviços Docker devem iniciar primeiro (docker-compose up), seguido por instalação de dependências (pnpm install, poetry install), então servidores de desenvolvimento.
+      </constraint>
+
+      <constraint type="testing" priority="medium">
+        Integration Testing: Criar testes que validam conexões entre serviços (frontend-backend, backend-database, backend-cache).
+      </constraint>
+
+      <constraint type="documentation" priority="medium">
+        README Documentation: Deve incluir Quick Start, pré-requisitos (referência à Story 1.0), instruções passo-a-passo, troubleshooting e comandos úteis.
+      </constraint>
+    </development>
+  </constraints>
+
+  <interfaces>
+    <interface type="http">
+      <name>Frontend to Backend API</name>
+      <protocol>HTTP/REST</protocol>
+      <baseUrl>http://localhost:8000/api/v1</baseUrl>
+      <authentication>Token-based (to be implemented in Epic 2)</authentication>
+      <cors>true</cors>
+      <description>Remix frontend makes HTTP requests to Django REST API</description>
+    </interface>
+
+    <interface type="database">
+      <name>Django ORM to PostgreSQL</name>
+      <protocol>PostgreSQL Wire Protocol</protocol>
+      <connectionString>postgresql://talentbase:dev_password@localhost:5432/talentbase_dev</connectionString>
+      <orm>Django ORM</orm>
+      <description>Django connects to PostgreSQL via psycopg2-binary adapter</description>
+    </interface>
+
+    <interface type="cache">
+      <name>Django to Redis</name>
+      <protocol>Redis Protocol</protocol>
+      <connectionString>redis://localhost:6379/0</connectionString>
+      <usage>Session store, Celery broker, application cache</usage>
+      <description>Django uses Redis for caching and as Celery message broker</description>
+    </interface>
+
+    <interface type="workspace">
+      <name>pnpm Workspace Dependency</name>
+      <source>packages/web</source>
+      <target>packages/design-system</target>
+      <linkType>workspace:*</linkType>
+      <description>Remix web package imports components from design system via workspace dependency</description>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      <frontend>
+        Testing frameworks: Vitest for unit tests, Testing Library for component testing, Playwright for E2E tests.
+        Location: packages/web/tests/ for integration tests, packages/web/app/__tests__/ for component tests.
+        Pattern: Test files co-located with components using .test.ts or .test.tsx extension.
+        Coverage target: >80% for critical paths.
+      </frontend>
+
+      <backend>
+        Testing frameworks: pytest with pytest-django plugin, DRF test client for API testing.
+        Location: apps/api/*/tests/ directories within each Django app.
+        Pattern: test_*.py files with pytest fixtures, parametrization, and Django database fixtures (@pytest.mark.django_db).
+        Coverage target: >80% for models, views, and API endpoints.
+      </backend>
+
+      <integration>
+        Integration tests validate cross-service communication (frontend-backend, backend-database, backend-cache).
+        Tests must run against local Docker services (docker-compose up required).
+        Health check endpoints should be tested to ensure service availability.
+      </integration>
+    </standards>
+
+    <locations>
+      <location type="frontend-integration">packages/web/tests/integration/</location>
+      <location type="frontend-component">packages/web/app/components/__tests__/</location>
+      <location type="backend-unit">apps/api/*/tests/</location>
+      <location type="e2e">packages/web/tests/e2e/</location>
+    </locations>
+
+    <ideas>
+      <testIdea ac="11" priority="critical">
+        <title>Frontend-Backend Connection Test</title>
+        <description>Test that Remix app can successfully make HTTP request to Django API health endpoint</description>
+        <implementation>
+          File: packages/web/tests/integration/api-connection.test.ts
+          - Fetch http://localhost:8000/api/v1/health/
+          - Assert response status 200
+          - Validate response contains health status
+        </implementation>
+      </testIdea>
+
+      <testIdea ac="12" priority="critical">
+        <title>Django-PostgreSQL Connection Test</title>
+        <description>Test that Django can successfully connect to PostgreSQL and execute queries</description>
+        <implementation>
+          File: apps/api/core/tests/test_database.py
+          - Use @pytest.mark.django_db decorator
+          - Execute SELECT 1 query via connection.cursor()
+          - Assert query returns expected result
+        </implementation>
+      </testIdea>
+
+      <testIdea ac="12" priority="critical">
+        <title>Django-Redis Connection Test</title>
+        <description>Test that Django can successfully connect to Redis cache</description>
+        <implementation>
+          File: apps/api/core/tests/test_redis.py
+          - Use django.core.cache.cache
+          - Set a test key-value pair
+          - Assert value can be retrieved
+        </implementation>
+      </testIdea>
+
+      <testIdea ac="3" priority="high">
+        <title>Design System Build Test</title>
+        <description>Test that design system package builds successfully</description>
+        <implementation>
+          Command: cd packages/design-system &amp;&amp; pnpm build
+          - Verify dist/ directory created
+          - Verify no build errors
+          - Check exported components exist
+        </implementation>
+      </testIdea>
+
+      <testIdea ac="10" priority="high">
+        <title>Service Startup Test</title>
+        <description>Test that all services start without errors using setup script</description>
+        <implementation>
+          Script: pnpm setup (root package.json)
+          - Verify Docker services start (postgres, redis)
+          - Verify dependencies install (pnpm install, poetry install)
+          - Verify migrations run successfully
+          - Verify no startup errors in logs
+        </implementation>
+      </testIdea>
+
+      <testIdea ac="6,7" priority="medium">
+        <title>Docker Services Health Check</title>
+        <description>Test that PostgreSQL and Redis Docker containers pass health checks</description>
+        <implementation>
+          Commands:
+          - docker-compose ps (verify services running)
+          - psql -h localhost -U talentbase -d talentbase_dev -c "SELECT 1"
+          - redis-cli ping (expect PONG)
+        </implementation>
+      </testIdea>
+    </ideas>
+  </tests>
+
+  <devNotes>
+    <note priority="critical">
+      This story is the foundation for all subsequent Epic 1 stories. Story 1.2 (Database Schema) depends on Django being configured. Story 1.3 (Design System Integration) depends on monorepo structure. Story 1.4 (Landing Page) depends on Remix being configured.
+    </note>
+
+    <note priority="high">
+      Estimated time: 4-6 hours. Complexity: Média (configuração inicial). This is infrastructure setup - focus on getting services running correctly, not on premature optimization.
+    </note>
+
+    <note priority="high">
+      Troubleshooting common issues documented in story Dev Notes section: pnpm workspace dependency resolution, PostgreSQL connection refused, Django migrations fail, CORS errors.
+    </note>
+
+    <note priority="medium">
+      MCP Context included in story provides infrastructure setup overview with monorepo structure, local development environment services, startup sequence, and integration points.
+    </note>
+
+    <note priority="medium">
+      Health check endpoints should be created in apps/api/core/views.py to validate database and cache connections. This will be useful for CI/CD pipeline health checks in Story 1.5.
+    </note>
+  </devNotes>
+
+  <relatedStories>
+    <dependsOn>
+      <story id="1.0" title="Developer Environment Prerequisites">
+        Requires all tools verified and installed (Node 20+, Python 3.11+, pnpm, Poetry, Docker, PostgreSQL client, Redis CLI)
+      </story>
+    </dependsOn>
+
+    <blocks>
+      <story id="1.2" title="Database Schema Implementation">
+        Requires Django configured and migrations system ready
+      </story>
+      <story id="1.3" title="Design System Integration">
+        Requires monorepo structure and workspace dependencies configured
+      </story>
+      <story id="1.4" title="Landing Page">
+        Requires Remix configured and running on port 3000
+      </story>
+      <story id="1.5" title="CI/CD Pipeline">
+        Requires complete project structure and Docker setup
+      </story>
+      <story id="1.6" title="DNS Configuration">
+        Requires deployment structure established
+      </story>
+    </blocks>
+  </relatedStories>
+
+  <filesToCreate>
+    <file path="pnpm-workspace.yaml" purpose="Monorepo workspace configuration"/>
+    <file path="package.json" purpose="Root package.json with workspace scripts"/>
+    <file path="docker-compose.yml" purpose="PostgreSQL and Redis services"/>
+    <file path=".gitignore" purpose="Git ignore patterns for node_modules, .env, __pycache__"/>
+    <file path=".env.example" purpose="Root environment variables documentation"/>
+    <file path="packages/design-system/package.json" purpose="Design system package configuration"/>
+    <file path="packages/design-system/vite.config.ts" purpose="Vite build configuration"/>
+    <file path="packages/design-system/tailwind.config.js" purpose="Tailwind design tokens"/>
+    <file path="packages/web/package.json" purpose="Remix app package configuration"/>
+    <file path="packages/web/vite.config.ts" purpose="Vite config for Remix"/>
+    <file path="packages/web/.env.example" purpose="Frontend environment variables"/>
+    <file path="packages/web/app/routes/_index.tsx" purpose="Basic test route"/>
+    <file path="apps/api/pyproject.toml" purpose="Poetry dependencies"/>
+    <file path="apps/api/talentbase/settings/base.py" purpose="Django shared settings"/>
+    <file path="apps/api/talentbase/settings/development.py" purpose="Django development settings"/>
+    <file path="apps/api/talentbase/settings/production.py" purpose="Django production settings"/>
+    <file path="apps/api/.env.example" purpose="Backend environment variables"/>
+    <file path="apps/api/core/views.py" purpose="Health check endpoints"/>
+  </filesToCreate>
+</story-context>
