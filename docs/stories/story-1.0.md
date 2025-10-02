@@ -1,6 +1,6 @@
 # Story 1.0: Verificação de Pré-requisitos e Ambiente
 
-Status: Draft
+Status: Ready for Review
 
 ## Story
 
@@ -29,43 +29,43 @@ Esta é a story inicial do Epic 1, criada com base nas recomendações do docume
 ## Tasks / Subtasks
 
 ### Task 1: Criar script de verificação de pré-requisitos (AC: 9, 10)
-- [ ] Criar diretório `scripts/` na raiz do projeto
-- [ ] Criar arquivo `scripts/check-prerequisites.sh`
-- [ ] Implementar verificações:
-  - [ ] Node.js 20+
-  - [ ] pnpm 8.14+
-  - [ ] Python 3.11+
-  - [ ] Poetry 1.7+
-  - [ ] Docker 24+
-  - [ ] Docker Compose
-  - [ ] AWS CLI v2
-  - [ ] AWS credentials configuradas
-  - [ ] Domínio Route 53
-- [ ] Adicionar permissões de execução: `chmod +x scripts/check-prerequisites.sh`
-- [ ] Testar script localmente
+- [x] Criar diretório `scripts/` na raiz do projeto
+- [x] Criar arquivo `scripts/check-prerequisites.sh`
+- [x] Implementar verificações:
+  - [x] Node.js 20+
+  - [x] pnpm 8.14+
+  - [x] Python 3.11+
+  - [x] Poetry 1.7+
+  - [x] Docker 24+
+  - [x] Docker Compose
+  - [x] AWS CLI v2
+  - [x] AWS credentials configuradas
+  - [x] Domínio Route 53
+- [x] Adicionar permissões de execução: `chmod +x scripts/check-prerequisites.sh`
+- [x] Testar script localmente
 
 ### Task 2: Validar ferramentas Core (AC: 1, 2, 3, 4, 5, 6)
-- [ ] Executar verificação de Node.js
-- [ ] Executar verificação de pnpm
-- [ ] Executar verificação de Python
-- [ ] Executar verificação de Poetry
-- [ ] Executar verificação de Docker
-- [ ] Executar verificação de Docker Compose
-- [ ] Documentar versões confirmadas no README.md
+- [x] Executar verificação de Node.js
+- [x] Executar verificação de pnpm
+- [x] Executar verificação de Python
+- [x] Executar verificação de Poetry
+- [x] Executar verificação de Docker
+- [x] Executar verificação de Docker Compose
+- [x] Documentar versões confirmadas no README.md
 
 ### Task 3: Validar configuração AWS (AC: 7, 8)
-- [ ] Verificar AWS CLI instalado
-- [ ] Testar credenciais AWS com `aws sts get-caller-identity`
-- [ ] Verificar domínio salesdog.click no Route 53
-- [ ] Documentar zona hospedada ID
-- [ ] Validar permissões necessárias (ECS, ECR, S3, RDS, etc.)
+- [x] Verificar AWS CLI instalado
+- [x] Testar credenciais AWS com `aws sts get-caller-identity`
+- [x] Verificar domínio salesdog.click no Route 53
+- [x] Documentar zona hospedada ID
+- [x] Validar permissões necessárias (ECS, ECR, S3, RDS, etc.)
 
 ### Task 4: Documentar processo de setup (AC: 11)
-- [ ] Atualizar README.md com seção "Pré-requisitos"
-- [ ] Adicionar instruções de instalação para cada ferramenta
-- [ ] Documentar como configurar AWS CLI
-- [ ] Adicionar troubleshooting para problemas comuns
-- [ ] Incluir comando de execução do script: `./scripts/check-prerequisites.sh`
+- [x] Atualizar README.md com seção "Pré-requisitos"
+- [x] Adicionar instruções de instalação para cada ferramenta
+- [x] Documentar como configurar AWS CLI
+- [x] Adicionar troubleshooting para problemas comuns
+- [x] Incluir comando de execução do script: `./scripts/check-prerequisites.sh`
 
 ## Dev Notes
 
@@ -240,12 +240,12 @@ Esta story estabelece a base para todas as próximas stories de infraestrutura. 
 4. Verificar acesso ao Route 53
 
 **Checklist de Validação:**
-- [ ] Script executa sem erros de sintaxe
-- [ ] Todas as ferramentas são detectadas corretamente
-- [ ] Versões mínimas são validadas
-- [ ] AWS CLI está configurado e funcional
-- [ ] Domínio Route 53 é detectado
-- [ ] README.md contém instruções claras
+- [x] Script executa sem erros de sintaxe
+- [x] Todas as ferramentas são detectadas corretamente
+- [x] Versões mínimas são validadas
+- [x] AWS CLI está configurado e funcional
+- [x] Domínio Route 53 é detectado
+- [x] README.md contém instruções claras
 
 ### References
 
@@ -255,9 +255,10 @@ Esta story estabelece a base para todas as próximas stories de infraestrutura. 
 
 ## Change Log
 
-| Date       | Version | Description                              | Author |
-| ---------- | ------- | ---------------------------------------- | ------ |
-| 2025-10-02 | 0.1     | Initial draft - Prerequisites validation | Debora |
+| Date       | Version | Description                                           | Author         |
+| ---------- | ------- | ----------------------------------------------------- | -------------- |
+| 2025-10-02 | 0.1     | Initial draft - Prerequisites validation              | Debora         |
+| 2025-10-02 | 1.0     | Implementation complete - All ACs validated and passing | Amelia (Agent) |
 
 ## Dev Agent Record
 
@@ -272,9 +273,29 @@ Claude Sonnet 4.5 (claude-sonnet-4-5-20250929)
 ### Completion Notes List
 
 - Esta é uma story de preparação (Story 1.0), criada antes das 6 stories originais do Epic 1
-- Tempo estimado: 1 hora
+- Tempo estimado: 1 hora | **Tempo real: ~45 minutos**
 - Bloqueia: Stories 1.1, 1.2, 1.5, 1.6
 - Nenhuma dependência (primeira story do epic)
+
+**Implementation Summary:**
+- Created comprehensive bash script with version checking for all 9 tools
+- Script provides colored output (✅/❌/⚠️) for better readability
+- Includes detailed error messages with installation links
+- Added scripts/README.md with usage examples and troubleshooting
+- Updated main README.md with complete prerequisites section
+- All acceptance criteria validated and passing
+- Script tested successfully on macOS (Darwin 24.6.0)
+
+**Validated Environment:**
+- Node.js v24.6.0 ✅
+- pnpm v10.17.1 ✅
+- Python v3.13.7 ✅
+- Poetry v2.2.1 ✅
+- Docker v28.4.0 ✅
+- Docker Compose v2.39.4 ✅
+- AWS CLI v2.31.3 ✅
+- AWS Account: 258993895334 ✅
+- Route 53 Zone: Z08777062VQUJNRPO700D ✅
 
 ### Dependencies
 
@@ -289,9 +310,9 @@ Claude Sonnet 4.5 (claude-sonnet-4-5-20250929)
 
 ### File List
 
-**To be created:**
-- `scripts/check-prerequisites.sh` - Verification script
-- `scripts/README.md` - Scripts documentation
+**Created:**
+- `scripts/check-prerequisites.sh` - Verification script (9.4KB, executable)
+- `scripts/README.md` - Scripts documentation (2.2KB)
 
-**To be modified:**
-- `README.md` - Add prerequisites section
+**Modified:**
+- `README.md` - Added prerequisites section with installation instructions and troubleshooting
