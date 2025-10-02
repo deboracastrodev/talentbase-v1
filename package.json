@@ -10,6 +10,11 @@
     "build:web": "pnpm --filter @talentbase/web build",
     "build:design-system": "pnpm --filter @talentbase/design-system build",
     "test": "pnpm -r test",
+    "lint": "pnpm -r lint",
+    "lint:fix": "pnpm -r lint:fix",
+    "format": "pnpm -r format",
+    "format:check": "pnpm -r format:check",
+    "typecheck": "pnpm -r typecheck",
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
     "setup": "pnpm install && docker-compose up -d && cd apps/api && poetry install && poetry run python manage.py migrate"

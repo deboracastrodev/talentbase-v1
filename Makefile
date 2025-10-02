@@ -153,19 +153,48 @@ coverage-api: ## Generate API test coverage report
 	@echo "$(GREEN)Generating API coverage report...$(NC)"
 	docker compose exec api poetry run pytest --cov=. --cov-report=html
 
-lint-api: ## Run API linting
+##@ Code Quality
+
+lint: lint-api lint-web ## Run all linting
+
+lint-api: ## Run API linting (ruff + black)
 	@echo "$(GREEN)Running API linting...$(NC)"
 	docker compose exec api poetry run ruff check .
 	docker compose exec api poetry run black --check .
 
-lint-web: ## Run frontend linting
+lint-web: ## Run frontend linting (eslint)
 	@echo "$(GREEN)Running frontend linting...$(NC)"
-	docker compose exec web pnpm --filter @talentbase/web typecheck
+	docker compose exec web pnpm --filter @talentbase/web lint
 
-format-api: ## Format API code
+typecheck: ## Run TypeScript type checking
+	@echo "$(GREEN)Running TypeScript type checking...$(NC)"
+	docker compose exec web pnpm typecheck
+
+format: format-api format-web ## Format all code
+
+format-api: ## Format API code (black + ruff)
 	@echo "$(GREEN)Formatting API code...$(NC)"
 	docker compose exec api poetry run black .
 	docker compose exec api poetry run ruff check --fix .
+
+format-web: ## Format frontend code (prettier)
+	@echo "$(GREEN)Formatting frontend code...$(NC)"
+	docker compose exec web pnpm format
+
+format-check: ## Check code formatting without changes
+	@echo "$(GREEN)Checking code formatting...$(NC)"
+	@echo "\n$(YELLOW)Backend:$(NC)"
+	docker compose exec api poetry run black --check .
+	@echo "\n$(YELLOW)Frontend:$(NC)"
+	docker compose exec web pnpm format:check
+
+lint-fix: ## Fix linting issues automatically
+	@echo "$(GREEN)Fixing linting issues...$(NC)"
+	@echo "\n$(YELLOW)Backend:$(NC)"
+	docker compose exec api poetry run black .
+	docker compose exec api poetry run ruff check --fix .
+	@echo "\n$(YELLOW)Frontend:$(NC)"
+	docker compose exec web pnpm lint:fix
 
 ##@ Cleanup
 
