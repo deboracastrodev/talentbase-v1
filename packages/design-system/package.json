@@ -2,9 +2,17 @@
   "name": "@talentbase/design-system",
   "version": "1.0.0",
   "description": "TalentBase Design System - React components with Tailwind CSS and shadcn/ui",
-  "main": "dist/index.js",
-  "module": "dist/index.mjs",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./tailwind.config": "./tailwind.config.js"
+  },
   "scripts": {
     "dev": "storybook dev -p 6006",
     "build": "tsup && npm run build-storybook",
