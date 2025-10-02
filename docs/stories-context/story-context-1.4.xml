@@ -1,0 +1,134 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>1.4</storyId>
+    <title>Build Public Landing Page</title>
+    <status>Draft</status>
+    <generatedAt>2025-10-02</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>/Users/debor/Documents/sistemas/talentbase-v1/docs/stories/story-1.4.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>visitante</asA>
+    <iWant>ver uma landing page profissional explicando a TalentBase</iWant>
+    <soThat>eu entenda o valor e possa me cadastrar como candidato ou empresa</soThat>
+    <tasks>
+      <task id="1" title="Criar rota da landing page">Implementar rota principal (/) com meta tags SEO e estrutura base</task>
+      <task id="2" title="Implementar Hero Section">Criar seção hero com value proposition e CTAs principais</task>
+      <task id="3" title="Implementar 'Como Funciona'">Desenvolver seções explicativas para candidatos e empresas</task>
+      <task id="4" title="Implementar Benefícios">Criar seção de benefícios com ícones/emojis</task>
+      <task id="5" title="Implementar Footer">Desenvolver footer com contato e redes sociais</task>
+      <task id="6" title="Responsividade">Garantir layout responsivo para mobile, tablet e desktop</task>
+      <task id="7" title="Otimização de Performance">Otimizar imagens, CSS/JS e garantir Performance score >90</task>
+      <task id="8" title="Testes E2E">Criar testes end-to-end para landing page</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC-1">Homepage route (/) renderiza com seção hero</criterion>
+    <criterion id="AC-2">Value proposition clara: "recrutamento especializado em vendas tech"</criterion>
+    <criterion id="AC-3">Seção "Como Funciona" para candidatos e empresas</criterion>
+    <criterion id="AC-4">Seção de benefícios (para candidatos e empresas)</criterion>
+    <criterion id="AC-5">CTAs: "Cadastrar como Candidato", "Cadastrar como Empresa"</criterion>
+    <criterion id="AC-6">Footer com informações de contato e redes sociais</criterion>
+    <criterion id="AC-7">Totalmente responsivo (mobile, tablet, desktop)</criterion>
+    <criterion id="AC-8">Meta tags para SEO (title, description, OG tags)</criterion>
+    <criterion id="AC-9">Page loads <2 segundos (Lighthouse Performance >90)</criterion>
+    <criterion id="AC-10">Testes E2E executando com sucesso</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/stories/story-1.4.md" title="Story 1.4" section="Tasks / Subtasks" snippet="Detailed implementation tasks for landing page including hero section, CTAs, and SEO optimization"/>
+      <doc path="docs/epics/tech-spec-epic-1.md" title="Tech Spec Epic 1" section="Story 1.4: Build Public Landing Page" snippet="Technical specifications for landing page implementation and performance requirements"/>
+      <doc path="docs/site/landingpage.pdf" title="Landing Page Design" section="Design Reference" snippet="Design reference for landing page layout and visual elements"/>
+      <doc path="docs/design-system/README.md" title="Design System Documentation" section="Components" snippet="Documentation for design system components used in landing page"/>
+    </docs>
+    <code>
+      <artifact path="packages/web/app/routes/_index.tsx" kind="page" symbol="Index" lines="30-54" reason="Main landing page route with SEO meta tags and base structure"/>
+      <artifact path="packages/web/app/routes/_index.tsx" kind="component" symbol="HeroSection" lines="57-78" reason="Hero section with value proposition and CTA buttons"/>
+      <artifact path="packages/web/tests/e2e/landing-page.spec.ts" kind="test" symbol="LandingPageE2E" lines="110-143" reason="End-to-end tests for landing page functionality and navigation"/>
+      <artifact path="packages/web/app/components/Footer.tsx" kind="component" symbol="Footer" lines="91-96" reason="Footer component with contact info and social links (optional)"/>
+    </code>
+    <dependencies>
+      <frontend>
+        <package name="@remix-run/node" version="^2.14.0" reason="Remix server runtime for SSR"/>
+        <package name="@remix-run/react" version="^2.14.0" reason="Remix React integration"/>
+        <package name="@talentbase/design-system" version="workspace:*" reason="Design system components (Button, Card, etc.)"/>
+        <package name="react" version="^18.2.0" reason="React library"/>
+        <package name="react-dom" version="^18.2.0" reason="React DOM renderer"/>
+      </frontend>
+      <testing>
+        <package name="@playwright/test" version="^1.40.0" reason="End-to-end testing framework"/>
+        <package name="@testing-library/react" version="^13.4.0" reason="Component testing"/>
+      </testing>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <architecture>
+      <pattern>Remix SSR (Server-Side Rendering) for SEO optimization</pattern>
+      <pattern>Design system components for UI consistency</pattern>
+      <pattern>Responsive design with mobile-first approach</pattern>
+      <pattern>Performance-first with Lighthouse metrics targets</pattern>
+    </architecture>
+    <frontend>
+      <rule>Use semantic HTML (h1, h2, section tags) for accessibility</rule>
+      <rule>Implement proper meta tags for SEO (title, description, OG)</rule>
+      <rule>Ensure all CTAs have proper ARIA labels and keyboard navigation</rule>
+      <rule>Use design system tokens for colors, spacing, and typography</rule>
+      <rule>Optimize images with WebP format and lazy loading</rule>
+    </frontend>
+    <performance>
+      <rule>Lighthouse Performance score >90</rule>
+      <rule>Largest Contentful Paint (LCP) <2.5 seconds</rule>
+      <rule>First Input Delay (FID) <100ms</rule>
+      <rule>Cumulative Layout Shift (CLS) <0.1</rule>
+      <rule>Page load time <2 seconds</rule>
+    </performance>
+    <testing>
+      <rule>E2E tests must cover all main sections and CTAs</rule>
+      <rule>Test responsive behavior across mobile, tablet, desktop</rule>
+      <rule>Verify SEO meta tags are correctly set</rule>
+      <rule>Test navigation to registration pages from CTAs</rule>
+    </testing>
+  </constraints>
+
+  <interfaces>
+    <interface name="Landing Page Route" kind="page" signature="export default function Index()" path="packages/web/app/routes/_index.tsx">
+      Main landing page component using Remix SSR with SEO meta tags and responsive layout.
+    </interface>
+    <interface name="MetaFunction" kind="framework-api" signature="export const meta: MetaFunction" path="packages/web/app/routes/_index.tsx">
+      Remix meta function for setting SEO tags (title, description, OG tags) server-side.
+    </interface>
+    <interface name="Hero Section" kind="component" signature="section with gradient background and CTAs" path="packages/web/app/routes/_index.tsx">
+      Hero section with value proposition, description, and primary CTA buttons for candidate/company registration.
+    </interface>
+    <interface name="E2E Test Suite" kind="test" signature="test('landing page loads and displays all sections')" path="packages/web/tests/e2e/landing-page.spec.ts">
+      Playwright E2E tests verifying landing page sections, CTAs, and navigation functionality.
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Use Playwright for E2E testing with focus on user journeys. Tests located in packages/web/tests/e2e/. Test all critical user flows: page load, section visibility, CTA functionality, and navigation. Use responsive testing to verify mobile, tablet, and desktop layouts. Performance testing with Lighthouse CI. Accessibility testing with axe-core.
+    </standards>
+    <locations>
+      <location pattern="packages/web/tests/e2e/landing-page.spec.ts">Landing page E2E tests</location>
+      <location pattern="packages/web/app/routes/__tests__/_index.test.tsx">Landing page component tests</location>
+    </locations>
+    <ideas>
+      <test ac="AC-1">Test homepage route renders without errors and displays hero section</test>
+      <test ac="AC-2">Test value proposition text is present and clear</test>
+      <test ac="AC-3">Test "Como Funciona" sections for both candidates and companies</test>
+      <test ac="AC-4">Test benefits section displays all key benefits</test>
+      <test ac="AC-5">Test CTA buttons are visible and link to correct registration paths</test>
+      <test ac="AC-6">Test footer contains contact info and social links</test>
+      <test ac="AC-7">Test responsive design across mobile (320px), tablet (768px), desktop (1024px)</test>
+      <test ac="AC-8">Test meta tags (title, description, OG) are correctly set</test>
+      <test ac="AC-9">Run Lighthouse audit and verify Performance score >90</test>
+      <test ac="AC-10">Run full E2E test suite and verify all tests pass</test>
+    </ideas>
+  </tests>
+</story-context>
