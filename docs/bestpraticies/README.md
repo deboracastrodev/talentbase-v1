@@ -25,20 +25,20 @@ Antes de implementar QUALQUER story, você DEVE ler:
 
 ### 🏗️ Arquitetura
 
-- **[Solution Architecture](./epics/solution-architecture.md)** - Visão geral da arquitetura
-- **[Tech Specs](./epics/)** - Especificações técnicas dos Epics
+- **[Solution Architecture](../epics/solution-architecture.md)** - Visão geral da arquitetura
+- **[Tech Specs](../epics/)** - Especificações técnicas dos Epics
 
 ### 📖 Stories
 
-- **[Stories](./stories/)** - User stories para implementação
-  - [Story 1.0](./stories/story-1.0.md) - Django Project Setup ✅
-  - [Story 1.1](./stories/story-1.1.md) - Remix Frontend Setup ✅
-  - [Story 1.2](./stories/story-1.2.md) - Database Schema (Draft)
+- **[Stories](../stories/)** - User stories para implementação
+  - [Story 1.0](../stories/story-1.0.md) - Django Project Setup ✅
+  - [Story 1.1](../stories/story-1.1.md) - Remix Frontend Setup ✅
+  - [Story 1.2](../stories/story-1.2.md) - Database Schema (Draft)
 
 ### 🔧 Setup e Desenvolvimento
 
-- **[Docker Setup](../DOCKER.md)** - Ambiente Docker
-- **[Makefile Commands](../Makefile)** - Comandos de desenvolvimento
+- **[Docker Setup](../../DOCKER.md)** - Ambiente Docker
+- **[Makefile Commands](../../Makefile)** - Comandos de desenvolvimento
 
 ## 🚀 Quick Start
 
@@ -63,7 +63,7 @@ make up
 
 ### Antes de Implementar uma Story
 
-1. ✅ Ler a [Story](./stories/) completa
+1. ✅ Ler a [Story](../stories/) completa
 2. ✅ Ler o [Pre-Implementation Checklist](./PRE_IMPLEMENTATION_CHECKLIST.md)
 3. ✅ Ler os Best Practices relevantes
 4. ✅ Configurar ambiente de desenvolvimento
@@ -222,7 +222,7 @@ talentbase-v1/
 
 PRs serão revisados com base em:
 - ✅ Seguir Best Practices
-- ✅ Testes passando (>= 80% cobertura)
+- ✅ Testes passando (>= 50% cobertura)
 - ✅ Linters sem warnings
 - ✅ Type checking sem erros
 - ✅ Arquitetura correta

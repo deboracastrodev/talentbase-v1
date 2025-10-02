@@ -1,0 +1,143 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>1.2</storyId>
+    <title>Implement Database Schema (All Models)</title>
+    <status>Approved</status>
+    <generatedAt>2025-10-02</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>/Users/debor/Documents/sistemas/talentbase-v1/docs/stories/story-1.2.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>backend developer</asA>
+    <iWant>o schema completo do PostgreSQL implementado como models Django</iWant>
+    <soThat>todas as entidades estejam prontas para desenvolvimento de APIs</soThat>
+    <tasks>
+      <task id="1" title="Criar Django Apps">Criar 7 Django apps: core, authentication, candidates, companies, jobs, applications, matching</task>
+      <task id="2" title="Implementar BaseModel">Criar BaseModel abstrato com UUID PK, timestamps, soft delete</task>
+      <task id="3" title="Implementar User Model">Criar User customizado com email login e roles (admin, candidate, company)</task>
+      <task id="4" title="Implementar Candidate Models">Criar CandidateProfile e Experience com todos os campos do tech spec</task>
+      <task id="5" title="Implementar Company Models">Criar CompanyProfile com campos CNPJ, industry, size</task>
+      <task id="6" title="Implementar Job Models">Criar JobPosting com position, seniority, salary, requirements</task>
+      <task id="7" title="Implementar Application Models">Criar Application linkando candidatos a jobs</task>
+      <task id="8" title="Implementar Ranking Models">Criar Ranking para scores atribuídos pelo admin</task>
+      <task id="9" title="Configurar settings">Adicionar apps ao INSTALLED_APPS, configurar AUTH_USER_MODEL</task>
+      <task id="10" title="Migrations">Criar e aplicar migrations para todos os models</task>
+      <task id="11" title="Testes">Criar testes de models e validações</task>
+      <task id="12" title="Django Admin">Configurar Django admin para todos os models</task>
+      <task id="13" title="Code Quality">Executar linting, formatação, type checking e validar cobertura de testes</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC-1">Model User customizado criado com campo role (admin, candidate, company)</criterion>
+    <criterion id="AC-2">Model CandidateProfile com todos os campos específicos de vendas (position, experience, tools, etc.)</criterion>
+    <criterion id="AC-3">Model CompanyProfile com campos CNPJ, industry, status</criterion>
+    <criterion id="AC-4">Model JobPosting com position, seniority, salary, requirements</criterion>
+    <criterion id="AC-5">Model Application linkando candidatos a jobs</criterion>
+    <criterion id="AC-6">Model Experience para histórico profissional dos candidatos</criterion>
+    <criterion id="AC-7">Model Ranking para scores atribuídos pelo admin</criterion>
+    <criterion id="AC-8">Todas as foreign keys e índices definidos corretamente</criterion>
+    <criterion id="AC-9">Django migrations criadas e aplicadas sem erros</criterion>
+    <criterion id="AC-10">Campos UUID como primary keys em todos os models</criterion>
+    <criterion id="AC-11">Soft deletes implementados via campo is_active</criterion>
+    <criterion id="AC-12">Timestamps created_at e updated_at em todos os models</criterion>
+    <criterion id="AC-13">Testes de model criados e executando com sucesso</criterion>
+    <criterion id="AC-14">Django admin configurado para todos os models</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/arquitetura/database-schema.md" title="Database Schema" section="Models (Django)" snippet="Contains detailed Django model definitions for all 10 models with field types, relationships, and indexes"/>
+      <doc path="docs/epics/tech-spec-epic-1.md" title="Tech Spec Epic 1" section="Story 1.2: Implement Database Schema" snippet="Complete implementation guide with code examples for all 7 Django apps, models, migrations, and testing strategy"/>
+      <doc path="docs/epics/solution-architecture.md" title="Solution Architecture" section="Data Architecture" snippet="High-level architecture decisions including UUID PKs, JSONB fields, soft deletes, and PostgreSQL-specific features"/>
+      <doc path="docs/bestpraticies/BACKEND_BEST_PRACTICES.md" title="Backend Best Practices" section="Models e Database" snippet="Standards for BaseModel inheritance, clean architecture layers, validators, and relationship definitions"/>
+      <doc path="docs/bestpraticies/CODE_QUALITY.md" title="Code Quality Standards" section="Backend (Python/Django)" snippet="Mandatory code quality standards including type hints, docstrings, complexity limits, and test coverage requirements"/>
+    </docs>
+    <code>
+      <artifact path="apps/api/talentbase/settings/base.py" kind="settings" symbol="INSTALLED_APPS" lines="1-50" reason="Need to add all 7 apps to INSTALLED_APPS in correct dependency order"/>
+      <artifact path="apps/api/core/" kind="module" symbol="core" lines="N/A" reason="Base location for BaseModel abstract class"/>
+      <artifact path="apps/api/pyproject.toml" kind="config" symbol="dependencies" lines="8-17" reason="Django and PostgreSQL dependencies already configured"/>
+    </code>
+    <dependencies>
+      <python>
+        <package name="django" version="^5.0" />
+        <package name="psycopg2-binary" version="^2.9.9" reason="PostgreSQL adapter" />
+        <package name="python-decouple" version="^3.8" reason="Environment config" />
+      </python>
+      <dev>
+        <package name="pytest" version="^7.4.0" />
+        <package name="pytest-django" version="^4.5.2" />
+        <package name="black" version="^23.12.0" reason="Code formatting" />
+        <package name="ruff" version="^0.1.0" reason="Linting" />
+        <package name="mypy" version="^1.7.0" reason="Type checking" />
+      </dev>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <architecture>
+      <pattern>Clean Architecture - Models contain only data structure, no business logic</pattern>
+      <pattern>All models must inherit from BaseModel (except User which extends AbstractBaseUser)</pattern>
+      <pattern>Use UUIDs for all primary keys for security (non-sequential IDs)</pattern>
+      <pattern>Implement soft deletes via is_active field instead of hard deletes</pattern>
+      <pattern>Use PostgreSQL JSONB for flexible data (top_skills, required_skills)</pattern>
+    </architecture>
+    <database>
+      <rule>All models must have created_at and updated_at timestamps</rule>
+      <rule>Use db_index=True for frequently queried fields (status, position, is_active)</rule>
+      <rule>Define composite indexes for common query patterns</rule>
+      <rule>Use unique_together to prevent duplicate data (e.g., Application: job + candidate)</rule>
+    </database>
+    <codeQuality>
+      <rule>All models must have docstrings explaining their purpose</rule>
+      <rule>All fields must have help_text for Django admin clarity</rule>
+      <rule>Use type hints in all methods and validators</rule>
+      <rule>Maximum function complexity: 10 (cyclomatic complexity)</rule>
+      <rule>Test coverage must be >= 50% for all model code</rule>
+    </codeQuality>
+    <testing>
+      <rule>Every model must have at least one creation test</rule>
+      <rule>Test all custom validators (e.g., validate_youtube_url)</rule>
+      <rule>Test relationships (ForeignKey, OneToOne) for correctness</rule>
+      <rule>Test soft delete functionality</rule>
+      <rule>Test ordering (Meta.ordering)</rule>
+    </testing>
+  </constraints>
+
+  <interfaces>
+    <interface name="BaseModel" kind="abstract-model" signature="class BaseModel(models.Model)" path="apps/api/core/models.py">
+      Abstract base model providing id (UUID), created_at, updated_at, is_active fields. All models must inherit from this except User.
+    </interface>
+    <interface name="User (AbstractBaseUser)" kind="model" signature="class User(AbstractBaseUser, PermissionsMixin)" path="apps/api/authentication/models.py">
+      Custom user model with email as USERNAME_FIELD, role choices (admin/candidate/company), managed by UserManager.
+    </interface>
+    <interface name="Django ORM Manager" kind="framework-api" signature="objects = models.Manager()">
+      Standard Django ORM interface for querying models. Use select_related/prefetch_related for optimization.
+    </interface>
+    <interface name="Django Migration System" kind="framework-api" signature="python manage.py makemigrations / migrate">
+      Django's database migration system. All schema changes must go through migrations.
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Use pytest with pytest-django plugin. Tests located in apps/api/*/tests/. All model tests must use @pytest.mark.django_db decorator. Use fixtures for common test data (users, profiles). Follow AAA pattern (Arrange, Act, Assert). Use factories or fixture functions to create test objects. Test both happy paths and edge cases (validation errors, constraint violations). Coverage target: >= 50% for all code, >= 80% for critical business logic.
+    </standards>
+    <locations>
+      <location pattern="apps/api/*/tests/test_models.py">Model-specific tests</location>
+      <location pattern="apps/api/*/tests/test_validators.py">Custom validator tests</location>
+      <location pattern="apps/api/core/tests/">Core utility tests</location>
+    </locations>
+    <ideas>
+      <test ac="AC-1">Test User model creation with all three roles (admin, candidate, company). Test UserManager create_user and create_superuser methods.</test>
+      <test ac="AC-2">Test CandidateProfile creation with all required fields. Test JSONB fields (top_skills, tools_software) accept lists. Test public_token is auto-generated.</test>
+      <test ac="AC-6">Test Experience model ordering (most recent first). Test end_date can be null for current jobs.</test>
+      <test ac="AC-8">Test unique_together constraint on Application (job + candidate). Test CASCADE and SET_NULL behaviors on delete.</test>
+      <test ac="AC-9">Run makemigrations and migrate in test suite to verify no migration conflicts.</test>
+      <test ac="AC-11">Test BaseModel soft_delete() method marks is_active=False without deleting record.</test>
+      <test ac="AC-13">Test validate_youtube_url accepts youtube.com and youtu.be, rejects other domains.</test>
+    </ideas>
+  </tests>
+</story-context>

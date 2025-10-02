@@ -1,11 +1,11 @@
 # Story 1.2: Implement Database Schema (All Models)
 
-Status: Draft
+Status: Approved
 
 **⚠️ IMPORTANTE: Antes de iniciar esta story, leia:**
-- [Code Quality Standards](../CODE_QUALITY.md)
-- [Backend Best Practices](../BACKEND_BEST_PRACTICES.md)
-- [Pre-Implementation Checklist](../PRE_IMPLEMENTATION_CHECKLIST.md)
+- [Code Quality Standards](../bestpraticies/CODE_QUALITY.md)
+- [Backend Best Practices](../bestpraticies/BACKEND_BEST_PRACTICES.md)
+- [Pre-Implementation Checklist](../bestpraticies/PRE_IMPLEMENTATION_CHECKLIST.md)
 
 ## Story
 
@@ -1208,7 +1208,9 @@ poetry run python manage.py migrate
 
 ### Context Reference
 
-Story baseada no tech spec Epic 1 e incorporando TODAS as correções do review document (gap crítico do app matching + validação YouTube URL).
+- **Story Context XML**: [docs/stories-context/story-context-1.2.xml](../stories-context/story-context-1.2.xml)
+- **Source Docs**: Tech Spec Epic 1 + Review corrections (gap crítico app matching + validação YouTube URL)
+- **Generated**: 2025-10-02 via BMAD Story Context Workflow
 
 ### Agent Model Used
 
