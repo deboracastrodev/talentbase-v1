@@ -1,6 +1,6 @@
 # Story 1.1: Setup Monorepo Structure & Development Environment
 
-Status: Ready for Review
+Status: Done
 
 ## Story
 
@@ -577,6 +577,7 @@ poetry run python manage.py migrate
 | ---------- | ------- | ----------------------------------------- | ------ |
 | 2025-10-02 | 0.1     | Initial draft - Monorepo setup foundation | Debora |
 | 2025-10-02 | 1.0     | Implementation complete - All 9 tasks finished, 12 ACs satisfied, ready for review | Claude (Dev Agent) |
+| 2025-10-02 | 1.1     | Senior Developer Review notes appended - APPROVED with minor recommendations | Claude (Review Agent) |
 
 ## Dev Agent Record
 
@@ -680,3 +681,282 @@ Claude Sonnet 4.5 (claude-sonnet-4-5-20250929)
 - ✅ `apps/api/talentbase/asgi.py` - Updated to use settings.development
 - ✅ `apps/api/talentbase/urls.py` - Added health check endpoint
 - ✅ `packages/web/package.json` - Added vitest scripts
+
+---
+
+## Senior Developer Review (AI)
+
+**Reviewer:** Debora
+**Date:** 2025-10-02
+**Outcome:** Approve with Minor Recommendations
+
+### Summary
+
+Story 1.1 successfully establishes the technical foundation for TalentBase with a well-structured monorepo, comprehensive documentation, and working integration across all services. The implementation demonstrates strong adherence to architectural patterns, proper separation of concerns, and thorough testing coverage. All 12 acceptance criteria are satisfied, with services running healthily in both Docker and local development modes.
+
+**Strengths:**
+- Excellent monorepo structure using pnpm workspaces with proper dependency isolation
+- Comprehensive health check implementation validating all critical connections
+- Well-organized Django settings split (base/development/production) following best practices
+- Strong test coverage for integration points (database, cache, API connectivity)
+- Outstanding documentation in README.md with both Docker and local development paths
+- Proper CORS configuration with environment-based origins
+- Clean separation of concerns with core utilities module
+
+**Recommended Improvements:** Minor security and operational enhancements identified (see Action Items below).
+
+### Key Findings
+
+#### High Priority
+None. All critical infrastructure components are properly implemented.
+
+#### Medium Priority
+
+1. **Environment Variable Security** (`apps/api/.env.example`, line 2)
+   - **Issue:** Default SECRET_KEY value in `.env.example` should explicitly indicate it's for example purposes only
+   - **Risk:** Developers might accidentally use example secrets in production
+   - **Recommendation:** Add clear comment warnings in all `.env.example` files
+   - **Reference:** AC #8
+
+2. **Docker Compose Enhancement** (`docker-compose.yml`, lines 9-11)
+   - **Issue:** Environment variables use hardcoded fallbacks in healthcheck rather than variables
+   - **Risk:** Healthcheck inconsistency if DB credentials are changed
+   - **Recommendation:** Already using env vars correctly; minor inconsistency in healthcheck command
+   - **Reference:** AC #6, #7
+
+3. **Missing API URL Configuration** (`packages/web/.env.example`)
+   - **Finding:** API_URL environment variable documented but not fully utilized in Remix app yet
+   - **Status:** Acceptable for Story 1.1 (infrastructure setup); will be needed in Story 2.1+
+   - **Reference:** AC #11
+
+#### Low Priority
+
+4. **Test Environment Isolation** (`apps/api/pytest.ini`, line 66)
+   - **Observation:** Tests use development settings; consider separate test database settings
+   - **Recommendation:** Create `talentbase.settings.test` for future test isolation
+   - **Reference:** Testing standards
+
+5. **Django Admin Not Configured** (`apps/api/talentbase/urls.py`)
+   - **Observation:** Admin is included but models aren't registered yet
+   - **Status:** Expected for Story 1.1; will be addressed in Story 1.2 (Database Schema)
+
+### Acceptance Criteria Coverage
+
+All 12 acceptance criteria **FULLY SATISFIED**:
+
+| AC | Criterion | Status | Evidence |
+|----|-----------|--------|----------|
+| 1 | Monorepo structure (`packages/design-system`, `packages/web`, `apps/api`) | ✅ | [pnpm-workspace.yaml](pnpm-workspace.yaml:1), directory structure verified |
+| 2 | pnpm workspace configured | ✅ | [pnpm-workspace.yaml](pnpm-workspace.yaml:1-3) |
+| 3 | Design system builds with Vite + React | ✅ | [packages/design-system/package.json](packages/design-system/package.json), existing build verified |
+| 4 | Remix app runs on port 3000 | ✅ | [packages/web/package.json:7](packages/web/package.json#L7), vite dev server configured |
+| 5 | Django runs on port 8000 | ✅ | [docker-compose.yml:42](docker-compose.yml#L42), settings validated |
+| 6 | PostgreSQL via Docker (port 5432) | ✅ | [docker-compose.yml:3-20](docker-compose.yml#L3), healthcheck passes |
+| 7 | Redis via Docker (port 6379) | ✅ | [docker-compose.yml:22-34](docker-compose.yml#L22), healthcheck passes |
+| 8 | Environment variables documented (`.env.example` files) | ✅ | Root, apps/api, packages/web all have `.env.example` |
+| 9 | README.md with complete setup instructions | ✅ | [README.md:1-150](README.md), comprehensive Quick Start, troubleshooting |
+| 10 | All services start without errors | ✅ | Health checks passing, integration tests validate startup |
+| 11 | Frontend connects to backend via HTTP | ✅ | [packages/web/tests/integration/api-connection.test.ts:1-17](packages/web/tests/integration/api-connection.test.ts) |
+| 12 | Backend connects to PostgreSQL and Redis | ✅ | [apps/api/core/tests/test_database.py](apps/api/core/tests/test_database.py), [test_redis.py](apps/api/core/tests/test_redis.py), [test_health_endpoint.py](apps/api/core/tests/test_health_endpoint.py) |
+
+### Test Coverage and Gaps
+
+**Test Coverage: Excellent**
+
+**Backend Tests (Python/Django):**
+- ✅ Database connection test ([apps/api/core/tests/test_database.py](apps/api/core/tests/test_database.py:1-14))
+- ✅ Redis cache test ([apps/api/core/tests/test_redis.py](apps/api/core/tests/test_redis.py:1-17))
+- ✅ Health endpoint test ([apps/api/core/tests/test_health_endpoint.py](apps/api/core/tests/test_health_endpoint.py:1-19))
+
+**Frontend Tests (TypeScript/Vitest):**
+- ✅ API integration test ([packages/web/tests/integration/api-connection.test.ts](packages/web/tests/integration/api-connection.test.ts:1-17))
+
+**Gaps Identified:**
+1. **Missing:** End-to-end Playwright tests for full stack validation (planned for Story 1.4 Landing Page)
+2. **Future:** Design system component tests (acceptable for Story 1.1; existing Storybook provides documentation)
+
+**Test Quality:**
+- Assertions are specific and meaningful
+- Tests properly use pytest markers (`@pytest.mark.django_db`)
+- Integration tests correctly validate service connectivity
+- Health check test validates all three statuses (status, database, cache)
+
+### Architectural Alignment
+
+**Alignment with Tech Spec: Excellent**
+
+1. **Monorepo Pattern** ✅
+   - Correctly implements pnpm workspaces with package isolation
+   - Workspace dependency linking working (`@talentbase/design-system`: `workspace:*`)
+   - Centralized scripts in root [package.json](package.json:6-20)
+
+2. **Technology Stack** ✅
+   - Frontend: Remix 2.14+, React 18.2+, TypeScript 5.1+ ✅
+   - Backend: Django 5.0+, DRF 3.14+, Python 3.11+ ✅
+   - Database: PostgreSQL 15-alpine ✅
+   - Cache: Redis 7-alpine ✅
+   - Package managers: pnpm 8.14+, Poetry 1.7+ ✅
+
+3. **Settings Structure** ✅
+   - Django settings properly split: [base.py](apps/api/talentbase/settings/base.py), [development.py](apps/api/talentbase/settings/development.py), [production.py](apps/api/talentbase/settings/production.py)
+   - Custom User model configured ([base.py:158](apps/api/talentbase/settings/base.py#L158))
+   - CORS properly configured ([development.py:14-22](apps/api/talentbase/settings/development.py#L14))
+
+4. **Docker Compose Architecture** ✅
+   - Proper service dependencies with healthchecks
+   - Networks isolated (talentbase_network)
+   - Volumes for data persistence
+   - Environment variable configuration
+
+**Deviations:** None. Implementation fully aligns with technical specification.
+
+### Security Notes
+
+**Security Posture: Good with Minor Recommendations**
+
+**Implemented Correctly:**
+1. ✅ **CORS Configuration:** Properly restricts origins to localhost:3000 and dev.salesdog.click ([development.py:14-16](apps/api/talentbase/settings/development.py#L14))
+2. ✅ **CSRF Protection:** CSRF_TRUSTED_ORIGINS configured ([development.py:20-22](apps/api/talentbase/settings/development.py#L20))
+3. ✅ **Secret Management:** Uses python-decouple for environment-based configuration
+4. ✅ **Database Credentials:** Not hardcoded; loaded from environment variables
+5. ✅ **Django Security Middleware:** Properly ordered in middleware stack ([base.py:46-55](apps/api/talentbase/settings/base.py#L46))
+
+**Recommendations:**
+
+1. **[Med] Environment Variable Documentation** (`.env.example` files)
+   - Add explicit warnings that example values are insecure
+   - Example: `# WARNING: Change this in production! Never use default values.`
+   - Files: [.env.example](.env.example), [apps/api/.env.example](apps/api/.env.example), [packages/web/.env.example](packages/web/.env.example)
+
+2. **[Low] Production Settings Hardening** ([apps/api/talentbase/settings/production.py](apps/api/talentbase/settings/production.py))
+   - Verify `SECURE_SSL_REDIRECT = True` is set (for Story 1.6 DNS/SSL)
+   - Add `SECURE_HSTS_SECONDS = 31536000` (when SSL is live)
+   - Add `SESSION_COOKIE_SECURE = True`
+   - Add `CSRF_COOKIE_SECURE = True`
+   - *Note:* Can be deferred to Story 1.6 (SSL Configuration)
+
+3. **[Low] Django Debug Toolbar** (Optional Development Enhancement)
+   - Consider adding `django-debug-toolbar` to development dependencies for debugging
+   - Not critical for Story 1.1 completion
+
+**Security Risks:** None identified for current development stage.
+
+### Best-Practices and References
+
+**Tech Stack Detected:**
+- **Frontend:** Node.js 20, pnpm 8.14+, Remix 2.14, React 18.2, TypeScript 5.1, Vite 5.1
+- **Backend:** Python 3.11, Django 5.0, Django REST Framework 3.14, Poetry 1.7
+- **Infrastructure:** PostgreSQL 15, Redis 7, Docker Compose
+- **Code Quality:** Black, Ruff, mypy (Python), ESLint, Prettier (TypeScript)
+
+**Best Practices Applied:**
+
+1. **Django Settings Management** ✅
+   - Reference: [Two Scoops of Django](https://www.feldroy.com/books/two-scoops-of-django-3-x) - Settings organization pattern
+   - Implementation: [apps/api/talentbase/settings/](apps/api/talentbase/settings/)
+
+2. **Monorepo with pnpm Workspaces** ✅
+   - Reference: [pnpm Workspace Best Practices](https://pnpm.io/workspaces)
+   - Implementation: [pnpm-workspace.yaml](pnpm-workspace.yaml), workspace dependency linking
+
+3. **Docker Compose Healthchecks** ✅
+   - Reference: [Docker Compose Healthcheck](https://docs.docker.com/compose/compose-file/05-services/#healthcheck)
+   - Implementation: [docker-compose.yml:14-18](docker-compose.yml#L14) (PostgreSQL), [docker-compose.yml:28-32](docker-compose.yml#L28) (Redis)
+
+4. **Django REST Framework Configuration** ✅
+   - Reference: [DRF Settings](https://www.django-rest-framework.org/api-guide/settings/)
+   - Implementation: [base.py:136-143](apps/api/talentbase/settings/base.py#L136)
+
+5. **Python Code Quality Tools** ✅
+   - Reference: [Ruff - Modern Python Linter](https://docs.astral.sh/ruff/)
+   - Implementation: [pyproject.toml:36-62](apps/api/pyproject.toml#L36)
+
+**Framework Version Compliance:**
+- Django 5.0+ ✅ (latest stable, long-term support)
+- Remix 2.14+ ✅ (stable, Vite-based)
+- PostgreSQL 15 ✅ (alpine variant for smaller image size)
+- Redis 7 ✅ (latest stable)
+
+**References:**
+- [Django Project Structure Best Practices](https://docs.djangoproject.com/en/5.0/intro/reusable-apps/)
+- [Remix Documentation - Getting Started](https://remix.run/docs/en/main/start/quickstart)
+- [pnpm Workspaces](https://pnpm.io/workspaces)
+- [Docker Compose Networking](https://docs.docker.com/compose/networking/)
+- [Python Decouple - Environment Management](https://github.com/HBNetwork/python-decouple)
+
+### Action Items
+
+**Priority: Medium**
+
+1. **Add Security Warnings to `.env.example` Files**
+   - **File:** `.env.example`, `apps/api/.env.example`, `packages/web/.env.example`
+   - **Action:** Prepend clear warnings about not using example secrets in production
+   - **Example:**
+     ```bash
+     # ⚠️  WARNING: These are example values for development only!
+     # ⚠️  NEVER use these values in production environments!
+     # ⚠️  Generate strong, unique secrets for production deployments.
+
+     DJANGO_SECRET_KEY=your-secret-key-here-change-in-production
+     ```
+   - **Owner:** Dev Team
+   - **Related:** AC #8, Security Best Practices
+
+2. **Document Test Execution Requirements**
+   - **File:** `README.md` or new `TESTING.md`
+   - **Action:** Add section documenting test execution (requires Docker services running)
+   - **Example:**
+     ```markdown
+     ## Running Tests
+
+     ### Backend Tests (Python/pytest)
+     ```bash
+     # Ensure Docker services are running
+     docker-compose up -d postgres redis
+
+     cd apps/api
+     poetry run pytest
+     ```
+
+     ### Frontend Integration Tests
+     ```bash
+     # Ensure backend is running
+     pnpm dev:api &
+
+     cd packages/web
+     pnpm test
+     ```
+     ```
+   - **Owner:** Dev Team
+   - **Related:** Testing standards, AC #10
+
+**Priority: Low**
+
+3. **Create Test-Specific Django Settings** (Future Enhancement)
+   - **File:** `apps/api/talentbase/settings/test.py`
+   - **Action:** Create isolated test settings to avoid polluting development database
+   - **Defer to:** Story 1.2 or when test suite grows significantly
+   - **Owner:** Dev Team
+
+4. **Production Settings Hardening** (Deferred to Story 1.6)
+   - **File:** `apps/api/talentbase/settings/production.py`
+   - **Action:** Add SSL/HTTPS security headers when SSL is configured
+   - **Settings to add:**
+     - `SECURE_SSL_REDIRECT = True`
+     - `SECURE_HSTS_SECONDS = 31536000`
+     - `SESSION_COOKIE_SECURE = True`
+     - `CSRF_COOKIE_SECURE = True`
+   - **Defer to:** Story 1.6 (DNS & SSL Configuration)
+   - **Owner:** DevOps/Dev Team
+
+5. **Consider Adding Django Admin Model Registration** (Optional)
+   - **File:** `apps/api/core/admin.py` (create if needed)
+   - **Action:** Register core models in Django admin when models are created in Story 1.2
+   - **Defer to:** Story 1.2 (Database Schema Implementation)
+   - **Owner:** Dev Team
+
+---
+
+**Review Completed:** 2025-10-02
+**Next Story:** Story 1.2 - Database Schema Implementation
+**Status Recommendation:** ✅ **APPROVED** - Proceed to Story 1.2
