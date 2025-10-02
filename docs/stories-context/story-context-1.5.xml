@@ -1,0 +1,139 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>1.5</storyId>
+    <title>Implement CI/CD Pipeline (GitHub Actions)</title>
+    <status>Draft</status>
+    <generatedAt>2025-10-02</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>/Users/debor/Documents/sistemas/talentbase-v1/docs/stories/story-1.5.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>DevOps engineer</asA>
+    <iWant>deployment automatizado para AWS a cada merge</iWant>
+    <soThat>o time possa entregar features continuamente</soThat>
+    <tasks>
+      <task id="1" title="Criar Dockerfiles">Implementar Dockerfiles multi-stage para API e Web apps</task>
+      <task id="2" title="Criar GitHub Actions workflow">Desenvolver pipeline principal com testes, build e deploy</task>
+      <task id="3" title="Configurar AWS Secrets">Adicionar credenciais AWS no GitHub e verificar permissões IAM</task>
+      <task id="4" title="Criar workflow de rollback">Implementar rollback manual para dev e prod</task>
+      <task id="5" title="Health checks e validação">Adicionar health checks e notificações de deployment</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC-1">GitHub Actions workflow criado (.github/workflows/deploy.yml)</criterion>
+    <criterion id="AC-2">Workflow executa em push para develop e master</criterion>
+    <criterion id="AC-3">Testes backend executam (Django pytest)</criterion>
+    <criterion id="AC-4">Testes frontend executam (Vitest)</criterion>
+    <criterion id="AC-5">Build Remix produção funciona</criterion>
+    <criterion id="AC-6">Docker images construídas para API e Web</criterion>
+    <criterion id="AC-7">Images enviadas para AWS ECR</criterion>
+    <criterion id="AC-8">ECS services atualizados com novas images</criterion>
+    <criterion id="AC-9">Deployment completa em <15 minutos</criterion>
+    <criterion id="AC-10">Health checks validam deployment bem-sucedido</criterion>
+    <criterion id="AC-11">Rollback workflow disponível</criterion>
+    <criterion id="AC-12">Notificações de deployment (sucesso/falha)</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/stories/story-1.5.md" title="Story 1.5" section="Tasks / Subtasks" snippet="Detailed CI/CD implementation tasks including Dockerfiles, GitHub Actions workflows, and AWS configuration"/>
+      <doc path="docs/epics/tech-spec-epic-1.md" title="Tech Spec Epic 1" section="Story 1.5: Implement CI/CD Pipeline" snippet="Technical specifications for CI/CD pipeline with GitHub Actions and AWS ECS"/>
+      <doc path="docs/epics/tech-spec-epic-1-review.md" title="Tech Spec Review" section="Gap Menor 4" snippet="Identified gap for Django settings configuration per environment in CI"/>
+      <doc path="DOCKER.md" title="Docker Documentation" section="Multi-stage Builds" snippet="Documentation for Docker multi-stage builds and optimization strategies"/>
+    </docs>
+    <code>
+      <artifact path=".github/workflows/deploy.yml" kind="workflow" symbol="DeployWorkflow" lines="82-216" reason="Main CI/CD pipeline with testing, build, and deployment stages"/>
+      <artifact path=".github/workflows/rollback.yml" kind="workflow" symbol="RollbackWorkflow" lines="229-260" reason="Manual rollback workflow for development and production environments"/>
+      <artifact path="apps/api/Dockerfile" kind="dockerfile" symbol="APIDockerfile" lines="33-49" reason="Dockerfile for Django API with multi-stage build and Gunicorn"/>
+      <artifact path="packages/web/Dockerfile" kind="dockerfile" symbol="WebDockerfile" lines="51-79" reason="Dockerfile for Remix web app with pnpm workspace support"/>
+    </code>
+    <dependencies>
+      <infrastructure>
+        <package name="aws-actions/configure-aws-credentials" version="v4" reason="AWS authentication in GitHub Actions"/>
+        <package name="aws-actions/amazon-ecr-login" version="v2" reason="ECR authentication for Docker push"/>
+        <package name="actions/setup-python" version="v5" reason="Python environment setup"/>
+        <package name="actions/setup-node" version="v4" reason="Node.js environment setup"/>
+      </infrastructure>
+      <testing>
+        <package name="pytest" version="^7.4.0" reason="Backend testing framework"/>
+        <package name="vitest" version="^1.0.0" reason="Frontend testing framework"/>
+        <package name="@playwright/test" version="^1.40.0" reason="E2E testing framework"/>
+      </testing>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <architecture>
+      <pattern>Multi-stage Docker builds for optimized production images</pattern>
+      <pattern>GitHub Actions for CI/CD orchestration</pattern>
+      <pattern>AWS ECS Fargate for container orchestration</pattern>
+      <pattern>Environment-specific configurations per branch (develop/master)</pattern>
+    </architecture>
+    <cicd>
+      <rule>All tests must pass before deployment (backend, frontend, E2E)</rule>
+      <rule>Docker images must be tagged with git SHA for traceability</rule>
+      <rule>Deployment must complete within 15 minutes timeout</rule>
+      <rule>Health checks must validate successful deployment</rule>
+      <rule>Rollback capability must be available for emergencies</rule>
+    </cicd>
+    <security>
+      <rule>AWS credentials stored in GitHub Secrets (not in code)</rule>
+      <rule>Docker images must not contain dev dependencies in production</rule>
+      <rule>IAM permissions must follow principle of least privilege</rule>
+      <rule>Environment variables must be properly scoped per environment</rule>
+    </security>
+    <testing>
+      <rule>Test stage must run in parallel for efficiency</rule>
+      <rule>Backend tests must include coverage reporting</rule>
+      <rule>E2E tests must run in CI environment</rule>
+      <rule>All test failures must block deployment</rule>
+    </testing>
+  </constraints>
+
+  <interfaces>
+    <interface name="GitHub Actions Deploy Workflow" kind="workflow" signature="name: Deploy to AWS ECS" path=".github/workflows/deploy.yml">
+      Main CI/CD pipeline with test, build, and deploy stages. Triggers on push to develop/master branches.
+    </interface>
+    <interface name="Rollback Workflow" kind="workflow" signature="name: Rollback Deployment" path=".github/workflows/rollback.yml">
+      Manual rollback workflow with environment selection (dev/prod) via workflow_dispatch.
+    </interface>
+    <interface name="API Dockerfile" kind="dockerfile" signature="FROM python:3.11-slim AS base" path="apps/api/Dockerfile">
+      Multi-stage Dockerfile for Django API with Poetry dependency management and Gunicorn.
+    </interface>
+    <interface name="Web Dockerfile" kind="dockerfile" signature="FROM node:20-alpine AS base" path="packages/web/Dockerfile">
+      Multi-stage Dockerfile for Remix web app with pnpm workspace and production build.
+    </interface>
+    <interface name="AWS ECS CLI" kind="cli" signature="aws ecs update-service --force-new-deployment">
+      AWS CLI commands for ECS service updates and deployment monitoring.
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Use GitHub Actions for CI/CD testing. Validate pipeline execution on branch pushes. Test Docker image builds and pushes. Verify ECS service updates and health checks. Test rollback functionality manually. Monitor deployment times and performance metrics. Use environment-specific testing (DJANGO_SETTINGS_MODULE per branch).
+    </standards>
+    <locations>
+      <location pattern=".github/workflows/deploy.yml">Main deployment pipeline</location>
+      <location pattern=".github/workflows/rollback.yml">Rollback workflow</location>
+      <location pattern="apps/api/Dockerfile">API Docker image tests</location>
+      <location pattern="packages/web/Dockerfile">Web Docker image tests</location>
+    </locations>
+    <ideas>
+      <test ac="AC-1">Test GitHub Actions workflow creation and syntax validation</test>
+      <test ac="AC-2">Test workflow triggers on push to develop and master branches</test>
+      <test ac="AC-3">Test backend tests execution with pytest and coverage</test>
+      <test ac="AC-4">Test frontend tests execution with Vitest</test>
+      <test ac="AC-5">Test Remix production build completes successfully</test>
+      <test ac="AC-6">Test Docker images build without errors for API and Web</test>
+      <test ac="AC-7">Test Docker images push to AWS ECR registry</test>
+      <test ac="AC-8">Test ECS services update with new images</test>
+      <test ac="AC-9">Test deployment completes within 15-minute timeout</test>
+      <test ac="AC-10">Test health checks validate successful deployment</test>
+      <test ac="AC-11">Test rollback workflow functions correctly</test>
+      <test ac="AC-12">Test deployment notifications (success/failure)</test>
+    </ideas>
+  </tests>
+</story-context>
