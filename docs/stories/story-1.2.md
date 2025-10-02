@@ -2,6 +2,11 @@
 
 Status: Draft
 
+**⚠️ IMPORTANTE: Antes de iniciar esta story, leia:**
+- [Code Quality Standards](../CODE_QUALITY.md)
+- [Backend Best Practices](../BACKEND_BEST_PRACTICES.md)
+- [Pre-Implementation Checklist](../PRE_IMPLEMENTATION_CHECKLIST.md)
+
 ## Story
 
 Como um **backend developer**,
@@ -816,6 +821,80 @@ Esta story implementa todo o schema do banco de dados TalentBase conforme especi
   poetry run python manage.py createsuperuser
   ```
 - [ ] Acessar Django Admin: http://localhost:8000/admin/
+
+### Task 13: Code Quality e Validação (OBRIGATÓRIO)
+- [ ] **Executar linting do código Python:**
+  ```bash
+  # Via Make (Docker)
+  make lint-api
+
+  # Ou via Poetry (local)
+  cd apps/api
+  poetry run ruff check .
+  poetry run black --check .
+  ```
+
+- [ ] **Corrigir automaticamente problemas de formatação:**
+  ```bash
+  # Via Make (Docker)
+  make format-api
+
+  # Ou via Poetry (local)
+  poetry run black .
+  poetry run ruff check --fix .
+  ```
+
+- [ ] **Executar verificação de tipos com mypy:**
+  ```bash
+  cd apps/api
+  poetry run mypy .
+  ```
+
+- [ ] **Validar complexidade ciclomática:**
+  - Funções devem ter complexidade < 10
+  - Ruff já valida com regra C901
+  - Se houver warnings, refatorar funções complexas
+
+- [ ] **Revisar imports:**
+  - Nenhum import não utilizado
+  - Imports organizados por: stdlib → third-party → local
+  - Ruff organiza automaticamente com `--fix`
+
+- [ ] **Executar todos os testes:**
+  ```bash
+  # Via Make (Docker)
+  make test-api
+
+  # Ou via Poetry (local)
+  poetry run pytest -v
+  ```
+
+- [ ] **Verificar cobertura de testes (meta: >80%):**
+  ```bash
+  # Via Make (Docker)
+  make coverage-api
+
+  # Ou via Poetry (local)
+  poetry run pytest --cov=. --cov-report=html
+  # Abrir htmlcov/index.html no navegador
+  ```
+
+- [ ] **Checklist de Code Quality Backend:**
+  - [ ] Todos os models herdam de BaseModel (exceto User)
+  - [ ] Docstrings em todas as classes e métodos públicos
+  - [ ] Type hints em todas as funções
+  - [ ] Nenhuma função com mais de 50 linhas
+  - [ ] Nenhuma função com complexidade ciclomática > 10
+  - [ ] Validadores customizados documentados
+  - [ ] Nenhum código comentado (remover ou explicar)
+  - [ ] Nenhum TODO sem issue/ticket associado
+  - [ ] Seguir Clean Architecture (models não devem ter lógica de negócio complexa)
+
+- [ ] **Checklist de Segurança:**
+  - [ ] CPF e CNPJ marcados para encriptação futura
+  - [ ] Nenhuma senha ou chave em hardcode
+  - [ ] Validação de URLs externas (YouTube validator)
+  - [ ] Foreign keys com on_delete apropriado
 
 ## Dev Notes
 
