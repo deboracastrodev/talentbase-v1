@@ -82,14 +82,59 @@ Execute o script de verificação para validar seu ambiente:
 
 ## 🚀 Quick Start
 
-### 1. Clonar o Repositório
+**Escolha uma das opções abaixo:**
+
+### Opção 1: Docker (Recomendado) 🐳
+
+**Desenvolvimento completo em containers - sem instalar dependências localmente!**
+
+```bash
+# 1. Clonar repositório
+git clone <repo-url> talentbase-v1
+cd talentbase-v1
+
+# 2. Setup completo com um comando
+make dev
+
+# Pronto! Acesse:
+# Frontend: http://localhost:3000
+# Backend:  http://localhost:8000
+# Health:   http://localhost:8000/health/
+```
+
+**Comandos úteis do Makefile:**
+
+```bash
+make help              # Ver todos os comandos disponíveis
+make up                # Iniciar serviços
+make down              # Parar serviços
+make logs              # Ver logs (CTRL+C para sair)
+make logs-api          # Logs apenas do backend
+make logs-web          # Logs apenas do frontend
+make migrate           # Rodar migrations do Django
+make test              # Rodar todos os testes
+make shell-api         # Shell do container API
+make shell-web         # Shell do container Web
+make status            # Status dos serviços
+make health            # Health check de todos os serviços
+make restart           # Reiniciar todos os serviços
+make clean             # Parar e remover containers
+```
+
+---
+
+### Opção 2: Desenvolvimento Local
+
+**Requer Node.js, Python, pnpm, Poetry, PostgreSQL e Redis instalados.**
+
+#### 1. Clonar o Repositório
 
 ```bash
 git clone <repo-url> talentbase-v1
 cd talentbase-v1
 ```
 
-### 2. Setup Automático
+#### 2. Setup Automático
 
 ```bash
 # Executa instalação completa e inicia serviços
@@ -102,7 +147,7 @@ Este comando irá:
 - ✅ Instalar dependências Python (poetry install)
 - ✅ Executar migrations do Django
 
-### 3. Configurar Variáveis de Ambiente
+#### 3. Configurar Variáveis de Ambiente
 
 ```bash
 # Copiar arquivos de exemplo
@@ -111,7 +156,7 @@ cp packages/web/.env.example packages/web/.env
 cp apps/api/.env.example apps/api/.env
 ```
 
-### 4. Iniciar Servidores de Desenvolvimento
+#### 4. Iniciar Servidores de Desenvolvimento
 
 ```bash
 # Terminal 1: Frontend (Remix)
@@ -129,7 +174,7 @@ Ou inicie ambos simultaneamente:
 pnpm dev:all
 ```
 
-### 5. Verificar Serviços
+#### 5. Verificar Serviços
 
 ```bash
 # Health check do backend
