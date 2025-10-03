@@ -19,8 +19,11 @@ _allowed_hosts = config(
 class AllowPrivateIPs(list):
     def __contains__(self, item):
         # Allow any IP starting with 10.0 (VPC private IPs for ALB health checks)
-        if isinstance(item, str) and item.startswith('10.0.'):
-            return True
+        # Split host from port if present (e.g., "10.0.2.4:8000" -> "10.0.2.4")
+        if isinstance(item, str):
+            host = item.split(':')[0]
+            if host.startswith('10.0.'):
+                return True
         return super().__contains__(item)
 
 ALLOWED_HOSTS = AllowPrivateIPs(_allowed_hosts)

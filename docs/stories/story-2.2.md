@@ -1,6 +1,6 @@
 # Story 2.2: User Registration (Company)
 
-Status: Draft
+Status: Approved
 
 **⚠️ IMPORTANTE: Antes de iniciar esta story, leia:**
 - [Code Quality Standards](../bestpraticies/CODE_QUALITY.md)
@@ -120,7 +120,7 @@ created_by_admin = models.BooleanField(default=False)
 
 ### Context Reference
 
-<!-- Path(s) to story context XML/JSON will be added here by context workflow -->
+- [Story Context XML](../stories-context/story-context-2.2.2.xml) - Generated 2025-10-03
 
 ### Agent Model Used
 
