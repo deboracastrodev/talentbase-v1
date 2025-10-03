@@ -24,3 +24,8 @@ Routing guidance:
 | 2025-10-02 | 1.3 | 1 | Documentation | Medium | Dev Team | Open | Create VideoPlayer Storybook story (VideoPlayer.stories.tsx) with examples: Default (valid URL), InvalidURL error state, custom title. Related: AC #7 |
 | 2025-10-02 | 1.3 | 1 | Testing | Low | Dev Team | Open | Add VideoPlayer edge case tests: short-form youtu.be URLs, URLs with timestamp parameters, empty string handling. File: packages/web/app/components/__tests__/DesignSystemImport.test.tsx |
 | 2025-10-02 | 1.3 | 1 | Enhancement | Low | Dev Team | Open | Add Error Boundary to demo page wrapping each component section. File: packages/web/app/routes/dev.components.tsx |
+| 2025-10-02 | 1.4 | 1 | Performance | High | QA Team | Open | Run Lighthouse performance audit: npx lighthouse http://localhost:3000 --view. Validate Performance >90, Accessibility >90, SEO >90, load <2s. Related: AC #9 |
+| 2025-10-02 | 1.4 | 1 | Accessibility | Medium | Dev Team | Open | Add prefers-reduced-motion media query to disable animations for users with motion sensitivity. File: packages/web/app/globals.css. Related: WCAG 2.1 |
+| 2025-10-02 | 1.4 | 1 | Testing | Medium | Dev Team | Open | Add FAQ accordion test to E2E suite validating expand/collapse functionality. File: packages/web/tests/e2e/landing-page.spec.ts |
+| 2025-10-02 | 1.4 | 1 | SEO | Low | Dev Team | Open | Add schema.org structured data (JSON-LD) for Organization, WebPage, FAQPage. Benefits: Rich snippets in Google search. Defer to SEO optimization sprint. |
+| 2025-10-02 | 1.4 | 1 | Enhancement | Low | Design Team + Dev | Open | Replace company text names with SVG logos in Hero social proof section. File: packages/web/app/components/landing/Hero.tsx:86-95. Use lazy loading. |
