@@ -29,6 +29,7 @@ export class ApplicationStack extends cdk.Stack {
     vpc: ec2.Vpc,
     albSecurityGroup: ec2.SecurityGroup,
     ecsSecurityGroup: ec2.SecurityGroup,
+    rdsSecret: secretsmanager.ISecret,
     config: EnvironmentConfig,
     props?: cdk.StackProps
   ) {
@@ -95,6 +96,7 @@ export class ApplicationStack extends cdk.Stack {
     // Grant permissions to read secrets and parameters
     sessionSecret.grantRead(executionRole);
     apiUrlParameter.grantRead(executionRole);
+    rdsSecret.grantRead(executionRole);
 
     // Task Role (for application runtime permissions)
     const taskRole = new iam.Role(this, 'TaskRole', {
@@ -157,19 +159,8 @@ export class ApplicationStack extends cdk.Stack {
       secrets: {
         SESSION_SECRET: ecs.Secret.fromSecretsManager(sessionSecret, 'SESSION_SECRET'),
       },
-      // Optimized health check for Remix startup
-      healthCheck: {
-        command: ['CMD-SHELL', `curl -f http://localhost:${config.ecs.webService.port}/ || exit 1`],
-        interval: cdk.Duration.seconds(30),
-        timeout: cdk.Duration.seconds(10),
-        retries: 3,
-        // Increased startPeriod to account for:
-        // - Container startup (10-20s)
-        // - Node.js initialization (5-10s)
-        // - Remix build loading (10-20s)
-        // - First render (5-10s)
-        startPeriod: cdk.Duration.seconds(180),
-      },
+      // Note: Container health check disabled - using ALB target group health check instead
+      // This avoids issues with curl not being installed in the container
     });
 
     const apiTaskDefinition = new ecs.FargateTaskDefinition(this, 'ApiTaskDefinition', {
@@ -198,15 +189,16 @@ export class ApplicationStack extends cdk.Stack {
             : 'talentbase.settings.development',
         PORT: config.ecs.apiService.port.toString(),
       },
-      // Optimized health check for Django startup
-      healthCheck: {
-        command: ['CMD-SHELL', `curl -f http://localhost:${config.ecs.apiService.port}/health/ || exit 1`],
-        interval: cdk.Duration.seconds(30),
-        timeout: cdk.Duration.seconds(10),
-        retries: 3,
-        // Increased startPeriod for Django initialization
-        startPeriod: cdk.Duration.seconds(120),
+      // Secrets from AWS Secrets Manager (sensitive data)
+      secrets: {
+        DB_NAME: ecs.Secret.fromSecretsManager(rdsSecret, 'dbname'),
+        DB_USER: ecs.Secret.fromSecretsManager(rdsSecret, 'username'),
+        DB_PASSWORD: ecs.Secret.fromSecretsManager(rdsSecret, 'password'),
+        DB_HOST: ecs.Secret.fromSecretsManager(rdsSecret, 'host'),
+        DB_PORT: ecs.Secret.fromSecretsManager(rdsSecret, 'port'),
       },
+      // Note: Container health check disabled - using ALB target group health check instead
+      // This avoids issues with curl not being installed in the container
     });
 
     // ===== PART 4: TARGET GROUPS =====

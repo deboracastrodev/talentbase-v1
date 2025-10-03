@@ -43,6 +43,7 @@ const devApplication = new ApplicationStack(
   devNetworking.vpc,
   devNetworking.albSecurityGroup,
   devNetworking.ecsSecurityGroup,
+  devDatabase.rdsSecret,
   DEV_CONFIG,
   {
     env: DEV_CONFIG.env,
@@ -51,6 +52,7 @@ const devApplication = new ApplicationStack(
   }
 );
 devApplication.addDependency(devNetworking);
+devApplication.addDependency(devDatabase);
 
 /**
  * Production Environment Infrastructure
@@ -87,6 +89,7 @@ const prodApplication = new ApplicationStack(
   prodNetworking.vpc,
   prodNetworking.albSecurityGroup,
   prodNetworking.ecsSecurityGroup,
+  prodDatabase.rdsSecret,
   PROD_CONFIG,
   {
     env: PROD_CONFIG.env,
@@ -95,5 +98,6 @@ const prodApplication = new ApplicationStack(
   }
 );
 prodApplication.addDependency(prodNetworking);
+prodApplication.addDependency(prodDatabase);
 
 app.synth();
