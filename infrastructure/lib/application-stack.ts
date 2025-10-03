@@ -210,10 +210,10 @@ export class ApplicationStack extends cdk.Stack {
       deregistrationDelay: cdk.Duration.seconds(30),
       healthCheck: {
         path: '/',
-        interval: cdk.Duration.seconds(30),
-        timeout: cdk.Duration.seconds(10),
+        interval: cdk.Duration.seconds(60),
+        timeout: cdk.Duration.seconds(30),
         healthyThresholdCount: 2,
-        unhealthyThresholdCount: 3,
+        unhealthyThresholdCount: 5,
         healthyHttpCodes: '200-399',
       },
       // Enable sticky sessions for better UX
@@ -229,10 +229,10 @@ export class ApplicationStack extends cdk.Stack {
       deregistrationDelay: cdk.Duration.seconds(30),
       healthCheck: {
         path: '/ping/',
-        interval: cdk.Duration.seconds(30),
-        timeout: cdk.Duration.seconds(10),
+        interval: cdk.Duration.seconds(60),
+        timeout: cdk.Duration.seconds(30),
         healthyThresholdCount: 2,
-        unhealthyThresholdCount: 3,
+        unhealthyThresholdCount: 5,
         healthyHttpCodes: '200-299',
       },
     });
@@ -256,8 +256,8 @@ export class ApplicationStack extends cdk.Stack {
       // Deployment configuration for zero-downtime updates
       minHealthyPercent: 100,
       maxHealthyPercent: 200,
-      // Health check grace period
-      healthCheckGracePeriod: cdk.Duration.seconds(180),
+      // Health check grace period - increased to allow for container startup
+      healthCheckGracePeriod: cdk.Duration.seconds(300),
       // Platform version for latest features
       platformVersion: ecs.FargatePlatformVersion.LATEST,
     });
@@ -280,8 +280,8 @@ export class ApplicationStack extends cdk.Stack {
       // Deployment configuration for zero-downtime updates
       minHealthyPercent: 100,
       maxHealthyPercent: 200,
-      // Health check grace period
-      healthCheckGracePeriod: cdk.Duration.seconds(120),
+      // Health check grace period - increased to allow for migrations and startup
+      healthCheckGracePeriod: cdk.Duration.seconds(300),
       // Platform version for latest features
       platformVersion: ecs.FargatePlatformVersion.LATEST,
     });
