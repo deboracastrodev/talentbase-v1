@@ -116,6 +116,7 @@ export class ApplicationStack extends cdk.Stack {
       environment: {
         NODE_ENV: config.tags.Environment === 'production' ? 'production' : 'development',
         PORT: config.ecs.webService.port.toString(),
+        VITE_API_URL: `https://api-${config.domain.name}`,
       },
       healthCheck: {
         command: ['CMD-SHELL', `curl -f http://localhost:${config.ecs.webService.port}/ || exit 1`],

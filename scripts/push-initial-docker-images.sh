@@ -11,9 +11,10 @@ ECR_REGISTRY="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
 echo "🔐 Fazendo login no ECR..."
 aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY}
 
-echo "🏗️  Building API Docker image..."
+echo "🏗️  Building API Docker image for linux/amd64..."
 cd apps/api
 docker build \
+  --platform linux/amd64 \
   --target production \
   -t ${ECR_REGISTRY}/talentbase-api:latest \
   -t ${ECR_REGISTRY}/talentbase-api:initial \
@@ -25,10 +26,13 @@ docker push ${ECR_REGISTRY}/talentbase-api:initial
 
 cd ../..
 
-echo "🏗️  Building Web Docker image..."
+echo "🏗️  Building Web Docker image for linux/amd64..."
 docker build \
   -f packages/web/Dockerfile \
+  --platform linux/amd64 \
   --target production \
+  --build-arg VITE_API_URL=https://api-dev.salesdog.click \
+  --build-arg NODE_ENV=production \
   -t ${ECR_REGISTRY}/talentbase-web:latest \
   -t ${ECR_REGISTRY}/talentbase-web:initial \
   .
