@@ -4,14 +4,13 @@ Thin controllers that coordinate serializers and services.
 """
 
 from rest_framework import status
-from rest_framework.decorators import api_view, permission_classes, throttle_classes
+from rest_framework.decorators import api_view, permission_classes, throttle_classes, authentication_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import IntegrityError
 from django.conf import settings
-from django.views.decorators.csrf import csrf_exempt
 
 from authentication.serializers import (
     CandidateRegistrationSerializer,
@@ -30,9 +29,9 @@ class RegistrationRateThrottle(AnonRateThrottle):
 
 
 @api_view(['POST'])
+@authentication_classes([])  # No authentication required - disables CSRF for this view
 @permission_classes([AllowAny])
 @throttle_classes([RegistrationRateThrottle])
-@csrf_exempt  # Public endpoint - CSRF not required for token-based auth
 def register_candidate(request):
     """
     Register a new candidate user.
