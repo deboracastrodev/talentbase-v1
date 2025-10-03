@@ -8,9 +8,9 @@
     "watch": "tsc -w",
     "cdk": "cdk",
     "diff": "cdk diff",
-    "deploy": "cdk deploy --all",
-    "deploy:dev": "cdk deploy TalentbaseDevStack",
-    "deploy:prod": "cdk deploy TalentbaseProdStack",
+    "deploy": "cdk deploy --all --require-approval never",
+    "deploy:dev": "cdk deploy TalentbaseDevNetworking TalentbaseDevDatabase TalentbaseDevApplication --require-approval never",
+    "deploy:prod": "cdk deploy TalentbaseProdNetworking TalentbaseProdDatabase TalentbaseProdApplication --require-approval never",
     "destroy": "cdk destroy --all",
     "synth": "cdk synth",
     "bootstrap": "cdk bootstrap"
