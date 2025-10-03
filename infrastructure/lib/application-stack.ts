@@ -8,6 +8,8 @@ import * as elbv2 from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import * as route53 from 'aws-cdk-lib/aws-route53';
 import * as route53targets from 'aws-cdk-lib/aws-route53-targets';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
+import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
+import * as ssm from 'aws-cdk-lib/aws-ssm';
 import { Construct } from 'constructs';
 import { EnvironmentConfig } from './config';
 
@@ -32,6 +34,28 @@ export class ApplicationStack extends cdk.Stack {
   ) {
     super(scope, id, props);
 
+    // ===== SECRETS & PARAMETERS =====
+    // Create SESSION_SECRET in Secrets Manager
+    const sessionSecret = new secretsmanager.Secret(this, 'SessionSecret', {
+      secretName: `${config.ecs.clusterName}/web/session-secret`,
+      description: 'Session secret for Remix web application',
+      generateSecretString: {
+        secretStringTemplate: JSON.stringify({ SESSION_SECRET: '' }),
+        generateStringKey: 'SESSION_SECRET',
+        excludePunctuation: true,
+        includeSpace: false,
+        passwordLength: 64,
+      },
+    });
+
+    // Store non-sensitive config in SSM Parameter Store
+    const apiUrlParameter = new ssm.StringParameter(this, 'ApiUrlParameter', {
+      parameterName: `/${config.ecs.clusterName}/web/api-url`,
+      stringValue: `https://api-${config.domain.name}`,
+      description: 'API URL for web application',
+      tier: ssm.ParameterTier.STANDARD,
+    });
+
     // ===== PART 1: ALB =====
     this.alb = new elbv2.ApplicationLoadBalancer(this, 'ApplicationLoadBalancer', {
       vpc,
@@ -49,7 +73,8 @@ export class ApplicationStack extends cdk.Stack {
     this.cluster = new ecs.Cluster(this, 'EcsCluster', {
       clusterName: config.ecs.clusterName,
       vpc,
-      containerInsights: config.tags.Environment === 'production',
+      // Enable Container Insights for better monitoring
+      containerInsights: true,
     });
 
     // Get ECR repositories
@@ -65,7 +90,7 @@ export class ApplicationStack extends cdk.Stack {
       config.ecr.apiRepository
     );
 
-    // Execution Role
+    // Execution Role (for ECS to pull images, logs, secrets)
     const executionRole = new iam.Role(this, 'TaskExecutionRole', {
       assumedBy: new iam.ServicePrincipal('ecs-tasks.amazonaws.com'),
       managedPolicies: [
@@ -73,24 +98,39 @@ export class ApplicationStack extends cdk.Stack {
       ],
     });
 
+    // Grant permissions to read secrets and parameters
+    sessionSecret.grantRead(executionRole);
+    apiUrlParameter.grantRead(executionRole);
+
+    // Task Role (for application runtime permissions)
     const taskRole = new iam.Role(this, 'TaskRole', {
       assumedBy: new iam.ServicePrincipal('ecs-tasks.amazonaws.com'),
+      description: 'Runtime role for ECS tasks',
     });
 
+    // Grant ECR pull permissions
     webRepository.grantPull(executionRole);
     apiRepository.grantPull(executionRole);
 
-    // Log Groups
+    // Log Groups with proper retention
     const webLogGroup = new logs.LogGroup(this, 'WebLogGroup', {
       logGroupName: `/ecs/${config.ecs.webService.name}`,
-      retention: logs.RetentionDays.ONE_WEEK,
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      retention: config.tags.Environment === 'production'
+        ? logs.RetentionDays.ONE_MONTH
+        : logs.RetentionDays.ONE_WEEK,
+      removalPolicy: config.tags.Environment === 'production'
+        ? cdk.RemovalPolicy.RETAIN
+        : cdk.RemovalPolicy.DESTROY,
     });
 
     const apiLogGroup = new logs.LogGroup(this, 'ApiLogGroup', {
       logGroupName: `/ecs/${config.ecs.apiService.name}`,
-      retention: logs.RetentionDays.ONE_WEEK,
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      retention: config.tags.Environment === 'production'
+        ? logs.RetentionDays.ONE_MONTH
+        : logs.RetentionDays.ONE_WEEK,
+      removalPolicy: config.tags.Environment === 'production'
+        ? cdk.RemovalPolicy.RETAIN
+        : cdk.RemovalPolicy.DESTROY,
     });
 
     // ===== PART 3: TASK DEFINITIONS =====
@@ -101,7 +141,7 @@ export class ApplicationStack extends cdk.Stack {
       taskRole,
     });
 
-    webTaskDefinition.addContainer('WebContainer', {
+    const webContainer = webTaskDefinition.addContainer('WebContainer', {
       image: ecs.ContainerImage.fromEcrRepository(webRepository, 'latest'),
       logging: ecs.LogDrivers.awsLogs({
         streamPrefix: 'web',
@@ -113,18 +153,28 @@ export class ApplicationStack extends cdk.Stack {
           protocol: ecs.Protocol.TCP,
         },
       ],
+      // Runtime environment variables (non-sensitive)
       environment: {
         NODE_ENV: config.tags.Environment === 'production' ? 'production' : 'development',
         PORT: config.ecs.webService.port.toString(),
-        VITE_API_URL: `https://api-${config.domain.name}`,
-        SESSION_SECRET: cdk.SecretValue.unsafePlainText('change-this-in-production-via-secrets-manager').unsafeUnwrap(),
+        // VITE_API_URL is now injected at build time via Docker build args
       },
+      // Secrets from AWS Secrets Manager (sensitive data)
+      secrets: {
+        SESSION_SECRET: ecs.Secret.fromSecretsManager(sessionSecret, 'SESSION_SECRET'),
+      },
+      // Optimized health check for Remix startup
       healthCheck: {
         command: ['CMD-SHELL', `curl -f http://localhost:${config.ecs.webService.port}/ || exit 1`],
         interval: cdk.Duration.seconds(30),
-        timeout: cdk.Duration.seconds(5),
+        timeout: cdk.Duration.seconds(10),
         retries: 3,
-        startPeriod: cdk.Duration.seconds(120),
+        // Increased startPeriod to account for:
+        // - Container startup (10-20s)
+        // - Node.js initialization (5-10s)
+        // - Remix build loading (10-20s)
+        // - First render (5-10s)
+        startPeriod: cdk.Duration.seconds(180),
       },
     });
 
@@ -135,7 +185,7 @@ export class ApplicationStack extends cdk.Stack {
       taskRole,
     });
 
-    apiTaskDefinition.addContainer('ApiContainer', {
+    const apiContainer = apiTaskDefinition.addContainer('ApiContainer', {
       image: ecs.ContainerImage.fromEcrRepository(apiRepository, 'latest'),
       logging: ecs.LogDrivers.awsLogs({
         streamPrefix: 'api',
@@ -154,12 +204,14 @@ export class ApplicationStack extends cdk.Stack {
             : 'talentbase.settings.development',
         PORT: config.ecs.apiService.port.toString(),
       },
+      // Optimized health check for Django startup
       healthCheck: {
         command: ['CMD-SHELL', `curl -f http://localhost:${config.ecs.apiService.port}/health/ || exit 1`],
         interval: cdk.Duration.seconds(30),
-        timeout: cdk.Duration.seconds(5),
+        timeout: cdk.Duration.seconds(10),
         retries: 3,
-        startPeriod: cdk.Duration.seconds(60),
+        // Increased startPeriod for Django initialization
+        startPeriod: cdk.Duration.seconds(120),
       },
     });
 
@@ -173,11 +225,14 @@ export class ApplicationStack extends cdk.Stack {
       healthCheck: {
         path: '/',
         interval: cdk.Duration.seconds(30),
-        timeout: cdk.Duration.seconds(5),
+        timeout: cdk.Duration.seconds(10),
         healthyThresholdCount: 2,
         unhealthyThresholdCount: 3,
-        healthyHttpCodes: '200-299',
+        healthyHttpCodes: '200-399',
       },
+      // Enable sticky sessions for better UX
+      stickinessCookieDuration: cdk.Duration.days(1),
+      stickinessCookieName: 'TALENTBASE_LB_COOKIE',
     });
 
     const apiTargetGroup = new elbv2.ApplicationTargetGroup(this, 'ApiTargetGroup', {
@@ -189,7 +244,7 @@ export class ApplicationStack extends cdk.Stack {
       healthCheck: {
         path: '/health/',
         interval: cdk.Duration.seconds(30),
-        timeout: cdk.Duration.seconds(5),
+        timeout: cdk.Duration.seconds(10),
         healthyThresholdCount: 2,
         unhealthyThresholdCount: 3,
         healthyHttpCodes: '200-299',
@@ -208,9 +263,17 @@ export class ApplicationStack extends cdk.Stack {
       },
       assignPublicIp: false,
       enableExecuteCommand: true,
+      // Circuit breaker with rollback for failed deployments
       circuitBreaker: {
         rollback: true,
       },
+      // Deployment configuration for zero-downtime updates
+      minHealthyPercent: 100,
+      maxHealthyPercent: 200,
+      // Health check grace period
+      healthCheckGracePeriod: cdk.Duration.seconds(180),
+      // Platform version for latest features
+      platformVersion: ecs.FargatePlatformVersion.LATEST,
     });
 
     this.apiService = new ecs.FargateService(this, 'ApiService', {
@@ -224,24 +287,40 @@ export class ApplicationStack extends cdk.Stack {
       },
       assignPublicIp: false,
       enableExecuteCommand: true,
+      // Circuit breaker with rollback for failed deployments
       circuitBreaker: {
         rollback: true,
       },
+      // Deployment configuration for zero-downtime updates
+      minHealthyPercent: 100,
+      maxHealthyPercent: 200,
+      // Health check grace period
+      healthCheckGracePeriod: cdk.Duration.seconds(120),
+      // Platform version for latest features
+      platformVersion: ecs.FargatePlatformVersion.LATEST,
     });
 
     // Attach to target groups
     this.webService.attachToApplicationTargetGroup(webTargetGroup);
     this.apiService.attachToApplicationTargetGroup(apiTargetGroup);
 
-    // Auto-scaling
+    // ===== PART 6: AUTO-SCALING =====
     const webScaling = this.webService.autoScaleTaskCount({
       minCapacity: config.ecs.webService.minCount,
       maxCapacity: config.ecs.webService.maxCount,
     });
 
+    // CPU-based scaling
     webScaling.scaleOnCpuUtilization('WebCpuScaling', {
       targetUtilizationPercent: 70,
-      scaleInCooldown: cdk.Duration.seconds(60),
+      scaleInCooldown: cdk.Duration.seconds(300), // 5 minutes
+      scaleOutCooldown: cdk.Duration.seconds(60), // 1 minute
+    });
+
+    // Memory-based scaling
+    webScaling.scaleOnMemoryUtilization('WebMemoryScaling', {
+      targetUtilizationPercent: 80,
+      scaleInCooldown: cdk.Duration.seconds(300),
       scaleOutCooldown: cdk.Duration.seconds(60),
     });
 
@@ -250,13 +329,21 @@ export class ApplicationStack extends cdk.Stack {
       maxCapacity: config.ecs.apiService.maxCount,
     });
 
+    // CPU-based scaling
     apiScaling.scaleOnCpuUtilization('ApiCpuScaling', {
       targetUtilizationPercent: 70,
-      scaleInCooldown: cdk.Duration.seconds(60),
+      scaleInCooldown: cdk.Duration.seconds(300),
       scaleOutCooldown: cdk.Duration.seconds(60),
     });
 
-    // ===== PART 6: ALB LISTENERS & DNS =====
+    // Memory-based scaling
+    apiScaling.scaleOnMemoryUtilization('ApiMemoryScaling', {
+      targetUtilizationPercent: 80,
+      scaleInCooldown: cdk.Duration.seconds(300),
+      scaleOutCooldown: cdk.Duration.seconds(60),
+    });
+
+    // ===== PART 7: ALB LISTENERS & DNS =====
     const certificate = acm.Certificate.fromCertificateArn(
       this,
       'SslCertificate',
@@ -394,6 +481,30 @@ export class ApplicationStack extends cdk.Stack {
       value: this.apiService.serviceName,
       description: 'API Service Name',
       exportName: `${id}-ApiServiceName`,
+    });
+
+    new cdk.CfnOutput(this, 'SessionSecretArn', {
+      value: sessionSecret.secretArn,
+      description: 'Session Secret ARN (Secrets Manager)',
+      exportName: `${id}-SessionSecretArn`,
+    });
+
+    new cdk.CfnOutput(this, 'ApiUrlParameterOutput', {
+      value: apiUrlParameter.parameterName,
+      description: 'API URL Parameter Name (SSM)',
+      exportName: `${id}-ApiUrlParameter`,
+    });
+
+    new cdk.CfnOutput(this, 'WebLogGroup', {
+      value: webLogGroup.logGroupName,
+      description: 'Web Service CloudWatch Log Group',
+      exportName: `${id}-WebLogGroup`,
+    });
+
+    new cdk.CfnOutput(this, 'ApiLogGroup', {
+      value: apiLogGroup.logGroupName,
+      description: 'API Service CloudWatch Log Group',
+      exportName: `${id}-ApiLogGroup`,
     });
   }
 }
