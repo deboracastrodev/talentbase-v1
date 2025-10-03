@@ -174,3 +174,22 @@ CELERY_RESULT_BACKEND = config("REDIS_URL", default="redis://localhost:6379/0")
 
 # Custom User Model
 AUTH_USER_MODEL = "authentication.User"
+
+# CORS Configuration
+CORS_ALLOWED_ORIGINS = config(
+    "CORS_ALLOWED_ORIGINS",
+    default="http://localhost:3000,http://localhost:3001",
+    cast=lambda v: [s.strip() for s in v.split(",")]
+)
+CORS_ALLOW_CREDENTIALS = True  # Allow cookies to be sent
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+]
