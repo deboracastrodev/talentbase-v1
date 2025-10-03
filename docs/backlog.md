@@ -20,3 +20,7 @@ Routing guidance:
 | 2025-10-02 | 1.2 | 1 | Testing | Medium | Dev Team | Open | Add model tests for Ranking (4-5 tests). Create apps/api/matching/tests/test_models.py to test score validation, OneToOne constraint, ordering. Related: AC #13 |
 | 2025-10-02 | 1.2 | 1 | Enhancement | Low | Dev Team | Open | Add score validation to Ranking model using MinValueValidator(0) and MaxValueValidator(100). File: apps/api/matching/models.py:628 |
 | 2025-10-02 | 1.2 | 1 | Enhancement | Low | Dev Team | Open | Add is_current_job property to Experience model for better code readability. File: apps/api/candidates/models.py:160 |
+| 2025-10-02 | 1.3 | 1 | Security | Medium | Dev Team | Open | Add sandbox attribute to VideoPlayer iframe: sandbox="allow-scripts allow-same-origin allow-presentation". File: packages/design-system/src/components/VideoPlayer.tsx:24. Related: AC #5 |
+| 2025-10-02 | 1.3 | 1 | Documentation | Medium | Dev Team | Open | Create VideoPlayer Storybook story (VideoPlayer.stories.tsx) with examples: Default (valid URL), InvalidURL error state, custom title. Related: AC #7 |
+| 2025-10-02 | 1.3 | 1 | Testing | Low | Dev Team | Open | Add VideoPlayer edge case tests: short-form youtu.be URLs, URLs with timestamp parameters, empty string handling. File: packages/web/app/components/__tests__/DesignSystemImport.test.tsx |
+| 2025-10-02 | 1.3 | 1 | Enhancement | Low | Dev Team | Open | Add Error Boundary to demo page wrapping each component section. File: packages/web/app/routes/dev.components.tsx |
