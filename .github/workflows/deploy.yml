@@ -1,0 +1,201 @@
+name: Deploy to AWS ECS
+
+on:
+  push:
+    branches:
+      - master
+      - develop
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Set Django Environment
+        run: |
+          if [ "${{ github.ref }}" == "refs/heads/master" ]; then
+            echo "DJANGO_SETTINGS_MODULE=talentbase.settings.production" >> $GITHUB_ENV
+          else
+            echo "DJANGO_SETTINGS_MODULE=talentbase.settings.development" >> $GITHUB_ENV
+          fi
+
+      - name: Install Backend Dependencies
+        run: |
+          cd apps/api
+          pip install poetry
+          poetry install
+
+      - name: Run Backend Tests
+        env:
+          DJANGO_SETTINGS_MODULE: talentbase.settings.test
+        run: |
+          cd apps/api
+          poetry run pytest --cov=. --cov-report=xml
+
+      - name: Install Frontend Dependencies
+        run: pnpm install
+
+      - name: Run Frontend Tests
+        run: |
+          cd packages/web
+          pnpm test
+
+      - name: Run E2E Tests
+        run: |
+          cd packages/web
+          pnpm playwright install
+          pnpm playwright test
+
+  build-and-deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Determine Environment
+        id: env
+        run: |
+          if [ "${{ github.ref }}" == "refs/heads/master" ]; then
+            echo "CLUSTER=talentbase-prod" >> $GITHUB_OUTPUT
+            echo "WEB_SERVICE=talentbase-web-prod" >> $GITHUB_OUTPUT
+            echo "API_SERVICE=talentbase-api-prod" >> $GITHUB_OUTPUT
+          else
+            echo "CLUSTER=talentbase-dev" >> $GITHUB_OUTPUT
+            echo "WEB_SERVICE=talentbase-web-dev" >> $GITHUB_OUTPUT
+            echo "API_SERVICE=talentbase-api-dev" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build and Push API Docker Image
+        run: |
+          cd apps/api
+          docker build \
+            --target production \
+            --cache-from ${{ env.ECR_REGISTRY }}/talentbase-api:latest \
+            --build-arg BUILDKIT_INLINE_CACHE=1 \
+            -t ${{ env.ECR_REGISTRY }}/talentbase-api:${{ github.sha }} \
+            -t ${{ env.ECR_REGISTRY }}/talentbase-api:latest \
+            .
+          docker push ${{ env.ECR_REGISTRY }}/talentbase-api:${{ github.sha }}
+          docker push ${{ env.ECR_REGISTRY }}/talentbase-api:latest
+
+      - name: Build and Push Web Docker Image
+        run: |
+          docker build \
+            -f packages/web/Dockerfile \
+            --target production \
+            --cache-from ${{ env.ECR_REGISTRY }}/talentbase-web:latest \
+            --build-arg BUILDKIT_INLINE_CACHE=1 \
+            -t ${{ env.ECR_REGISTRY }}/talentbase-web:${{ github.sha }} \
+            -t ${{ env.ECR_REGISTRY }}/talentbase-web:latest \
+            .
+          docker push ${{ env.ECR_REGISTRY }}/talentbase-web:${{ github.sha }}
+          docker push ${{ env.ECR_REGISTRY }}/talentbase-web:latest
+
+      - name: Update ECS Service - API
+        run: |
+          aws ecs update-service \
+            --cluster ${{ steps.env.outputs.CLUSTER }} \
+            --service ${{ steps.env.outputs.API_SERVICE }} \
+            --force-new-deployment
+
+      - name: Update ECS Service - Web
+        run: |
+          aws ecs update-service \
+            --cluster ${{ steps.env.outputs.CLUSTER }} \
+            --service ${{ steps.env.outputs.WEB_SERVICE }} \
+            --force-new-deployment
+
+      - name: Wait for API Deployment
+        run: |
+          aws ecs wait services-stable \
+            --cluster ${{ steps.env.outputs.CLUSTER }} \
+            --services ${{ steps.env.outputs.API_SERVICE }}
+
+      - name: Wait for Web Deployment
+        run: |
+          aws ecs wait services-stable \
+            --cluster ${{ steps.env.outputs.CLUSTER }} \
+            --services ${{ steps.env.outputs.WEB_SERVICE }}
+
+      - name: Validate API Health
+        run: |
+          ENVIRONMENT=${{ github.ref == 'refs/heads/master' && 'prod' || 'dev' }}
+          API_URL="https://api${ENVIRONMENT == 'dev' && '-dev' || ''}.salesdog.click/health/"
+          echo "Checking API health at $API_URL"
+          for i in {1..5}; do
+            if curl -f -s "$API_URL" > /dev/null; then
+              echo "✅ API health check passed"
+              exit 0
+            fi
+            echo "Attempt $i failed, retrying in 10s..."
+            sleep 10
+          done
+          echo "❌ API health check failed after 5 attempts"
+          exit 1
+
+      - name: Validate Web Health
+        run: |
+          ENVIRONMENT=${{ github.ref == 'refs/heads/master' && 'prod' || 'dev' }}
+          WEB_URL="https://${ENVIRONMENT == 'dev' && 'dev.' || 'www.'}salesdog.click"
+          echo "Checking Web health at $WEB_URL"
+          for i in {1..5}; do
+            if curl -f -s "$WEB_URL" > /dev/null; then
+              echo "✅ Web health check passed"
+              exit 0
+            fi
+            echo "Attempt $i failed, retrying in 10s..."
+            sleep 10
+          done
+          echo "❌ Web health check failed after 5 attempts"
+          exit 1
+
+      - name: Notify Deployment Success
+        if: success()
+        run: |
+          ENVIRONMENT=${{ github.ref == 'refs/heads/master' && 'Production' || 'Development' }}
+          echo "✅ Deployment to $ENVIRONMENT successful!"
+          echo "Commit: ${{ github.sha }}"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Author: ${{ github.actor }}"
+
+      - name: Notify Deployment Failure
+        if: failure()
+        run: |
+          ENVIRONMENT=${{ github.ref == 'refs/heads/master' && 'Production' || 'Development' }}
+          echo "❌ Deployment to $ENVIRONMENT failed!"
+          echo "Commit: ${{ github.sha }}"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Author: ${{ github.actor }}"
+          echo "Check logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
