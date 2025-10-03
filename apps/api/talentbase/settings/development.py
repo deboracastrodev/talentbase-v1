@@ -8,11 +8,22 @@ from .base import *
 
 DEBUG = True
 
-ALLOWED_HOSTS = config(
+# Parse ALLOWED_HOSTS from env or use default
+_allowed_hosts = config(
     "ALLOWED_HOSTS",
     default="localhost,127.0.0.1,0.0.0.0,dev.salesdog.click,api-dev.salesdog.click",
     cast=lambda v: [s.strip() for s in v.split(",")],
 )
+
+# Custom ALLOWED_HOSTS class to support VPC private IPs (10.0.x.x)
+class AllowPrivateIPs(list):
+    def __contains__(self, item):
+        # Allow any IP starting with 10.0 (VPC private IPs for ALB health checks)
+        if isinstance(item, str) and item.startswith('10.0.'):
+            return True
+        return super().__contains__(item)
+
+ALLOWED_HOSTS = AllowPrivateIPs(_allowed_hosts)
 
 # CORS Configuration
 CORS_ALLOWED_ORIGINS = config(

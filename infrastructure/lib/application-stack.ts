@@ -35,18 +35,12 @@ export class ApplicationStack extends cdk.Stack {
     super(scope, id, props);
 
     // ===== SECRETS & PARAMETERS =====
-    // Create SESSION_SECRET in Secrets Manager
-    const sessionSecret = new secretsmanager.Secret(this, 'SessionSecret', {
-      secretName: `${config.ecs.clusterName}/web/session-secret`,
-      description: 'Session secret for Remix web application',
-      generateSecretString: {
-        secretStringTemplate: JSON.stringify({ SESSION_SECRET: '' }),
-        generateStringKey: 'SESSION_SECRET',
-        excludePunctuation: true,
-        includeSpace: false,
-        passwordLength: 64,
-      },
-    });
+    // Use existing SESSION_SECRET from Secrets Manager
+    const sessionSecret = secretsmanager.Secret.fromSecretNameV2(
+      this,
+      'SessionSecret',
+      `${config.ecs.clusterName}/web/session-secret`
+    );
 
     // Store non-sensitive config in SSM Parameter Store
     const apiUrlParameter = new ssm.StringParameter(this, 'ApiUrlParameter', {
