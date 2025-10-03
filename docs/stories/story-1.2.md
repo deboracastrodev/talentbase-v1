@@ -1,6 +1,6 @@
 # Story 1.2: Implement Database Schema (All Models)
 
-Status: Ready for Review
+Status: Done
 
 **⚠️ IMPORTANTE: Antes de iniciar esta story, leia:**
 - [Code Quality Standards](../bestpraticies/CODE_QUALITY.md)

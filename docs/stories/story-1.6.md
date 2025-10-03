@@ -1,6 +1,6 @@
 # Story 1.6: Configure DNS & SSL (Route 53 + ACM)
 
-Status: Draft
+Status: Approved
 
 ## Story
 
