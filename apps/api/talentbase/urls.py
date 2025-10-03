@@ -18,11 +18,12 @@ from django.contrib import admin
 from django.urls import path
 
 from core.views import health_check
-from authentication.views import register_candidate
+from authentication.views import register_candidate, register_company
 
 urlpatterns = [
     path("health/", health_check, name="health"),
     path("admin/", admin.site.urls),
     # Authentication endpoints
     path("api/v1/auth/register/candidate", register_candidate, name="register-candidate"),
+    path("api/v1/auth/register/company", register_company, name="register-company"),
 ]

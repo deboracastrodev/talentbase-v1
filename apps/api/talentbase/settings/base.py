@@ -12,6 +12,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config("DJANGO_SECRET_KEY", default="django-insecure-change-me-in-production")
 
+# Field encryption key for django-encrypted-model-fields
+# In production, this should be a different key from SECRET_KEY and stored securely
+# Must be a 32 url-safe base64-encoded bytes (Fernet key format)
+FIELD_ENCRYPTION_KEY = config(
+    "FIELD_ENCRYPTION_KEY",
+    default="P5RnBWl-QNpNMl067ajWPeGYvOqcDKMxGb4OoJRHDK4="  # Development only - change in production
+)
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config("DEBUG", default=False, cast=bool)
 

@@ -22,6 +22,7 @@
     "@remix-run/react": "^2.14.0",
     "@remix-run/serve": "^2.14.0",
     "@talentbase/design-system": "workspace:*",
+    "cpf-cnpj-validator": "^1.0.3",
     "isbot": "^4.1.0",
     "lucide-react": "^0.544.0",
     "react": "^18.2.0",
