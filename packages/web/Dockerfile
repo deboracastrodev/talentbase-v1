@@ -50,15 +50,20 @@ RUN pnpm build
 FROM node:20-alpine AS production
 WORKDIR /app
 
-# Install pnpm
-RUN npm install -g pnpm@10.17.1
-
-# Copy built artifacts and dependencies
-COPY --from=builder /app/packages/web/build ./build
-COPY --from=builder /app/packages/web/package.json ./
-COPY --from=builder /app/packages/web/public ./public
+# Copy the ENTIRE node_modules including .pnpm directory (needed for symlinks)
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/packages/web/node_modules ./node_modules
+
+# Create packages/web structure
+RUN mkdir -p /app/packages/web
+
+# Copy built artifacts to the correct location
+COPY --from=builder /app/packages/web/build ./packages/web/build
+COPY --from=builder /app/packages/web/public ./packages/web/public
+COPY --from=builder /app/packages/web/package.json ./packages/web/package.json
+COPY --from=builder /app/packages/web/node_modules ./packages/web/node_modules
+
+WORKDIR /app/packages/web
 
 EXPOSE 3000
-CMD ["pnpm", "start"]
+# Use node directly with the correct path
+CMD ["node", "../../node_modules/.pnpm/@remix-run+serve@2.17.1_typescript@5.9.3/node_modules/@remix-run/serve/dist/cli.js", "build/server/index.js"]
