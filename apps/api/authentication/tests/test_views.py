@@ -32,6 +32,9 @@ class TestCandidateRegistrationView:
         """Set up test client before each test."""
         self.client = APIClient()
         self.url = '/api/v1/auth/register/candidate'
+        # Clear throttle cache before each test to avoid rate limiting
+        from django.core.cache import cache
+        cache.clear()
 
     def test_register_candidate_success(self):
         """
@@ -48,7 +51,7 @@ class TestCandidateRegistrationView:
         }
 
         # Act - Mock email to avoid Celery
-        with patch('authentication.services.registration.send_email_task.delay'):
+        with patch('core.tasks.send_email_task.delay'):
             response = self.client.post(self.url, registration_data, format='json')
 
         # Assert
@@ -67,6 +70,16 @@ class TestCandidateRegistrationView:
         # Assert token generated
         assert isinstance(response.data['token'], str)
         assert len(response.data['token']) > 0
+
+        # Assert MED-1: Token is set as httpOnly cookie
+        assert 'auth_token' in response.cookies
+        auth_cookie = response.cookies['auth_token']
+        assert auth_cookie.value == response.data['token']
+        assert auth_cookie['httponly'] is True
+        assert auth_cookie['max-age'] == 604800  # 7 days
+        assert auth_cookie['path'] == '/'
+        # In development, secure should be False; in production, True
+        # SameSite should be 'Lax' in dev, 'Strict' in prod
 
         # Assert database state
         user = User.objects.get(email='success@example.com')
@@ -98,7 +111,7 @@ class TestCandidateRegistrationView:
         }
 
         # Act
-        with patch('authentication.services.registration.send_email_task.delay'):
+        with patch('core.tasks.send_email_task.delay'):
             response = self.client.post(self.url, registration_data, format='json')
 
         # Assert
@@ -212,7 +225,7 @@ class TestCandidateRegistrationView:
                 'full_name': f'Rate Limit Test {i}',
                 'phone': f'1199999999{i}'
             }
-            with patch('authentication.services.registration.send_email_task.delay'):
+            with patch('core.tasks.send_email_task.delay'):
                 response = self.client.post(self.url, data, format='json')
                 assert response.status_code == status.HTTP_201_CREATED
 
@@ -223,6 +236,6 @@ class TestCandidateRegistrationView:
             'full_name': 'Rate Limit Test 11',
             'phone': '11999999999'
         }
-        with patch('authentication.services.registration.send_email_task.delay'):
+        with patch('core.tasks.send_email_task.delay'):
             response = self.client.post(self.url, data, format='json')
             assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS

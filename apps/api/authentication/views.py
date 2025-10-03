@@ -10,6 +10,7 @@ from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import IntegrityError
+from django.conf import settings
 
 from authentication.serializers import (
     CandidateRegistrationSerializer,
@@ -88,20 +89,37 @@ def register_candidate(request):
             created_by_admin=False  # Self-service registration
         )
 
-        # Serialize response
-        response_data = {
-            'user': {
-                'id': str(result['user'].id),
-                'email': result['user'].email,
-                'role': result['user'].role
-            },
+        # Serialize response using RegistrationResponseSerializer for type-safe output
+        # Fixes MED-2: Ensures consistent, safe serialization without manual dict construction
+        response_serializer = RegistrationResponseSerializer({
+            'user': result['user'],
             'token': result['token']
-        }
+        })
 
-        return Response(
-            response_data,
+        # Create response
+        response = Response(
+            response_serializer.data,
             status=status.HTTP_201_CREATED
         )
+
+        # Fixes MED-1: Set token as httpOnly cookie for XSS protection
+        # Per Tech Spec Epic 2: "Token stored in httpOnly cookie (XSS protection)"
+        # Cookie attributes:
+        # - httponly=True: Prevents JavaScript access (XSS protection)
+        # - secure: True in production (HTTPS only), False in dev (HTTP allowed)
+        # - samesite='Strict': CSRF protection (production), 'Lax' in dev for easier testing
+        # - max_age=604800: 7 days (7 * 24 * 60 * 60 seconds)
+        response.set_cookie(
+            key='auth_token',
+            value=result['token'],
+            max_age=604800,  # 7 days
+            httponly=True,
+            secure=not settings.DEBUG,  # True in production, False in development
+            samesite='Strict' if not settings.DEBUG else 'Lax',
+            path='/'
+        )
+
+        return response
 
     except DjangoValidationError as e:
         # AC9: Handle duplicate email and validation errors

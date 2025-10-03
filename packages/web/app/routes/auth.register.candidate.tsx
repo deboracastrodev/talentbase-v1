@@ -105,6 +105,7 @@ export default function CandidateRegister() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',  // MED-1: Include cookies in cross-origin requests
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,
@@ -128,13 +129,14 @@ export default function CandidateRegister() {
         return;
       }
 
-      // Success! Store token and redirect (AC8)
+      // Success! Token is now stored in httpOnly cookie by backend (MED-1 fix)
+      // No need to manually store token - it's automatically included in future requests
       if (data.token) {
-        // Store token in localStorage (or httpOnly cookie in production)
-        localStorage.setItem('auth_token', data.token);
+        // Store user data in localStorage (non-sensitive info only)
         localStorage.setItem('user', JSON.stringify(data.user));
 
         // AC8: Redirect to /candidate/profile (onboarding)
+        // Token will be automatically sent in cookies for authenticated requests
         navigate('/candidate/profile', {
           state: { message: 'Conta criada com sucesso! Complete seu perfil.' }
         });

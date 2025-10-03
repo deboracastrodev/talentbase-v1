@@ -49,7 +49,7 @@ class TestCandidateRegistrationService:
         }
 
         # Act - Mock email task to avoid Celery dependency
-        with patch('authentication.services.registration.send_email_task.delay') as mock_email:
+        with patch('core.tasks.send_email_task.delay') as mock_email:
             result = CandidateRegistrationService.register_candidate(registration_data)
 
         # Assert - User created with correct role
@@ -98,7 +98,7 @@ class TestCandidateRegistrationService:
 
         # Act & Assert - Duplicate email should raise ValidationError
         with pytest.raises(ValidationError, match='already exists'):
-            with patch('authentication.services.registration.send_email_task.delay'):
+            with patch('core.tasks.send_email_task.delay'):
                 CandidateRegistrationService.register_candidate({
                     'email': 'existing@example.com',  # Duplicate
                     'password': 'NewPass123!',
@@ -123,7 +123,7 @@ class TestCandidateRegistrationService:
         for invalid_data in invalid_data_cases:
             # Act & Assert
             with pytest.raises(ValidationError, match='Missing required fields'):
-                with patch('authentication.services.registration.send_email_task.delay'):
+                with patch('core.tasks.send_email_task.delay'):
                     CandidateRegistrationService.register_candidate(invalid_data)
 
     def test_candidate_registration_sends_welcome_email(self):
@@ -141,7 +141,7 @@ class TestCandidateRegistrationService:
         }
 
         # Test self-service registration (should send email)
-        with patch('authentication.services.registration.send_email_task.delay') as mock_email:
+        with patch('core.tasks.send_email_task.delay') as mock_email:
             CandidateRegistrationService.register_candidate(
                 registration_data,
                 created_by_admin=False  # Self-service
@@ -160,7 +160,7 @@ class TestCandidateRegistrationService:
         # Test admin-created user (should NOT send email per constraint email3)
         User.objects.filter(email='emailtest@example.com').delete()  # Cleanup
 
-        with patch('authentication.services.registration.send_email_task.delay') as mock_email:
+        with patch('core.tasks.send_email_task.delay') as mock_email:
             CandidateRegistrationService.register_candidate(
                 {**registration_data, 'email': 'admin_created@example.com'},
                 created_by_admin=True  # Admin-created
@@ -186,7 +186,7 @@ class TestCandidateRegistrationService:
         # Act - Simulate CandidateProfile.objects.create failure
         with patch('candidates.models.CandidateProfile.objects.create', side_effect=Exception('Database error')):
             with pytest.raises(Exception, match='Database error'):
-                with patch('authentication.services.registration.send_email_task.delay'):
+                with patch('core.tasks.send_email_task.delay'):
                     CandidateRegistrationService.register_candidate(registration_data)
 
         # Assert - User should NOT exist (transaction rolled back)

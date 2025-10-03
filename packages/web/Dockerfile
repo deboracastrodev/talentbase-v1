@@ -2,7 +2,7 @@
 FROM node:20-alpine AS base
 
 # Install pnpm
-RUN npm install -g pnpm@8.14.0
+RUN npm install -g pnpm@10.17.1
 
 # Set working directory
 WORKDIR /app
@@ -43,7 +43,7 @@ FROM node:20-alpine AS production
 WORKDIR /app
 
 # Install pnpm
-RUN npm install -g pnpm@8.14.0
+RUN npm install -g pnpm@10.17.1
 
 # Copy built artifacts and dependencies
 COPY --from=builder /app/packages/web/build ./build

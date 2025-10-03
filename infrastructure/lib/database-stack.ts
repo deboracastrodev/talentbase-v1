@@ -45,7 +45,7 @@ export class DatabaseStack extends cdk.Stack {
     // Create RDS PostgreSQL Instance
     this.rdsInstance = new rds.DatabaseInstance(this, 'PostgresInstance', {
       engine: rds.DatabaseInstanceEngine.postgres({
-        version: rds.PostgresEngineVersion.VER_15_4,
+        version: rds.PostgresEngineVersion.VER_15_8,
       }),
       instanceType: ec2.InstanceType.of(
         ec2.InstanceClass.T3,

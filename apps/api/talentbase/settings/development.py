@@ -50,3 +50,11 @@ DEFAULT_FROM_EMAIL = "noreply@talentbase.local"
 
 # Fallback: Se MailHog não estiver rodando, use console backend
 # Para usar console: EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+# Cookie Configuration - Development
+# In development, we allow non-HTTPS cookies (secure=False override in views if needed)
+# SESSION_COOKIE_SECURE and CSRF_COOKIE_SECURE should be False in dev
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
+SESSION_COOKIE_SAMESITE = 'Lax'  # More permissive for dev (Strict in production)
+CSRF_COOKIE_SAMESITE = 'Lax'
