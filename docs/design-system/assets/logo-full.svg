@@ -1,0 +1,10 @@
+<svg width="320" height="64" viewBox="0 0 320 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Symbol: Hexagon -->
+  <path d="M32 4L54.6 17V43L32 56L9.4 43V17L32 4Z" stroke="white" stroke-width="3" fill="none"/>
+
+  <!-- Symbol: Star -->
+  <path d="M32 18L35.6 27.6H45.8L37.6 33.6L41.2 43.2L32 37.2L22.8 43.2L26.4 33.6L18.2 27.6H28.4L32 18Z" fill="white"/>
+
+  <!-- Text: talentbase -->
+  <text x="72" y="42" font-family="Inter, sans-serif" font-size="32" font-weight="700" fill="white">talentbase</text>
+</svg>

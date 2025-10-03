@@ -40,5 +40,8 @@ export type { CheckboxProps } from './components/Checkbox';
 export { Radio } from './components/Radio';
 export type { RadioProps } from './components/Radio';
 
+export { VideoPlayer } from './components/VideoPlayer';
+export type { VideoPlayerProps } from './components/VideoPlayer';
+
 // Utils
 export { cn } from './lib/utils';

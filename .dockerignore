@@ -1,0 +1,55 @@
+# Git
+.git
+.gitignore
+.github
+
+# Documentation
+README.md
+docs/
+*.md
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Testing
+coverage
+.nyc_output
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Environment
+.env
+.env.local
+
+# Build outputs
+dist
+build
+.cache
+.remix
+
+# Python
+__pycache__
+*.py[cod]
+.pytest_cache
+.venv
+env/
+
+# Docker
+docker-compose*.yml
+Dockerfile
+.dockerignore

@@ -1,0 +1,134 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>1.3</storyId>
+    <title>Design System Integration & Component Library</title>
+    <status>Draft</status>
+    <generatedAt>2025-10-02</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>/Users/debor/Documents/sistemas/talentbase-v1/docs/stories/story-1.3.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>frontend developer</asA>
+    <iWant>o @talentbase/design-system package integrado no Remix</iWant>
+    <soThat>todos os componentes UI sejam consistentes e reutilizáveis</soThat>
+    <tasks>
+      <task id="1" title="Configurar dependência workspace">Editar package.json do web app para incluir design system como workspace dependency</task>
+      <task id="2" title="Importar Tailwind config">Criar tailwind.config.ts no web app importando configuração do design system</task>
+      <task id="3" title="Criar componente VideoPlayer">Implementar VideoPlayer com suporte a YouTube embeds e validação de URL</task>
+      <task id="4" title="Criar página de exemplos">Desenvolver rota /dev/components para demonstrar todos os componentes</task>
+      <task id="5" title="Criar testes de componente">Implementar testes unitários para componentes do design system</task>
+      <task id="6" title="Validação e documentação">Testar build, Storybook e validar integração completa</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC-1">Design system package linkado via pnpm workspace (`workspace:*`)</criterion>
+    <criterion id="AC-2">Tailwind CSS config importado do design system</criterion>
+    <criterion id="AC-3">Todos os design tokens acessíveis (colors, spacing, typography)</criterion>
+    <criterion id="AC-4">Componentes core renderizam no Remix: Button, Input, Card, Badge, Select, Checkbox</criterion>
+    <criterion id="AC-5">Componente VideoPlayer criado e funcionando (YouTube embeds)</criterion>
+    <criterion id="AC-6">Página de exemplos criada em `/dev/components`</criterion>
+    <criterion id="AC-7">Design system Storybook acessível localmente</criterion>
+    <criterion id="AC-8">Sem erros no console ao usar componentes</criterion>
+    <criterion id="AC-9">Testes de componente executando com sucesso</criterion>
+    <criterion id="AC-10">Build do design system funciona corretamente</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/stories/story-1.3.md" title="Story 1.3" section="Tasks / Subtasks" snippet="Detailed implementation tasks for design system integration including VideoPlayer component creation"/>
+      <doc path="docs/epics/tech-spec-epic-1.md" title="Tech Spec Epic 1" section="Story 1.3: Design System Integration" snippet="Technical specifications for design system integration and component library setup"/>
+      <doc path="docs/epics/tech-spec-epic-1-review.md" title="Tech Spec Review" section="Gap Moderado 3" snippet="Identified gap for VideoPlayer component implementation"/>
+      <doc path="docs/design-system/README.md" title="Design System Documentation" section="Components" snippet="Documentation for existing design system components and tokens"/>
+    </docs>
+    <code>
+      <artifact path="packages/web/package.json" kind="config" symbol="dependencies" lines="31-41" reason="Need to add @talentbase/design-system workspace dependency"/>
+      <artifact path="packages/web/tailwind.config.ts" kind="config" symbol="tailwind" lines="47-58" reason="Tailwind configuration importing design system preset"/>
+      <artifact path="packages/design-system/src/components/VideoPlayer.tsx" kind="component" symbol="VideoPlayer" lines="63-95" reason="New VideoPlayer component with YouTube URL parsing"/>
+      <artifact path="packages/design-system/src/index.ts" kind="module" symbol="exports" lines="97-99" reason="Export VideoPlayer component from design system"/>
+      <artifact path="packages/web/app/routes/dev.components.tsx" kind="page" symbol="ComponentsPage" lines="103-162" reason="Demo page showing all design system components"/>
+      <artifact path="packages/web/app/components/__tests__/DesignSystemImport.test.tsx" kind="test" symbol="DesignSystemImport" lines="165-195" reason="Unit tests for design system components"/>
+    </code>
+    <dependencies>
+      <frontend>
+        <package name="@talentbase/design-system" version="workspace:*" reason="Local workspace package for design system components"/>
+        <package name="@remix-run/node" version="^2.14.0" reason="Remix server runtime"/>
+        <package name="@remix-run/react" version="^2.14.0" reason="Remix React integration"/>
+        <package name="react" version="^18.2.0" reason="React library"/>
+        <package name="react-dom" version="^18.2.0" reason="React DOM renderer"/>
+      </frontend>
+      <dev>
+        <package name="@testing-library/react" version="^13.4.0" reason="React component testing"/>
+        <package name="@testing-library/jest-dom" version="^6.1.3" reason="Jest DOM matchers"/>
+        <package name="jest" version="^29.7.0" reason="Testing framework"/>
+      </dev>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <architecture>
+      <pattern>Monorepo structure with pnpm workspaces for package management</pattern>
+      <pattern>Design system as separate package with workspace dependency</pattern>
+      <pattern>Tailwind CSS configuration inheritance via presets</pattern>
+      <pattern>Component library follows atomic design principles</pattern>
+    </architecture>
+    <frontend>
+      <rule>All components must be exported from design system package</rule>
+      <rule>Tailwind classes must use design system tokens (colors, spacing, typography)</rule>
+      <rule>Components must be accessible (ARIA labels, keyboard navigation)</rule>
+      <rule>VideoPlayer must handle invalid YouTube URLs gracefully</rule>
+      <rule>Demo page must showcase all available components</rule>
+    </frontend>
+    <codeQuality>
+      <rule>TypeScript strict mode enabled for all components</rule>
+      <rule>Components must have proper TypeScript interfaces</rule>
+      <rule>Error handling for invalid inputs (VideoPlayer URL validation)</rule>
+      <rule>Responsive design for all components</rule>
+      <rule>Consistent prop naming and documentation</rule>
+    </codeQuality>
+    <testing>
+      <rule>All components must have unit tests</rule>
+      <rule>Test both valid and invalid scenarios (VideoPlayer URL parsing)</rule>
+      <rule>Test component rendering and user interactions</rule>
+      <rule>Test accessibility attributes and keyboard navigation</rule>
+    </testing>
+  </constraints>
+
+  <interfaces>
+    <interface name="VideoPlayer" kind="component" signature="function VideoPlayer({ url, title, className }: VideoPlayerProps)" path="packages/design-system/src/components/VideoPlayer.tsx">
+      YouTube video player component with URL validation. Extracts YouTube ID from various URL formats and renders embed iframe.
+    </interface>
+    <interface name="extractYouTubeId" kind="utility" signature="function extractYouTubeId(url: string): string | null" path="packages/design-system/src/components/VideoPlayer.tsx">
+      Utility function to parse YouTube URLs and extract video ID. Supports multiple YouTube URL formats.
+    </interface>
+    <interface name="Tailwind Config" kind="config" signature="export default { presets: [designSystemConfig], ... }" path="packages/web/tailwind.config.ts">
+      Tailwind configuration that imports design system preset and extends with app-specific content paths.
+    </interface>
+    <interface name="Components Demo Page" kind="page" signature="export default function ComponentsPage()" path="packages/web/app/routes/dev.components.tsx">
+      Development page showcasing all design system components for testing and demonstration.
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Use React Testing Library for component testing. Tests located in packages/web/app/components/__tests__/. Test component rendering, user interactions, and edge cases. Use @testing-library/jest-dom for DOM assertions. Test both TypeScript type safety and runtime behavior. Coverage target: 100% for new components, 80% for existing components.
+    </standards>
+    <locations>
+      <location pattern="packages/web/app/components/__tests__/*.test.tsx">Component unit tests</location>
+      <location pattern="packages/design-system/src/**/*.test.tsx">Design system component tests</location>
+    </locations>
+    <ideas>
+      <test ac="AC-1">Test pnpm workspace dependency resolution and package linking</test>
+      <test ac="AC-2">Test Tailwind config imports design system tokens correctly</test>
+      <test ac="AC-4">Test all core components render without errors in Remix</test>
+      <test ac="AC-5">Test VideoPlayer with valid YouTube URLs (youtube.com, youtu.be)</test>
+      <test ac="AC-5">Test VideoPlayer shows error for invalid URLs</test>
+      <test ac="AC-6">Test /dev/components route renders all component examples</test>
+      <test ac="AC-8">Test no console errors when using components</test>
+      <test ac="AC-9">Run test suite and verify all component tests pass</test>
+      <test ac="AC-10">Test design system build process completes successfully</test>
+    </ideas>
+  </tests>
+</story-context>

@@ -1,0 +1,103 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: talentbase_postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U talentbase -d talentbase_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - talentbase_network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: talentbase_redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - talentbase_network
+
+  # Django Backend API
+  api:
+    build:
+      context: ./apps/api
+      target: development
+    container_name: talentbase_api
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./apps/api/.env
+    environment:
+      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
+      - REDIS_URL=redis://redis:6379/0
+      - DB_HOST=postgres
+      - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
+    volumes:
+      - ./apps/api:/app
+      - api_static:/app/staticfiles
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - talentbase_network
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+
+  # Remix Frontend
+  web:
+    build:
+      context: .
+      dockerfile: ./packages/web/Dockerfile
+      target: development
+    container_name: talentbase_web
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./packages/web/.env
+    environment:
+      - API_URL=http://api:8000/api/v1
+      - NODE_ENV=development
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/packages/design-system/node_modules
+      - /app/packages/web/node_modules
+      - /app/apps/api
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - talentbase_network
+
+volumes:
+  postgres_data:
+  api_static:
+
+networks:
+  talentbase_network:
+    driver: bridge
