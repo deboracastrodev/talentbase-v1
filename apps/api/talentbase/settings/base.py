@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # Third-party
     "rest_framework",
+    "rest_framework.authtoken",  # For token authentication
     "corsheaders",
     # Local apps (dependency order: core → auth → domain apps → apps using domain)
     "core",
