@@ -495,13 +495,13 @@ export class ApplicationStack extends cdk.Stack {
       exportName: `${id}-ApiUrlParameter`,
     });
 
-    new cdk.CfnOutput(this, 'WebLogGroup', {
+    new cdk.CfnOutput(this, 'WebLogGroupOutput', {
       value: webLogGroup.logGroupName,
       description: 'Web Service CloudWatch Log Group',
       exportName: `${id}-WebLogGroup`,
     });
 
-    new cdk.CfnOutput(this, 'ApiLogGroup', {
+    new cdk.CfnOutput(this, 'ApiLogGroupOutput', {
       value: apiLogGroup.logGroupName,
       description: 'API Service CloudWatch Log Group',
       exportName: `${id}-ApiLogGroup`,
