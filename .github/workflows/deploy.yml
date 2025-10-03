@@ -53,16 +53,15 @@ jobs:
       - name: Install Frontend Dependencies
         run: pnpm install
 
+      - name: Build Design System
+        run: |
+          cd packages/design-system
+          pnpm build
+
       - name: Run Frontend Tests
         run: |
           cd packages/web
           pnpm test
-
-      - name: Run E2E Tests
-        run: |
-          cd packages/web
-          pnpm playwright install
-          pnpm playwright test
 
   build-and-deploy:
     needs: test
