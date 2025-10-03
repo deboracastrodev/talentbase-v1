@@ -6,6 +6,7 @@ Status: Draft
 - [Code Quality Standards](../bestpraticies/CODE_QUALITY.md)
 - [Backend Best Practices](../bestpraticies/BACKEND_BEST_PRACTICES.md)
 - [Pre-Implementation Checklist](../bestpraticies/PRE_IMPLEMENTATION_CHECKLIST.md)
+- [Frontend Best Practices](../bestpraticies/FRONTEND_BEST_PRACTICES.md)
 
 
 ## Story
