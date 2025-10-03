@@ -43,5 +43,17 @@ export type { RadioProps } from './components/Radio';
 export { VideoPlayer } from './components/VideoPlayer';
 export type { VideoPlayerProps } from './components/VideoPlayer';
 
+export { Alert } from './components/Alert';
+export type { AlertProps, AlertVariant } from './components/Alert';
+
+export { AuthLayout } from './components/AuthLayout';
+export type { AuthLayoutProps } from './components/AuthLayout';
+
+export { AuthCard } from './components/AuthCard';
+export type { AuthCardProps } from './components/AuthCard';
+
+export { AuthFormField } from './components/AuthFormField';
+export type { AuthFormFieldProps } from './components/AuthFormField';
+
 // Utils
 export { cn } from './lib/utils';
