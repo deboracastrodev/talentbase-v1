@@ -56,6 +56,12 @@ export const ERROR_MESSAGES = {
   SERVER_ERROR: 'Erro ao processar requisição. Tente novamente.',
   NETWORK_ERROR: 'Erro de conexão. Verifique sua internet e tente novamente.',
   DUPLICATE_EMAIL: 'Já existe uma conta com este email',
+
+  // Login errors (Story 2.3)
+  INVALID_CREDENTIALS: 'Email ou senha inválidos',
+  RATE_LIMIT_EXCEEDED: 'Muitas tentativas de login. Aguarde alguns minutos e tente novamente.',
+  ACCOUNT_INACTIVE: 'Sua conta está inativa. Entre em contato com o suporte.',
+  ACCOUNT_PENDING: 'Sua conta está pendente de aprovação. Você será notificado em até 24 horas.',
 } as const;
 
 // Success Messages

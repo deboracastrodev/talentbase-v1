@@ -15,7 +15,9 @@ from django.conf import settings
 from authentication.serializers import (
     CandidateRegistrationSerializer,
     CompanyRegistrationSerializer,
-    RegistrationResponseSerializer
+    RegistrationResponseSerializer,
+    LoginSerializer,
+    LoginResponseSerializer
 )
 from authentication.services import CandidateRegistrationService, CompanyRegistrationService
 
@@ -27,6 +29,15 @@ class RegistrationRateThrottle(AnonRateThrottle):
     Per constraint security2: 10 registrations/hour per IP
     """
     rate = '10/hour'
+
+
+class LoginRateThrottle(AnonRateThrottle):
+    """
+    Rate limiting for login endpoint.
+
+    Per Story 2.3 security requirement: 5 login attempts per minute per IP
+    """
+    rate = '5/min'
 
 
 @api_view(['POST'])
@@ -279,3 +290,170 @@ def register_company(request):
             {'errors': {'detail': 'Internal server error'}},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+
+
+@api_view(['POST'])
+@authentication_classes([])  # No authentication required - disables CSRF for this view
+@permission_classes([AllowAny])
+@throttle_classes([LoginRateThrottle])
+def login(request):
+    """
+    Login user with email and password.
+
+    **Endpoint:** POST /api/v1/auth/login
+
+    **Request Body:**
+    ```json
+    {
+        "email": "user@example.com",
+        "password": "SecurePass123!"
+    }
+    ```
+
+    **Response 200:**
+    ```json
+    {
+        "user": {
+            "id": "uuid",
+            "email": "user@example.com",
+            "role": "candidate",
+            "is_active": true
+        },
+        "token": "auth_token_string",
+        "redirect_url": "/candidate"
+    }
+    ```
+
+    **Error Responses:**
+    - 401: Invalid credentials or inactive account
+    - 429: Rate limit exceeded (5 attempts/minute per IP)
+
+    **AC Mapping:**
+    - AC3: Endpoint API POST /api/v1/auth/login
+    - AC4: Token generated on authentication (DRF Token Auth)
+    - AC5: Token stored in httpOnly cookie
+    - AC6: Role-based redirect URL returned
+    - AC7: Generic error message for invalid credentials
+    - AC8: Error message for inactive/pending accounts
+
+    **Architecture:**
+    Thin controller per Clean Architecture.
+    Uses Django's built-in authentication and DRF Token.
+    """
+    from rest_framework.authtoken.models import Token
+    from authentication.models import User
+
+    # Validate input data
+    serializer = LoginSerializer(data=request.data)
+    if not serializer.is_valid():
+        return Response(
+            {'errors': serializer.errors},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    email = serializer.validated_data['email']
+    password = serializer.validated_data['password']
+
+    try:
+        # Get user by email (case-insensitive)
+        user = User.objects.get(email=email)
+    except User.DoesNotExist:
+        # AC7: Generic error message (prevent user enumeration)
+        return Response(
+            {
+                'error': 'Invalid credentials',
+                'code': 'INVALID_CREDENTIALS'
+            },
+            status=status.HTTP_401_UNAUTHORIZED
+        )
+
+    # Check password
+    if not user.check_password(password):
+        # AC7: Generic error message (prevent user enumeration)
+        return Response(
+            {
+                'error': 'Invalid credentials',
+                'code': 'INVALID_CREDENTIALS'
+            },
+            status=status.HTTP_401_UNAUTHORIZED
+        )
+
+    # AC8: Check if account is active
+    if not user.is_active:
+        # For company users, check if it's pending approval
+        if user.role == 'company':
+            return Response(
+                {
+                    'error': 'Your account is pending approval. You will be notified within 24 hours.',
+                    'code': 'ACCOUNT_PENDING'
+                },
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        else:
+            return Response(
+                {
+                    'error': 'Your account is inactive. Please contact support.',
+                    'code': 'ACCOUNT_INACTIVE'
+                },
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+    # AC4: Get or create token (DRF Token Authentication)
+    token, created = Token.objects.get_or_create(user=user)
+
+    # AC6: Determine redirect URL based on role and status
+    redirect_url = get_redirect_url(user.role, user.is_active)
+
+    # Prepare response data
+    response_serializer = LoginResponseSerializer({
+        'user': user,
+        'token': token.key,
+        'redirect_url': redirect_url
+    })
+
+    # Create response
+    response = Response(
+        response_serializer.data,
+        status=status.HTTP_200_OK
+    )
+
+    # AC5: Set token as httpOnly cookie (reuse pattern from registration)
+    # Same security settings: httpOnly, secure in production, sameSite
+    response.set_cookie(
+        key='auth_token',
+        value=token.key,
+        max_age=604800,  # 7 days
+        httponly=True,
+        secure=not settings.DEBUG,  # True in production, False in development
+        samesite='Strict' if not settings.DEBUG else 'Lax',
+        path='/'
+    )
+
+    return response
+
+
+def get_redirect_url(role: str, is_active: bool) -> str:
+    """
+    Determine redirect URL based on user role and status.
+
+    Per Story 2.3 AC6: Role-based redirects
+    - admin → /admin
+    - candidate → /candidate
+    - company (active) → /company
+    - company (pending) → /auth/registration-pending
+
+    Args:
+        role: User's role (admin/candidate/company)
+        is_active: Whether user account is active
+
+    Returns:
+        str: Redirect URL path
+    """
+    if role == 'admin':
+        return '/admin'
+    elif role == 'candidate':
+        return '/candidate'
+    elif role == 'company':
+        return '/company' if is_active else '/auth/registration-pending'
+    else:
+        return '/'

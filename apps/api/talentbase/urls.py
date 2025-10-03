@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.urls import path
 
 from core.views import health_check, ping
-from authentication.views import register_candidate, register_company
+from authentication.views import register_candidate, register_company, login
 
 urlpatterns = [
     path("ping/", ping, name="ping"),  # Simple health check for ALB
@@ -27,4 +27,5 @@ urlpatterns = [
     # Authentication endpoints
     path("api/v1/auth/register/candidate", register_candidate, name="register-candidate"),
     path("api/v1/auth/register/company", register_company, name="register-company"),
+    path("api/v1/auth/login", login, name="login"),  # Story 2.3: Login endpoint
 ]

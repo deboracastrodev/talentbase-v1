@@ -1,6 +1,6 @@
 # Story 2.2: User Registration (Company)
 
-Status: In Progress
+Status: Done
 
 **⚠️ IMPORTANTE: Antes de iniciar esta story, leia:**
 - [Code Quality Standards](../bestpraticies/CODE_QUALITY.md)

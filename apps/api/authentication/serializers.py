@@ -80,6 +80,7 @@ class UserSerializer(serializers.Serializer):
     id = serializers.UUIDField(read_only=True)
     email = serializers.EmailField(read_only=True)
     role = serializers.CharField(read_only=True)
+    is_active = serializers.BooleanField(read_only=True)
 
 
 class RegistrationResponseSerializer(serializers.Serializer):
@@ -91,6 +92,42 @@ class RegistrationResponseSerializer(serializers.Serializer):
 
     user = UserSerializer(read_only=True)
     token = serializers.CharField(read_only=True)
+
+
+class LoginSerializer(serializers.Serializer):
+    """
+    Serializer for login endpoint.
+
+    Validates login credentials (email and password).
+    Per Story 2.3: Login & Token Authentication
+    """
+
+    email = serializers.EmailField(
+        required=True,
+        help_text="Email address"
+    )
+    password = serializers.CharField(
+        required=True,
+        write_only=True,
+        style={'input_type': 'password'},
+        help_text="Password"
+    )
+
+    def validate_email(self, value):
+        """Normalize email to lowercase."""
+        return value.lower()
+
+
+class LoginResponseSerializer(serializers.Serializer):
+    """
+    Serializer for login response.
+
+    Per Story 2.3 AC4, AC6: Response includes user object, token, and redirect_url.
+    """
+
+    user = UserSerializer(read_only=True)
+    token = serializers.CharField(read_only=True)
+    redirect_url = serializers.CharField(read_only=True)
 
 
 class CompanyRegistrationSerializer(serializers.Serializer):
