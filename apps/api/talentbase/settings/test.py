@@ -14,6 +14,14 @@ DATABASES = {
     }
 }
 
+# Use local memory cache instead of Redis for tests
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "unique-test-cache",
+    }
+}
+
 # Disable password hashers for faster tests
 PASSWORD_HASHERS = [
     "django.contrib.auth.hashers.MD5PasswordHasher",
