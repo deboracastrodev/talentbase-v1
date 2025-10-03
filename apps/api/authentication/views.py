@@ -11,6 +11,7 @@ from rest_framework.throttling import AnonRateThrottle
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import IntegrityError
 from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
 
 from authentication.serializers import (
     CandidateRegistrationSerializer,
@@ -31,6 +32,7 @@ class RegistrationRateThrottle(AnonRateThrottle):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 @throttle_classes([RegistrationRateThrottle])
+@csrf_exempt  # Public endpoint - CSRF not required for token-based auth
 def register_candidate(request):
     """
     Register a new candidate user.

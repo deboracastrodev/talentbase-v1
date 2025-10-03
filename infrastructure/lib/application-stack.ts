@@ -117,13 +117,14 @@ export class ApplicationStack extends cdk.Stack {
         NODE_ENV: config.tags.Environment === 'production' ? 'production' : 'development',
         PORT: config.ecs.webService.port.toString(),
         VITE_API_URL: `https://api-${config.domain.name}`,
+        SESSION_SECRET: cdk.SecretValue.unsafePlainText('change-this-in-production-via-secrets-manager').unsafeUnwrap(),
       },
       healthCheck: {
         command: ['CMD-SHELL', `curl -f http://localhost:${config.ecs.webService.port}/ || exit 1`],
         interval: cdk.Duration.seconds(30),
         timeout: cdk.Duration.seconds(5),
         retries: 3,
-        startPeriod: cdk.Duration.seconds(60),
+        startPeriod: cdk.Duration.seconds(120),
       },
     });
 
