@@ -101,6 +101,7 @@ jobs:
         run: |
           cd apps/api
           docker build \
+            --platform linux/amd64 \
             --target production \
             --cache-from ${{ env.ECR_REGISTRY }}/talentbase-api:latest \
             --build-arg BUILDKIT_INLINE_CACHE=1 \
@@ -114,9 +115,12 @@ jobs:
         run: |
           docker build \
             -f packages/web/Dockerfile \
+            --platform linux/amd64 \
             --target production \
             --cache-from ${{ env.ECR_REGISTRY }}/talentbase-web:latest \
             --build-arg BUILDKIT_INLINE_CACHE=1 \
+            --build-arg VITE_API_URL=https://api-dev.salesdog.click \
+            --build-arg NODE_ENV=production \
             -t ${{ env.ECR_REGISTRY }}/talentbase-web:${{ github.sha }} \
             -t ${{ env.ECR_REGISTRY }}/talentbase-web:latest \
             .
