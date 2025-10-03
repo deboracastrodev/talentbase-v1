@@ -49,6 +49,10 @@ Para que **eu possa publicar vagas e buscar candidatos (após aprovação do adm
   - [ ] Criar template email para empresa (registro recebido)
   - [ ] Criar template email para admin (nova empresa)
   - [ ] Implementar envio via Celery
+- [ ] Task 6: Implementar encriptação de CNPJ
+  - [ ] Configurar Django Encrypted Fields
+  - [ ] Implementar encriptação para campo CNPJ
+  - [ ] Garantir decriptação apenas quando necessário
 
 ## Dev Notes
 

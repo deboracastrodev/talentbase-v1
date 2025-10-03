@@ -96,11 +96,13 @@ users = User.objects.select_related(
 - Search functionality
 - Sortable headers
 - Status badges with colors
+- Bulk selection for future operations
 
 **UserDetailModal:**
 - Read-only user information
 - Status change dropdown
 - Action history (future)
+- Audit trail display
 
 ### Email Notifications
 

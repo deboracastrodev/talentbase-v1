@@ -86,6 +86,17 @@ const getRedirectPath = (role: string, isActive: boolean) => {
 
 **No schema changes required** - using existing User model with role field.
 
+### Cookie Configuration
+
+**Secure Cookie Settings:**
+```python
+# settings/base.py
+SESSION_COOKIE_SECURE = True  # HTTPS only in production
+SESSION_COOKIE_HTTPONLY = True  # Prevent XSS
+SESSION_COOKIE_SAMESITE = 'Strict'  # CSRF protection
+SESSION_COOKIE_AGE = 604800  # 7 days in seconds
+```
+
 ### API Response Format
 
 **Success (200):**

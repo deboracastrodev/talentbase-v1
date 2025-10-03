@@ -129,7 +129,7 @@ Esta story configura DNS no Route 53 e certificados SSL via AWS Certificate Mana
 - [ ] Configurar listeners para desenvolvimento (mesma estrutura)
 
 ### Task 5: Configurar Remix redirect (AC: 2 - Gap Fix)
-- [ ] Criar `packages/web/app/routes/$.tsx`:
+- [x] Criar `packages/web/app/routes/$.tsx`:
   ```typescript
   import { redirect } from '@remix-run/node';
   import type { LoaderFunctionArgs } from '@remix-run/node';
@@ -148,7 +148,7 @@ Esta story configura DNS no Route 53 e certificados SSL via AWS Certificate Mana
   ```
 
 ### Task 6: Atualizar Django settings (AC: 7)
-- [ ] Editar `apps/api/talentbase/settings/production.py`:
+- [x] Editar `apps/api/talentbase/settings/production.py`:
   ```python
   ALLOWED_HOSTS = [
       'api.salesdog.click',
@@ -172,7 +172,7 @@ Esta story configura DNS no Route 53 e certificados SSL via AWS Certificate Mana
   CSRF_COOKIE_SECURE = True
   ```
 
-- [ ] Editar `apps/api/talentbase/settings/development.py`:
+- [x] Editar `apps/api/talentbase/settings/development.py`:
   ```python
   ALLOWED_HOSTS = [
       'api-dev.salesdog.click',
@@ -410,6 +410,7 @@ dig www.salesdog.click
 | Date       | Version | Description | Author |
 | ---------- | ------- | ----------- | ------ |
 | 2025-10-02 | 0.1     | Initial draft - DNS & SSL with apex domain redirect | Debora |
+| 2025-10-02 | 0.2     | Implementado redirect Remix + ajustes Django; tarefas AWS pendentes | Amelia (Dev Agent) |
 
 ## Dev Agent Record
 
@@ -417,12 +418,33 @@ dig www.salesdog.click
 
 Claude Sonnet 4.5 (claude-sonnet-4-5-20250929)
 
+### Debug Log
+
+**Plano de execução (AC2, AC7):**
+1. Revisar contexto autorizado e confirmar lacunas de DNS/SSL (Gap Menor 5).
+2. Implementar rota catch-all no Remix para redirecionar `salesdog.click` → `www.salesdog.click` com redirect 301.
+3. Ajustar settings Django (produção/desenvolvimento) incluindo `SECURE_PROXY_SSL_HEADER` e domínios `dev`/`api-dev`; sincronizar exemplos `.env`.
+4. Rodar lint/testes para validar regressões e mapear bloqueios antes de seguir com atividades AWS.
+
+**Evidências de execução:**
+- Criado `packages/web/app/routes/$.tsx` com normalização de hostname e preservação de path/query (redirect 301).
+- Atualizado `apps/api/talentbase/settings/production.py` para incluir `SECURE_PROXY_SSL_HEADER` e manter flags HTTPS.
+- Expandido `apps/api/talentbase/settings/development.py` e `apps/api/.env.example` com `dev.salesdog.click` e `api-dev.salesdog.click`.
+- `pnpm --filter @talentbase/web lint` falhou por warnings/erro pré-existentes (import ordering, `react/no-unescaped-entities` em `Testimonials.tsx`).
+- `poetry run pytest` falhou por ausência de PostgreSQL/Redis locais (`OperationalError`, `ConnectionError`).
+- `aws` CLI atual (`/usr/local/bin/aws`) não executa no macOS (binário Linux) → impossibilitou prosseguir com certificados ACM, registros Route 53 e listeners ALB (Tarefas 1-4).
+
+**Bloqueios / próximos passos necessários:**
+- Reinstalar ou substituir o binário do AWS CLI por versão compatível ou executar comandos AWS manualmente.
+- Disponibilizar PostgreSQL e Redis locais (ou usar ambientes gerenciados) para validar `pytest`.
+- Resolver baseline de lint existente (`import/order`, `react/no-unescaped-entities`) antes de obter run limpo.
+
 ### Completion Notes
 
-- Tempo estimado: 2-3 horas
-- Inclui correção do Gap Menor 5 (apex domain redirect)
-- Inclui MCP context (infrastructure story)
-- Última story do Epic 1
+- AC2 (redirect do domínio apex) implementado via `packages/web/app/routes/$.tsx` com redirect 301 preservando path/query.
+- AC7 reforçado com `SECURE_PROXY_SSL_HEADER` em produção e hosts/dev atualizados; `.env.example` sincronizado para novos domínios.
+- Testes: `pnpm --filter @talentbase/web lint` falhou por warnings/erro pré-existentes; `poetry run pytest` falhou por falta de Postgres/Redis.
+- AWS CLI indisponível (binário incompatível) mantém pendentes as tarefas 1-4 (certificados ACM, validação DNS, registros Route 53, listeners ALB).
 
 ### Dependencies
 
@@ -436,15 +458,15 @@ Claude Sonnet 4.5 (claude-sonnet-4-5-20250929)
 
 ### File List
 
-**To be created:**
-- `packages/web/app/routes/$.tsx` - Catch-all for apex domain redirect
+**Created:**
+- `packages/web/app/routes/$.tsx` – Catch-all Remix route para redirecionar `salesdog.click` → `www.salesdog.click` (AC2/GAP 5).
 
-**To be modified:**
-- `apps/api/talentbase/settings/production.py` - ALLOWED_HOSTS, CORS, SSL settings
-- `apps/api/talentbase/settings/development.py` - ALLOWED_HOSTS, CORS settings
+**Modified:**
+- `apps/api/talentbase/settings/production.py` – Adicionado `SECURE_PROXY_SSL_HEADER` e confirmadas flags HTTPS (AC7).
+- `apps/api/talentbase/settings/development.py` – Incluídos `dev.salesdog.click` e `api-dev.salesdog.click` em `ALLOWED_HOSTS` (AC7).
+- `apps/api/.env.example` – Atualizado para refletir hosts e CORS padrões com domínios `dev` (AC7).
 
-**AWS Resources (created via CLI/Console):**
-- ACM certificates (production and development)
-- Route 53 A records (www, api, dev, api-dev, apex)
-- ALB HTTPS listeners
-- ALB HTTP→HTTPS redirect listeners
+**AWS Resources (pendentes via CLI/Console):**
+- ACM certificates (produção e desenvolvimento) – requer AWS CLI funcional.
+- Route 53 A records (www, api, dev, api-dev, apex).
+- ALB HTTPS listeners e redirects HTTP→HTTPS para produção e desenvolvimento.

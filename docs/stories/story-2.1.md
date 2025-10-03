@@ -47,6 +47,10 @@ Para que **eu possa criar meu perfil e me candidatar a vagas**.
 - [ ] Task 5: Implementar redirect pós-registro (AC: 8)
   - [ ] Implementar mensagem de sucesso
   - [ ] Configurar redirect para onboarding
+- [ ] Task 6: Implementar testes automatizados
+  - [ ] Testes unitários para registro candidato
+  - [ ] Testes E2E para fluxo completo
+  - [ ] Teste de email duplicado
 
 ## Dev Notes
 

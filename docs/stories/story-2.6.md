@@ -215,6 +215,11 @@ def test_company_can_only_edit_own_jobs(self):
     self.client.force_authenticate(user=self.company_user)
     response = self.client.patch(f'/api/v1/jobs/{other_company_job.id}/')
     self.assertEqual(response.status_code, 403)
+
+def test_admin_has_full_access(self):
+    self.client.force_authenticate(user=self.admin_user)
+    response = self.client.get('/api/v1/admin/users/')
+    self.assertEqual(response.status_code, 200)
 ```
 
 ### References

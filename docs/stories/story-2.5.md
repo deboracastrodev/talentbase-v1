@@ -74,15 +74,24 @@ Para que **apenas empresas legítimas possam acessar a plataforma**.
 ```python
 # Optional CNPJ lookup for verification
 def verify_cnpj_external(cnpj):
-    response = requests.get(f"https://receitaws.com.br/v1/cnpj/{cnpj}")
-    if response.status_code == 200:
-        data = response.json()
-        return {
-            'valid': data.get('status') == 'OK',
-            'company_name': data.get('nome'),
-            'activity': data.get('atividade_principal')[0]['text']
-        }
-    return {'valid': False}
+    try:
+        # Clean CNPJ string (remove special chars)
+        cnpj_clean = re.sub(r'[^0-9]', '', cnpj)
+
+        response = requests.get(
+            f"https://receitaws.com.br/v1/cnpj/{cnpj_clean}",
+            timeout=5
+        )
+        if response.status_code == 200:
+            data = response.json()
+            return {
+                'valid': data.get('status') == 'OK',
+                'company_name': data.get('nome'),
+                'activity': data.get('atividade_principal')[0]['text']
+            }
+    except Exception as e:
+        logger.warning(f"CNPJ verification failed: {e}")
+    return {'valid': False, 'error': 'Verification unavailable'}
 ```
 
 ### Audit Log Model

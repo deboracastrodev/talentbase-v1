@@ -254,6 +254,8 @@ class EmailLog(BaseModel):
 - Rate limiting on email sending (prevent spam)
 - Input validation for email addresses
 - Secure storage of email service credentials
+- Email content sanitization (prevent XSS)
+- Attachment scanning (future enhancement)
 
 ### Project Structure Notes
 
