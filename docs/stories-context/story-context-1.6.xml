@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<context type="infrastructure-dns-ssl">
+  <story-info>
+    <id>1.6</id>
+    <title>Configure DNS & SSL (Route 53 + ACM)</title>
+    <status>Draft</status>
+    <epic>Epic 1</epic>
+    <priority>Must Have</priority>
+    <estimated-effort>2-3 horas</estimated-effort>
+    <dependencies>
+      <dependency>Story 1.5: ECS services and ALBs deployed</dependency>
+      <dependency>Story 1.0: Route 53 hosted zone verified</dependency>
+    </dependencies>
+  </story-info>
+
+  <user-story>
+    <role>infrastructure admin</role>
+    <action>o domínio salesdog.click apontando para a aplicação com HTTPS</action>
+    <benefit>usuários possam acessar a plataforma de forma segura</benefit>
+  </user-story>
+
+  <acceptance-criteria>
+    <criterion id="1">Hosted zone Route 53 configurada para salesdog.click</criterion>
+    <criterion id="2">
+      Registros A apontam para:
+      - www.salesdog.click → ALB Production (Frontend)
+      - api.salesdog.click → ALB Production (Backend)
+      <subdomain-redirect>
+      - salesdog.click → Redirect para www.salesdog.click (Gap Fix)
+    </criterion>
+    <criterion id="3">Certificados SSL emitidos via AWS ACM</criterion>
+    <criterion id="4">HTTPS enforced (HTTP redirect para HTTPS)</criterion>
+    <criterion id="5">Certificado auto-renewal configurado</criterion>
+    <criterion id="6">DNS propagation confirmada (acessível globalmente)</criterion>
+    <criterion id="7">Django ALLOWED_HOSTS e CORS_ALLOWED_ORIGINS configurados corretamente</criterion>
+    <criterion id="8">Testes de SSL e conectividade executados com sucesso</criterion>
+  </acceptance-criteria>
+
+  <dns-configuration>
+    <provider>AWS Route 53</provider>
+    <domain>salesdog.click</domain>
+    <records>
+      <record>
+        <name>www.salesdog.click</name>
+        <type>A</type>
+        <target>ALB Production Web</target>
+        <alias>true</alias>
+      </record>
+      <record>
+        <name>api.salesdog.click</name>
+        <type>A</type>
+        <target>ALB Production API</target>
+        <alias>true</alias>
+      </record>
+      <record>
+        <name>dev.salesdog.click</name>
+        <type>A</type>
+        <target>ALB Development Web</target>
+        <alias>true</alias>
+      </record>
+      <record>
+        <name>api-dev.salesdog.click</name>
+        <type>A</type>
+        <target>ALB Development API</target>
+        <alias>true</alias>
+      </record>
+      <record>
+        <name>salesdog.click</name>
+        <type>A</type>
+        <target>ALB Production Web</target>
+        <alias>true</alias>
+      </record>
+    </records>
+  </dns-configuration>
+
+  <ssl-configuration>
+    <provider>AWS Certificate Manager (ACM)</provider>
+    <certificates>
+      <certificate environment="production">
+        <primary-domain>salesdog.click</primary-domain>
+        <subject-alternative-names>
+          <san>www.salesdog.click</san>
+          <san>api.salesdog.click</san>
+        </subject-alternative-names>
+        <validation-method>DNS</validation-method>
+        <auto-renewal>true</auto-renewal>
+      </certificate>
+      <certificate environment="development">
+        <primary-domain>dev.salesdog.click</primary-domain>
+        <subject-alternative-names>
+          <san>api-dev.salesdog.click</san>
+        </subject-alternative-names>
+        <validation-method>DNS</validation-method>
+        <auto-renewal>true</auto-renewal>
+      </certificate>
+    </certificates>
+    <https-enforcement>
+      <approach>ALB-level redirect</approach>
+      <http-listener port="80" action="redirect-to-https"/>
+        <https-listener port="443" action="forward-to-target-group"/>
+        <status-code>301</status-code>
+    </https-enforcement>
+  </ssl-configuration>
+
+  <redirect-configuration>
+    <apex-domain-redirect>
+      <source>salesdog.click</source>
+      <destination>www.salesdog.click</destination>
+      <implementation>Remix catch-all route</implementation>
+      <status-code>301</status-code>
+    </apex-domain-redirect>
+  </redirect-configuration>
+
+  <application-configuration>
+    <django>
+      <allowed-hosts>
+        <production>
+          <host>api.salesdog.click</host>
+          <host>www.salesdog.click</host>
+          <host>salesdog.click</host>
+        </production>
+        <development>
+          <host>api-dev.salesdog.click</host>
+          <host>dev.salesdog.click</host>
+          <host>localhost</host>
+        </development>
+      </allowed-hosts>
+      <cors-origins>
+        <production>
+          <origin>https://www.salesdog.click</origin>
+          <origin>https://salesdog.click</origin>
+        </production>
+        <development>
+          <origin>https://dev.salesdog.click</origin>
+          <origin>http://localhost:3000</origin>
+        </development>
+      </cors-origins>
+      <security-headers>
+        <hsts enabled="true" max-age="31536000" include-subdomains="true"/>
+        <ssl-redirect enabled="true"/>
+        <secure-cookies enabled="true"/>
+      </security-headers>
+    </django>
+    <remix>
+      <catch-all-route>packages/web/app/routes/$.tsx</catch-all-route>
+        <redirect-behavior>301 permanent redirect</redirect-behavior>
+      </remix>
+  </application-configuration>
+
+  <tasks>
+    <task id="1" name="Solicitar certificados SSL">
+      <subtask>Validar se já existe certificado</subtask>
+      <subtask>Solicitar certificado para produção</subtask>
+      <subtask>Solicitar certificado para desenvolvimento</subtask>
+      <subtask>Anotar ARNs dos certificados emitidos</subtask>
+    </task>
+    <task id="2" name="Validar certificados">
+      <subtask>Adicionar CNAME records ao Route 53</subtask>
+      <subtask>Aguardar validação (~5-10 minutos)</subtask>
+      <subtask>Confirmar status do certificado</subtask>
+    </task>
+    <task id="3" name="Criar registros DNS">
+      <subtask>Criar registro para www.salesdog.click</subtask>
+      <subtask>Criar registros para api.salesdog.click</subtask>
+      <subtask>Criar registros para dev.salesdog.click</subtask>
+      <subtask>Criar registros para api-dev.salesdog.click</subtask>
+      <subtask>Criar registro para domínio raiz (salesdog.click)</subtask>
+    </task>
+    <task id="4" name="Configurar ALB HTTPS listeners">
+      <subtask>Criar HTTPS listener para produção</subtask>
+      <subtask>Criar HTTP → HTTPS redirect</subtask>
+      <subtask>Configurar listeners para desenvolvimento</subtask>
+    </task>
+    <task id="5" name="Configurar Remix redirect">
+      <subtask>Criar catch-all route para redirect do domínio raiz</subtask>
+    </task>
+    <task id="6" name="Atualizar Django settings">
+      <subtask>Editar production.py settings</subtask>
+      <subtask>Editar development.py settings</subtask>
+    </task>
+    <task id="7" name="Testes de validação">
+      <subtask>Teste manual de acesso aos domínios</subtask>
+      <subtask>Teste SSL com curl</subtask>
+      <subtask>Testar SSL Labs</subtask>
+      <subtask>Verificar certificado no browser</subtask>
+    </task>
+  </tasks>
+
+  <gap-fixes>
+    <gap id="5" type="menor">
+      <description>Registro DNS para domínio raiz (salesdog.click) com redirect para www.salesdog.click</description>
+    </gap-fixes>
+
+  <testing>
+    <manual-tests>
+      <test>https://www.salesdog.click carrega landing page</test>
+      <test>https://api.salesdog.click/api/v1/ retorna DRF browsable API</test>
+      <test>https://dev.salesdog.click carrega landing page dev</test>
+      <test>https://api-dev.salesdog.click/api/v1/ retorna DRF dev</test>
+      <test>http://www.salesdog.click redirect para HTTPS</test>
+      <test>https://salesdog.click redirect para www.salesdog.click</test>
+    </manual-tests>
+    <ssl-tests>
+      <test>curl -I https://www.salesdog.click</test>
+      <test>curl -I https://api.salesdog.click</test>
+      <test>curl -I http://www.salesdog.click (deve retornar 301)</test>
+    </ssl-tests>
+  </testing>
+
+  <troubleshooting>
+    <issue>Certificado SSL não valida</issue>
+    <issue>DNS não resolve</issue>
+    <issue>CORS errors</issue>
+  </troubleshooting>
+
+  <references>
+    <reference>docs/epics/tech-spec-epic-1.md#Story-1.6</reference>
+    <reference>docs/epics/tech-spec-epic-1-review.md#Gap-Menor-5</reference>
+    <reference>docs/epics/solution-architecture.md#Deployment-Architecture</reference>
+  </references>
+
+  <change-log>
+    <entry>
+      <date>2025-10-02</date>
+      <version>0.1</version>
+      <description>Initial draft - DNS & SSL with apex domain redirect</description>
+    </entry>
+  </change-log>
+</context>

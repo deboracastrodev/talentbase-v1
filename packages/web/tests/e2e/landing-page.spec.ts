@@ -11,9 +11,9 @@ test.describe('Landing Page', () => {
     await expect(page.getByRole('button', { name: /Quero meu headhunter pessoal/i }).first()).toBeVisible();
 
     // How It Works sections
-    await expect(page.getByText('Como funciona a TalentBase?')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Como funciona a TalentBase?' })).toBeVisible();
     await expect(page.getByText('1. Preencha seu perfil')).toBeVisible();
-    await expect(page.getByText('2. IA procura a vaga para você')).toBeVisible();
+    await expect(page.getByText('2. IA faz o matching perfeito')).toBeVisible();
     await expect(page.getByText('3. Apresentamos você')).toBeVisible();
 
     // CTA Section

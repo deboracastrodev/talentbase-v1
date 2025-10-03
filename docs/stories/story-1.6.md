@@ -31,6 +31,7 @@ Esta story configura DNS no Route 53 e certificados SSL via AWS Certificate Mana
 ## Tasks / Subtasks
 
 ### Task 1: Solicitar certificados SSL (AC: 3)
+**valide antes se já existe**
 - [ ] Solicitar certificado para produção:
   ```bash
   aws acm request-certificate \
@@ -63,6 +64,7 @@ Esta story configura DNS no Route 53 e certificados SSL via AWS Certificate Mana
 - [ ] Confirmar status: `aws acm describe-certificate --certificate-arn <ARN>`
 
 ### Task 3: Criar registros DNS (AC: 1, 2)
+**valide antes se já existe**
 - [ ] Criar registro para `www.salesdog.click`:
   ```bash
   aws route53 change-resource-record-sets \

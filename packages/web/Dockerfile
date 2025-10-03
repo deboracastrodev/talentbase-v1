@@ -17,14 +17,14 @@ CMD ["sh", "-c", "cd /app && pnpm install && cd packages/design-system && pnpm b
 FROM base AS builder
 
 # Copy workspace configuration
-COPY pnpm-workspace.yaml package.json ./
+COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
 
 # Copy all package.json files
 COPY packages/design-system/package.json ./packages/design-system/
 COPY packages/web/package.json ./packages/web/
 
 # Install dependencies
-RUN pnpm install --no-frozen-lockfile
+RUN pnpm install --frozen-lockfile
 
 # Copy source code
 COPY packages/design-system ./packages/design-system
@@ -53,4 +53,4 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/packages/web/node_modules ./node_modules
 
 EXPOSE 3000
-CMD ["npm", "start"]
+CMD ["pnpm", "start"]
