@@ -17,11 +17,12 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
-from core.views import health_check
+from core.views import health_check, ping
 from authentication.views import register_candidate, register_company
 
 urlpatterns = [
-    path("health/", health_check, name="health"),
+    path("ping/", ping, name="ping"),  # Simple health check for ALB
+    path("health/", health_check, name="health"),  # Comprehensive health check
     path("admin/", admin.site.urls),
     # Authentication endpoints
     path("api/v1/auth/register/candidate", register_candidate, name="register-candidate"),

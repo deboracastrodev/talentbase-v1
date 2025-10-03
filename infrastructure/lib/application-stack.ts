@@ -228,7 +228,7 @@ export class ApplicationStack extends cdk.Stack {
       targetType: elbv2.TargetType.IP,
       deregistrationDelay: cdk.Duration.seconds(30),
       healthCheck: {
-        path: '/health/',
+        path: '/ping/',
         interval: cdk.Duration.seconds(30),
         timeout: cdk.Duration.seconds(10),
         healthyThresholdCount: 2,

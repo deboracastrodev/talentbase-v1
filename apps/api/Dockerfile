@@ -40,4 +40,14 @@ FROM base AS production
 COPY . .
 RUN python manage.py collectstatic --noinput
 EXPOSE 8000
-CMD ["gunicorn", "talentbase.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "4"]
+
+# Create entrypoint script that runs migrations before starting server
+RUN echo '#!/bin/sh\n\
+set -e\n\
+echo "Running database migrations..."\n\
+python manage.py migrate --noinput\n\
+echo "Starting gunicorn..."\n\
+exec gunicorn talentbase.wsgi:application --bind 0.0.0.0:8000 --workers 4\n\
+' > /app/docker-entrypoint.sh && chmod +x /app/docker-entrypoint.sh
+
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
