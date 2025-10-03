@@ -21,6 +21,9 @@ import { Input } from '@talentbase/design-system';
 import { Button } from '@talentbase/design-system';
 import { AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
 
+// API Configuration (LOW-2: Centralized API configuration)
+import { buildApiUrl, API_ENDPOINTS, defaultFetchOptions } from '~/config/api';
+
 export default function CandidateRegister() {
   const navigate = useNavigate();
 
@@ -100,12 +103,10 @@ export default function CandidateRegister() {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${process.env.API_URL || 'http://localhost:8000'}/api/v1/auth/register/candidate`, {
+      // LOW-2: Using centralized API configuration
+      const response = await fetch(buildApiUrl(API_ENDPOINTS.auth.registerCandidate), {
+        ...defaultFetchOptions,
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',  // MED-1: Include cookies in cross-origin requests
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,
