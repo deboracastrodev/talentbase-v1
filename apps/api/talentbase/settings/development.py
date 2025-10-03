@@ -8,7 +8,11 @@ from .base import *
 
 DEBUG = True
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0"]
+ALLOWED_HOSTS = config(
+    "ALLOWED_HOSTS",
+    default="localhost,127.0.0.1,0.0.0.0,dev.salesdog.click,api-dev.salesdog.click",
+    cast=lambda v: [s.strip() for s in v.split(",")],
+)
 
 # CORS Configuration
 CORS_ALLOWED_ORIGINS = config(
