@@ -14,13 +14,13 @@ ALLOWED_HOSTS = ['*']
 
 # CORS Configuration
 CORS_ALLOWED_ORIGINS = config(
-    "CORS_ALLOWED_ORIGINS", default="http://localhost:3000,https://dev.salesdog.click"
+    "CORS_ALLOWED_ORIGINS", default="http://localhost:3000,http://localhost:3001,https://dev.salesdog.click"
 ).split(",")
 
 CORS_ALLOW_CREDENTIALS = True
 
 CSRF_TRUSTED_ORIGINS = config(
-    "CSRF_TRUSTED_ORIGINS", default="http://localhost:3000,https://dev.salesdog.click"
+    "CSRF_TRUSTED_ORIGINS", default="http://localhost:3000,http://localhost:3001,https://dev.salesdog.click"
 ).split(",")
 
 # Development-specific apps
