@@ -23,6 +23,16 @@ interface UserTableProps {
 }
 
 export function UserTable({ users, onUserClick, isLoading = false }: UserTableProps) {
+  // Safety check: ensure users is an array
+  if (!users || !Array.isArray(users)) {
+    console.error('[UserTable] users prop is invalid:', users);
+    return (
+      <div className="text-center py-12 bg-red-50 rounded-lg">
+        <p className="text-red-600">Erro: Dados de usuários não disponíveis.</p>
+      </div>
+    );
+  }
+
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
       case 'active':

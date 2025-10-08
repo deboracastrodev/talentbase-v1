@@ -44,7 +44,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const cookieHeader = request.headers.get('Cookie');
   const token = cookieHeader?.match(/auth_token=([^;]+)/)?.[1];
 
+  console.log('[Admin Loader] Cookie header:', cookieHeader ? 'present' : 'missing');
+  console.log('[Admin Loader] Token extracted:', token ? 'yes' : 'no');
+
   if (!token) {
+    console.log('[Admin Loader] No token found, redirecting to login');
     return redirect('/auth/login');
   }
 
@@ -59,16 +63,22 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   try {
     const response = await fetchUsers(filters, token);
+    console.log('[Admin Loader] API Response:', {
+      count: response.count,
+      resultsLength: response.results?.length,
+      hasResults: !!response.results
+    });
 
     return json<LoaderData>({
-      users: response.results,
-      totalCount: response.count,
+      users: response.results || [],
+      totalCount: response.count || 0,
       currentPage: filters.page || 1,
       hasNext: !!response.next,
       hasPrevious: !!response.previous,
       filters,
     });
   } catch (error) {
+    console.error('[Admin Loader] Error:', error);
     // Handle auth errors
     if (error instanceof Error && error.message.includes('Unauthorized')) {
       return redirect('/auth/login');
@@ -257,12 +267,13 @@ export default function AdminUsersPage() {
                   id="role"
                   value={filters.role || 'all'}
                   onChange={(e) => handleFilterChange('role', e.target.value)}
-                >
-                  <option value="all">Todas</option>
-                  <option value="admin">Admin</option>
-                  <option value="candidate">Candidato</option>
-                  <option value="company">Empresa</option>
-                </Select>
+                  options={[
+                    { value: 'all', label: 'Todas' },
+                    { value: 'admin', label: 'Admin' },
+                    { value: 'candidate', label: 'Candidato' },
+                    { value: 'company', label: 'Empresa' },
+                  ]}
+                />
               </div>
 
               <div>
@@ -273,12 +284,13 @@ export default function AdminUsersPage() {
                   id="status"
                   value={filters.status || 'all'}
                   onChange={(e) => handleFilterChange('status', e.target.value)}
-                >
-                  <option value="all">Todos</option>
-                  <option value="active">Ativo</option>
-                  <option value="pending">Pendente</option>
-                  <option value="inactive">Inativo</option>
-                </Select>
+                  options={[
+                    { value: 'all', label: 'Todos' },
+                    { value: 'active', label: 'Ativo' },
+                    { value: 'pending', label: 'Pendente' },
+                    { value: 'inactive', label: 'Inativo' },
+                  ]}
+                />
               </div>
             </div>
           </form>

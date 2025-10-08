@@ -5,9 +5,7 @@
  * Story 2.4 - Task 3
  */
 
-const API_BASE_URL = typeof window !== 'undefined'
-  ? window.ENV?.API_URL || 'http://localhost:8000'
-  : process.env.API_URL || 'http://localhost:8000';
+import { buildApiUrl, API_ENDPOINTS } from '~/config/api';
 
 export interface User {
   id: string;
@@ -68,7 +66,7 @@ export async function fetchUsers(
     params.append('page', filters.page.toString());
   }
 
-  const url = `${API_BASE_URL}/api/v1/admin/users${params.toString() ? `?${params.toString()}` : ''}`;
+  const url = buildApiUrl(`${API_ENDPOINTS.admin.users}${params.toString() ? `?${params.toString()}` : ''}`);
 
   const response = await fetch(url, {
     method: 'GET',
@@ -80,13 +78,16 @@ export async function fetchUsers(
   });
 
   if (!response.ok) {
+    const errorText = await response.text();
+    console.error(`API Error: ${response.status} - ${errorText}`);
+
     if (response.status === 401) {
       throw new Error('Unauthorized');
     }
     if (response.status === 403) {
       throw new Error('Forbidden: Admin access required');
     }
-    throw new Error('Failed to fetch users');
+    throw new Error(`Failed to fetch users: ${response.status} - ${errorText}`);
   }
 
   return response.json();
@@ -99,7 +100,7 @@ export async function fetchUserDetail(
   userId: string,
   token: string
 ): Promise<UserDetail> {
-  const url = `${API_BASE_URL}/api/v1/admin/users/${userId}`;
+  const url = buildApiUrl(API_ENDPOINTS.admin.userDetail(userId));
 
   const response = await fetch(url, {
     method: 'GET',
@@ -134,7 +135,7 @@ export async function updateUserStatus(
   isActive: boolean,
   token: string
 ): Promise<UserDetail> {
-  const url = `${API_BASE_URL}/api/v1/admin/users/${userId}`;
+  const url = buildApiUrl(API_ENDPOINTS.admin.updateUserStatus(userId));
 
   const response = await fetch(url, {
     method: 'PATCH',

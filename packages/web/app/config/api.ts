@@ -79,6 +79,11 @@ export const API_ENDPOINTS = {
     list: '/api/v1/jobs',
     detail: (id: string) => `/api/v1/jobs/${id}`,
   },
+  admin: {
+    users: '/api/v1/admin/users',
+    userDetail: (id: string) => `/api/v1/admin/users/${id}`,
+    updateUserStatus: (id: string) => `/api/v1/admin/users/${id}`,
+  },
 } as const;
 
 /**
