@@ -152,7 +152,7 @@ export class ApplicationStack extends cdk.Stack {
       ],
       // Runtime environment variables (non-sensitive)
       environment: {
-        NODE_ENV: config.tags.Environment === 'production' ? 'production' : 'development',
+        NODE_ENV: 'production',  // Always use production for deployed containers
         PORT: config.ecs.webService.port.toString(),
         // VITE_API_URL is now injected at build time via Docker build args
       },
