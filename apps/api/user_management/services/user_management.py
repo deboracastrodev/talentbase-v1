@@ -129,8 +129,10 @@ class UserManagementService:
 
         AC7: Admin can change status (activate, deactivate, approve company)
         AC8: Status change triggers email notification
+        AC9: Log de auditoria registra aprovação/rejeição
         """
         from core.tasks import send_email_task
+        from authentication.models import UserStatusAudit
 
         old_status = user.is_active
 
@@ -138,9 +140,31 @@ class UserManagementService:
         if old_status == is_active:
             raise ValueError("Novo status é igual ao status atual")
 
+        # Determine action type
+        if is_active and not old_status:
+            if user.role == "company":
+                action_type = "approve"
+            else:
+                action_type = "activate"
+        else:
+            if user.role == "company" and old_status and not is_active:
+                action_type = "reject"
+            else:
+                action_type = "deactivate"
+
         # Update status
         user.is_active = is_active
         user.save()
+
+        # Create audit log (AC9 - Story 2.5)
+        UserStatusAudit.objects.create(
+            user=user,
+            changed_by=admin_user,
+            old_status=old_status,
+            new_status=is_active,
+            action_type=action_type,
+            reason=reason,
+        )
 
         # Prepare email notification
         if is_active and not old_status:
@@ -163,15 +187,16 @@ class UserManagementService:
             recipient_list=[user.email],
         )
 
-        # Log the action (audit trail - Constraint #2)
-        # TODO: Create audit log model in future iteration
-        # AuditLog.objects.create(
-        #     user=user,
-        #     action="status_change",
-        #     old_value=old_status,
-        #     new_value=is_active,
-        #     performed_by=admin_user,
-        #     reason=reason,
-        # )
-
         return user
+
+    @staticmethod
+    def get_pending_approvals_count() -> int:
+        """
+        Get count of pending company approvals.
+
+        Story 2.5 - AC1: Count empresas pendentes para widget
+
+        Returns:
+            int: Number of companies awaiting approval (is_active=False)
+        """
+        return User.objects.filter(role="company", is_active=False).count()

@@ -3,25 +3,44 @@
  *
  * Displays detailed user information in a modal.
  * Story 2.4 - Task 3 (AC6), Task 4 (AC7)
+ * Story 2.5 - AC5, AC7: Modal de confirmação com motivo
  */
 
+import { useState } from 'react';
 import { Modal, Badge, Button } from '@talentbase/design-system';
+import { StatusConfirmModal } from './StatusConfirmModal';
 import type { UserDetail } from '~/lib/api/admin';
 
 interface UserDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   user: UserDetail | null;
-  onStatusChange?: (userId: string, isActive: boolean) => void;
+  onStatusChange?: (userId: string, isActive: boolean, reason?: string) => void;
   isUpdating?: boolean;
 }
 
 export function UserDetailModal({ isOpen, onClose, user, onStatusChange, isUpdating = false }: UserDetailModalProps) {
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+
   if (!user) return null;
 
+  // Determine action type based on current status and role
+  const getActionType = (): 'approve' | 'reject' | 'activate' | 'deactivate' => {
+    if (!user.is_active) {
+      return user.role === 'company' ? 'approve' : 'activate';
+    } else {
+      return user.role === 'company' ? 'reject' : 'deactivate';
+    }
+  };
+
   const handleStatusToggle = () => {
+    setIsConfirmModalOpen(true);
+  };
+
+  const handleConfirmStatusChange = (reason: string) => {
     if (onStatusChange && !isUpdating) {
-      onStatusChange(user.id, !user.is_active);
+      onStatusChange(user.id, !user.is_active, reason);
+      setIsConfirmModalOpen(false);
     }
   };
 
@@ -189,6 +208,17 @@ export function UserDetailModal({ isOpen, onClose, user, onStatusChange, isUpdat
           </div>
         )}
       </div>
+
+      {/* Confirmation Modal */}
+      <StatusConfirmModal
+        isOpen={isConfirmModalOpen}
+        onClose={() => setIsConfirmModalOpen(false)}
+        onConfirm={handleConfirmStatusChange}
+        isLoading={isUpdating}
+        action={getActionType()}
+        userName={user.name}
+        userRole={user.role}
+      />
     </Modal>
   );
 }

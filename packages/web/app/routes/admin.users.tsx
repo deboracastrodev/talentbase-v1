@@ -166,8 +166,9 @@ export default function AdminUsersPage() {
 
   /**
    * Handle status change (AC7, AC8)
+   * Story 2.5 - AC5, AC7: Adiciona suporte para campo motivo
    */
-  const handleStatusChange = async (userId: string, isActive: boolean) => {
+  const handleStatusChange = async (userId: string, isActive: boolean, reason?: string) => {
     setIsUpdatingStatus(true);
     setFeedback(null);
 
@@ -180,7 +181,7 @@ export default function AdminUsersPage() {
     }
 
     try {
-      const updatedUser = await updateUserStatus(userId, isActive, token);
+      const updatedUser = await updateUserStatus(userId, isActive, token, reason);
 
       // Update the selected user with new data
       setSelectedUser(updatedUser);
@@ -188,7 +189,7 @@ export default function AdminUsersPage() {
       // Show success feedback
       const statusText = isActive
         ? (updatedUser.role === 'company' ? 'aprovada' : 'ativado')
-        : 'desativado';
+        : (updatedUser.role === 'company' ? 'rejeitada' : 'desativado');
       setFeedback({
         type: 'success',
         message: `Usuário ${statusText} com sucesso! Uma notificação foi enviada por email.`

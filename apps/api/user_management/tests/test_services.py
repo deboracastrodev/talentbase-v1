@@ -230,3 +230,77 @@ class TestUserManagementService:
 
         # Assert
         assert name == "admin@test.com"
+
+    def test_update_user_status_creates_audit_log(
+        self, pending_company, admin_user, db
+    ):
+        """
+        Test that updating user status creates an audit log entry.
+
+        Story 2.5 - AC9: Log de auditoria registra aprovação/rejeição
+        """
+        from authentication.models import UserStatusAudit
+
+        # Arrange
+        assert pending_company.is_active is False
+        initial_audit_count = UserStatusAudit.objects.count()
+
+        # Act
+        UserManagementService.update_user_status(
+            user=pending_company,
+            is_active=True,
+            admin_user=admin_user,
+            reason="Company verified",
+        )
+
+        # Assert
+        assert UserStatusAudit.objects.count() == initial_audit_count + 1
+
+        audit_log = UserStatusAudit.objects.first()
+        assert audit_log.user == pending_company
+        assert audit_log.changed_by == admin_user
+        assert audit_log.old_status is False
+        assert audit_log.new_status is True
+        assert audit_log.action_type == "approve"
+        assert audit_log.reason == "Company verified"
+
+    def test_update_user_status_reject_creates_audit_log(
+        self, company_user, admin_user, db
+    ):
+        """Test that rejecting a company creates audit log with 'reject' action type."""
+        from authentication.models import UserStatusAudit
+
+        # Arrange - company_user is active by default
+        assert company_user.is_active is True
+
+        # Act - deactivate active company
+        UserManagementService.update_user_status(
+            user=company_user,
+            is_active=False,
+            admin_user=admin_user,
+            reason="Invalid CNPJ",
+        )
+
+        # Assert
+        audit_log = UserStatusAudit.objects.first()
+        assert audit_log.action_type == "reject"
+        assert audit_log.reason == "Invalid CNPJ"
+
+    def test_get_pending_approvals_count(
+        self, pending_company, company_user, candidate_user, db
+    ):
+        """
+        Test getting count of pending company approvals.
+
+        Story 2.5 - AC1: Count empresas pendentes
+        """
+        # Arrange
+        # pending_company: is_active=False
+        # company_user: is_active=True
+        # candidate_user: is_active=True (but role=candidate)
+
+        # Act
+        count = UserManagementService.get_pending_approvals_count()
+
+        # Assert
+        assert count == 1  # Only pending_company

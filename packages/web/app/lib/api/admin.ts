@@ -129,13 +129,20 @@ export async function fetchUserDetail(
 
 /**
  * Update user status (Task 4)
+ * Story 2.5 - AC5, AC7: Adiciona suporte para campo motivo
  */
 export async function updateUserStatus(
   userId: string,
   isActive: boolean,
-  token: string
+  token: string,
+  reason?: string
 ): Promise<UserDetail> {
   const url = buildApiUrl(API_ENDPOINTS.admin.updateUserStatus(userId));
+
+  const body: { is_active: boolean; reason?: string } = { is_active: isActive };
+  if (reason) {
+    body.reason = reason;
+  }
 
   const response = await fetch(url, {
     method: 'PATCH',
@@ -144,7 +151,7 @@ export async function updateUserStatus(
       'Authorization': `Token ${token}`,
     },
     credentials: 'include',
-    body: JSON.stringify({ is_active: isActive }),
+    body: JSON.stringify(body),
   });
 
   if (!response.ok) {
@@ -152,4 +159,31 @@ export async function updateUserStatus(
   }
 
   return response.json();
+}
+
+/**
+ * Get pending approvals count
+ * Story 2.5 - AC1: Count empresas pendentes
+ */
+export async function fetchPendingApprovalsCount(token: string): Promise<number> {
+  const url = buildApiUrl(API_ENDPOINTS.admin.pendingCount);
+
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Token ${token}`,
+    },
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    if (response.status === 401 || response.status === 403) {
+      throw new Error('Unauthorized');
+    }
+    throw new Error('Failed to fetch pending approvals count');
+  }
+
+  const data = await response.json();
+  return data.count;
 }

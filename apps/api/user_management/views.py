@@ -168,3 +168,28 @@ class AdminUserDetailView(APIView):
             return Response(
                 {"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST
             )
+
+
+class AdminPendingCountView(APIView):
+    """
+    Admin endpoint for pending approvals count.
+
+    GET /api/v1/admin/pending-count - Get count of pending company approvals
+
+    Permissions:
+    - IsAdmin
+
+    Story 2.5 - AC1, AC2: Widget "Pending Approvals" com contagem
+    """
+
+    permission_classes = [IsAdmin]
+
+    def get(self, request):
+        """
+        Get count of companies awaiting approval.
+
+        Returns:
+            {"count": int} - Number of companies with is_active=False
+        """
+        count = UserManagementService.get_pending_approvals_count()
+        return Response({"count": count}, status=status.HTTP_200_OK)

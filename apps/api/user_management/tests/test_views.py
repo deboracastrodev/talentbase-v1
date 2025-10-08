@@ -389,3 +389,61 @@ class TestAdminUserDetailView:
 
         # Assert
         assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+@pytest.mark.django_db
+class TestAdminPendingCountView:
+    """
+    Tests for GET /api/v1/admin/pending-count endpoint.
+
+    Story 2.5 - AC1: Widget "Pending Approvals" com contagem
+    """
+
+    def test_pending_count_success(
+        self, api_client, admin_user, pending_company_user, company_user
+    ):
+        """Test getting pending approvals count."""
+        # Arrange
+        api_client.force_authenticate(user=admin_user)
+
+        # Act
+        response = api_client.get("/api/v1/admin/pending-count")
+
+        # Assert
+        assert response.status_code == status.HTTP_200_OK
+        assert "count" in response.data
+        assert response.data["count"] == 1  # Only pending_company_user
+
+    def test_pending_count_requires_admin(self, api_client, candidate_user):
+        """Test that non-admin users receive 403."""
+        # Arrange
+        api_client.force_authenticate(user=candidate_user)
+
+        # Act
+        response = api_client.get("/api/v1/admin/pending-count")
+
+        # Assert
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_pending_count_unauthenticated(self, api_client):
+        """Test that unauthenticated requests receive 401."""
+        # Act
+        response = api_client.get("/api/v1/admin/pending-count")
+
+        # Assert
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_pending_count_zero_when_no_pending(
+        self, api_client, admin_user, company_user
+    ):
+        """Test count is zero when all companies are approved."""
+        # Arrange
+        api_client.force_authenticate(user=admin_user)
+        # company_user is active by default
+
+        # Act
+        response = api_client.get("/api/v1/admin/pending-count")
+
+        # Assert
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["count"] == 0
