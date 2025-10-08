@@ -58,11 +58,11 @@ class CandidateRegistrationService:
 
         # Validate required fields
         if not all([email, password, full_name, phone]):
-            raise ValidationError("Missing required fields: email, password, full_name, phone")
+            raise ValidationError("Campos obrigatórios ausentes: email, senha, nome completo, telefone")
 
         # Check email uniqueness (will raise IntegrityError if duplicate, caught by view)
         if User.objects.filter(email=email).exists():
-            raise ValidationError(f"User with email {email} already exists")
+            raise ValidationError(f"Usuário com email {email} já existe")
 
         # Create User with role='candidate'
         # UserManager.create_user handles:
@@ -170,11 +170,11 @@ class CompanyRegistrationService:
         # Validate required fields (website and contact_person_email are optional per AC2)
         if not all([email, password, company_name, cnpj,
                     contact_person_name, contact_person_phone]):
-            raise ValidationError("Missing required fields")
+            raise ValidationError("Campos obrigatórios ausentes")
 
         # Check email uniqueness
         if User.objects.filter(email=email).exists():
-            raise ValidationError(f"User with email {email} already exists")
+            raise ValidationError(f"Usuário com email {email} já existe")
 
         # Per constraint approval1: is_active=False for pending approval (unless created by admin)
         # Per constraint approval2: role='company'

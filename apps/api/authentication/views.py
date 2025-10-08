@@ -136,8 +136,12 @@ def register_candidate(request):
 
     except DjangoValidationError as e:
         # AC9: Handle duplicate email and validation errors
+        # Extract message from ValidationError (handles both string and list formats)
+        error_message = e.message if hasattr(e, 'message') else str(e)
+        if isinstance(error_message, list):
+            error_message = error_message[0] if error_message else 'Erro de validação'
         return Response(
-            {'errors': {'detail': str(e)}},
+            {'errors': {'detail': error_message}},
             status=status.HTTP_400_BAD_REQUEST
         )
 
@@ -145,19 +149,19 @@ def register_candidate(request):
         # AC9: Database integrity errors (e.g., duplicate email)
         if 'email' in str(e):
             return Response(
-                {'errors': {'email': ['User with this email already exists']}},
+                {'errors': {'email': 'Usuário com este email já existe'}},
                 status=status.HTTP_400_BAD_REQUEST
             )
         # Other integrity errors
         return Response(
-            {'errors': {'detail': 'Database integrity error'}},
+            {'errors': {'detail': 'Erro de integridade no banco de dados'}},
             status=status.HTTP_400_BAD_REQUEST
         )
 
     except Exception as e:
         # Unexpected errors
         return Response(
-            {'errors': {'detail': 'Internal server error'}},
+            {'errors': {'detail': 'Erro interno do servidor'}},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
@@ -267,8 +271,12 @@ def register_company(request):
 
     except DjangoValidationError as e:
         # Handle validation errors (e.g., duplicate email)
+        # Extract message from ValidationError (handles both string and list formats)
+        error_message = e.message if hasattr(e, 'message') else str(e)
+        if isinstance(error_message, list):
+            error_message = error_message[0] if error_message else 'Erro de validação'
         return Response(
-            {'errors': {'detail': str(e)}},
+            {'errors': {'detail': error_message}},
             status=status.HTTP_400_BAD_REQUEST
         )
 
@@ -276,18 +284,18 @@ def register_company(request):
         # Database integrity errors (e.g., duplicate email)
         if 'email' in str(e):
             return Response(
-                {'errors': {'email': ['User with this email already exists']}},
+                {'errors': {'email': 'Usuário com este email já existe'}},
                 status=status.HTTP_400_BAD_REQUEST
             )
         return Response(
-            {'errors': {'detail': 'Database integrity error'}},
+            {'errors': {'detail': 'Erro de integridade no banco de dados'}},
             status=status.HTTP_400_BAD_REQUEST
         )
 
     except Exception as e:
         # Unexpected errors
         return Response(
-            {'errors': {'detail': 'Internal server error'}},
+            {'errors': {'detail': 'Erro interno do servidor'}},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
@@ -361,7 +369,7 @@ def login(request):
         # AC7: Generic error message (prevent user enumeration)
         return Response(
             {
-                'error': 'Invalid credentials',
+                'error': 'Credenciais inválidas',
                 'code': 'INVALID_CREDENTIALS'
             },
             status=status.HTTP_401_UNAUTHORIZED
@@ -372,7 +380,7 @@ def login(request):
         # AC7: Generic error message (prevent user enumeration)
         return Response(
             {
-                'error': 'Invalid credentials',
+                'error': 'Credenciais inválidas',
                 'code': 'INVALID_CREDENTIALS'
             },
             status=status.HTTP_401_UNAUTHORIZED
@@ -384,7 +392,7 @@ def login(request):
         if user.role == 'company':
             return Response(
                 {
-                    'error': 'Your account is pending approval. You will be notified within 24 hours.',
+                    'error': 'Sua conta está aguardando aprovação. Você será notificado em até 24 horas.',
                     'code': 'ACCOUNT_PENDING'
                 },
                 status=status.HTTP_401_UNAUTHORIZED
@@ -392,7 +400,7 @@ def login(request):
         else:
             return Response(
                 {
-                    'error': 'Your account is inactive. Please contact support.',
+                    'error': 'Sua conta está inativa. Entre em contato com o suporte.',
                     'code': 'ACCOUNT_INACTIVE'
                 },
                 status=status.HTTP_401_UNAUTHORIZED

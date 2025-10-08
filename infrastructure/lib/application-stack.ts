@@ -37,10 +37,11 @@ export class ApplicationStack extends cdk.Stack {
 
     // ===== SECRETS & PARAMETERS =====
     // Use existing SESSION_SECRET from Secrets Manager
-    const sessionSecret = secretsmanager.Secret.fromSecretNameV2(
+    // Using fromSecretCompleteArn to avoid permission issues with ECS
+    const sessionSecret = secretsmanager.Secret.fromSecretCompleteArn(
       this,
       'SessionSecret',
-      `${config.ecs.clusterName}/web/session-secret`
+      'arn:aws:secretsmanager:us-east-1:258993895334:secret:talentbase-dev/web/session-secret-6IZlMN'
     );
 
     // Store non-sensitive config in SSM Parameter Store
@@ -94,7 +95,7 @@ export class ApplicationStack extends cdk.Stack {
     });
 
     // Grant permissions to read secrets and parameters
-    sessionSecret.grantRead(executionRole);
+    sessionSecret.grantRead(executionRole);  // Now this works correctly with fromSecretCompleteArn
     apiUrlParameter.grantRead(executionRole);
     rdsSecret.grantRead(executionRole);
 

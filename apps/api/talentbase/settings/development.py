@@ -12,16 +12,20 @@ DEBUG = True
 # TODO: Restrict this in production to specific domains only
 ALLOWED_HOSTS = ['*']
 
-# CORS Configuration
-CORS_ALLOWED_ORIGINS = config(
-    "CORS_ALLOWED_ORIGINS", default="http://localhost:3000,http://localhost:3001,https://dev.salesdog.click"
-).split(",")
+# CORS Configuration - Override base.py to include localhost:3001 for development
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "https://dev.salesdog.click"
+]
 
 CORS_ALLOW_CREDENTIALS = True
 
-CSRF_TRUSTED_ORIGINS = config(
-    "CSRF_TRUSTED_ORIGINS", default="http://localhost:3000,http://localhost:3001,https://dev.salesdog.click"
-).split(",")
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "https://dev.salesdog.click"
+]
 
 # Development-specific apps
 INSTALLED_APPS += [

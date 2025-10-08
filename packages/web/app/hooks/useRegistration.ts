@@ -78,8 +78,11 @@ export function useRegistration(): UseRegistrationReturn {
           // Check for field-specific errors
           const errors: Record<string, string> = {};
           Object.keys(responseData.errors).forEach((key) => {
-            if (Array.isArray(responseData.errors[key])) {
-              errors[key] = responseData.errors[key][0];
+            const errorValue = responseData.errors[key];
+            if (Array.isArray(errorValue)) {
+              errors[key] = errorValue[0];
+            } else if (typeof errorValue === 'string') {
+              errors[key] = errorValue;
             }
           });
 
@@ -90,10 +93,19 @@ export function useRegistration(): UseRegistrationReturn {
 
           // Set general error if exists
           if (responseData.errors.detail) {
-            setError(responseData.errors.detail);
+            const detailError = Array.isArray(responseData.errors.detail)
+              ? responseData.errors.detail[0]
+              : responseData.errors.detail;
+            setError(detailError);
           } else if (Object.keys(errors).length === 0) {
             setError(ERROR_MESSAGES.SERVER_ERROR);
           }
+        } else if (responseData.detail) {
+          // Handle DRF's standard error format
+          const detailError = Array.isArray(responseData.detail)
+            ? responseData.detail[0]
+            : responseData.detail;
+          setError(detailError);
         } else {
           setError(ERROR_MESSAGES.SERVER_ERROR);
         }
