@@ -31,7 +31,7 @@ def send_email_task(subject: str, message: str, recipient_list: list[str]) -> st
         str: Success message with recipient list
 
     Raises:
-        Exception: If email sending fails
+        Exception: If email sending fails (only in production)
     """
     try:
         send_mail(
@@ -45,4 +45,10 @@ def send_email_task(subject: str, message: str, recipient_list: list[str]) -> st
         return f"Email sent to {recipient_list}"
     except Exception as e:
         logger.error(f"Email send failed: {e}")
-        raise
+        # In development, if MailHog is not available, just log and continue
+        # In production, we want to raise the exception
+        if settings.DEBUG:
+            logger.warning(f"Email not sent (development mode, MailHog unavailable): {recipient_list}")
+            return f"Email skipped (dev mode): {recipient_list}"
+        else:
+            raise
