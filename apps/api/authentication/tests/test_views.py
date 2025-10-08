@@ -405,7 +405,7 @@ class TestLoginView:
         # Assert
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
         assert 'error' in response.data
-        assert response.data['error'] == 'Invalid credentials'  # AC7: Generic message
+        assert response.data['error'] == 'Credenciais inválidas'  # AC7: Generic message
         assert response.data['code'] == 'INVALID_CREDENTIALS'
 
     def test_login_invalid_password(self):
@@ -426,7 +426,7 @@ class TestLoginView:
         # Assert
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
         assert 'error' in response.data
-        assert response.data['error'] == 'Invalid credentials'  # AC7: Generic message
+        assert response.data['error'] == 'Credenciais inválidas'  # AC7: Generic message
         assert response.data['code'] == 'INVALID_CREDENTIALS'
 
     def test_login_inactive_account(self):
@@ -447,7 +447,7 @@ class TestLoginView:
         # Assert
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
         assert 'error' in response.data
-        assert 'inactive' in response.data['error'].lower()  # AC8: Specific message
+        assert 'inativa' in response.data['error'].lower()  # AC8: Specific message
         assert response.data['code'] == 'ACCOUNT_INACTIVE'
 
     def test_login_pending_company(self):
@@ -468,7 +468,7 @@ class TestLoginView:
         # Assert
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
         assert 'error' in response.data
-        assert 'pending' in response.data['error'].lower()  # AC8: Specific message
+        assert 'aguardando aprovação' in response.data['error'].lower()  # AC8: Specific message
         assert response.data['code'] == 'ACCOUNT_PENDING'
 
     def test_login_missing_email(self):

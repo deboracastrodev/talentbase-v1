@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "jobs",
     "applications",
     "matching",
+    "user_management",  # Story 2.4: Admin user management
 ]
 
 MIDDLEWARE = [

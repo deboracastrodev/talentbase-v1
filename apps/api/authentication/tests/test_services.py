@@ -97,7 +97,7 @@ class TestCandidateRegistrationService:
         )
 
         # Act & Assert - Duplicate email should raise ValidationError
-        with pytest.raises(ValidationError, match='already exists'):
+        with pytest.raises(ValidationError, match='já existe'):
             with patch('core.tasks.send_email_task.delay'):
                 CandidateRegistrationService.register_candidate({
                     'email': 'existing@example.com',  # Duplicate
@@ -122,7 +122,7 @@ class TestCandidateRegistrationService:
 
         for invalid_data in invalid_data_cases:
             # Act & Assert
-            with pytest.raises(ValidationError, match='Missing required fields'):
+            with pytest.raises(ValidationError, match='Campos obrigatórios'):
                 with patch('core.tasks.send_email_task.delay'):
                     CandidateRegistrationService.register_candidate(invalid_data)
 

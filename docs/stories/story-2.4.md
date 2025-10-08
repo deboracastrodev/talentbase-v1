@@ -1,6 +1,6 @@
 # Story 2.4: Admin User Management Dashboard
 
-Status: Draft
+Status: Approved
 
 **⚠️ IMPORTANTE: Antes de iniciar esta story, leia:**
 - [Code Quality Standards](../bestpraticies/CODE_QUALITY.md)
@@ -30,14 +30,14 @@ Para que **eu possa aprovar empresas, desativar usuários e manter a qualidade d
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Criar API de listagem de usuários (AC: 2, 3, 4, 5, 9)
-  - [ ] Implementar endpoint `GET /api/v1/admin/users`
-  - [ ] Adicionar filtros por role e status
-  - [ ] Implementar busca por nome/email
-  - [ ] Configurar paginação Django REST
-- [ ] Task 2: Implementar permissões admin (AC: 1, 6, 7)
-  - [ ] Criar IsAdmin permission class
-  - [ ] Proteger todos os endpoints admin
+- [x] Task 1: Criar API de listagem de usuários (AC: 2, 3, 4, 5, 9)
+  - [x] Implementar endpoint `GET /api/v1/admin/users`
+  - [x] Adicionar filtros por role e status
+  - [x] Implementar busca por nome/email
+  - [x] Configurar paginação Django REST
+- [x] Task 2: Implementar permissões admin (AC: 1, 6, 7)
+  - [x] Criar IsAdmin permission class
+  - [x] Proteger todos os endpoints admin
   - [ ] Implementar verificação de role no frontend
 - [ ] Task 3: Criar interface de gerenciamento (AC: 1, 2, 6)
   - [ ] Criar route `/admin/users`
@@ -145,12 +145,13 @@ users = User.objects.select_related(
 | Date     | Version | Description   | Author        |
 | -------- | ------- | ------------- | ------------- |
 | 2025-10-02 | 0.1     | Initial draft | Debora |
+| 2025-10-07 | 0.2     | Task 1 & 2 completed - Backend API + permissions | Claude Dev Agent (Amelia) |
 
 ## Dev Agent Record
 
 ### Context Reference
 
-<!-- Path(s) to story context XML/JSON will be added here by context workflow -->
+- [story-context-2.4.xml](../stories-context/story-context-2.4.xml) - Gerado em 2025-10-07
 
 ### Agent Model Used
 
@@ -158,6 +159,47 @@ Claude Sonnet 4 (claude-sonnet-4-20250514)
 
 ### Debug Log References
 
+- 2025-10-07: Task 1 - Implementação da API de listagem de usuários com Clean Architecture
+  - Created user_management module (renamed from admin to avoid Django conflict)
+  - Implemented service layer with optimized queries (select_related)
+  - Added comprehensive test coverage (40 tests, 100% pass rate)
+
 ### Completion Notes List
 
+**Task 1 - API de Listagem de Usuários (COMPLETA)**
+- ✅ Endpoint GET /api/v1/admin/users implementado com paginação (20/página)
+- ✅ Filtros por role (admin/candidate/company/all) e status (active/pending/inactive/all)
+- ✅ Busca por nome ou email funcionando
+- ✅ select_related para queries otimizadas (evita N+1)
+- ✅ Clean Architecture: Views → Services → Models
+- ✅ IsAdmin permission class criada e aplicada
+- ✅ 40 testes criados, todos passando
+
+**Task 2 - Permissões Admin (COMPLETA - Backend)**
+- ✅ IsAdmin, IsCandidate, IsCompany, IsOwner permission classes criadas
+- ✅ Endpoints admin protegidos com IsAdmin
+- ⏳ Frontend verification pendente (Task 3)
+
+**Observações Técnicas:**
+- Module renomeado de "admin" para "user_management" para evitar conflito com Django Admin
+- Relacionamentos usam underscore: candidate_profile, company_profile (Django naming convention)
+- GET /api/v1/admin/users/:id implementado para detalhes (usado no modal - AC6)
+
 ### File List
+
+**Criados:**
+- apps/api/user_management/__init__.py
+- apps/api/user_management/services/__init__.py
+- apps/api/user_management/services/user_management.py
+- apps/api/user_management/serializers.py
+- apps/api/user_management/views.py
+- apps/api/user_management/urls.py
+- apps/api/user_management/tests/__init__.py
+- apps/api/user_management/tests/test_views.py
+- apps/api/user_management/tests/test_services.py
+- apps/api/core/permissions.py
+- apps/api/core/tests/test_permissions.py
+
+**Modificados:**
+- apps/api/talentbase/settings/base.py (added user_management to INSTALLED_APPS)
+- apps/api/talentbase/urls.py (added user_management URLs)
