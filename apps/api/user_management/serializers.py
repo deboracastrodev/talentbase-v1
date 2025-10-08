@@ -4,11 +4,35 @@ Serializers for admin user management.
 Handles data validation and representation for admin endpoints.
 """
 
-from rest_framework import serializers
 from django.contrib.auth import get_user_model
+from rest_framework import serializers
+
 from user_management.services.user_management import UserManagementService
 
 User = get_user_model()
+
+
+class AdminStatsSerializer(serializers.Serializer):
+    """
+    Serializer for admin dashboard stats.
+
+    Returns:
+    - total_users: Total number of users
+    - total_candidates: Number of candidate users
+    - total_companies: Number of company users
+    - total_admins: Number of admin users
+    - pending_approvals: Number of pending company approvals
+    - active_jobs: Number of active jobs (placeholder for Epic 4)
+    - recent_activity: List of recent user creations
+    """
+
+    total_users = serializers.IntegerField()
+    total_candidates = serializers.IntegerField()
+    total_companies = serializers.IntegerField()
+    total_admins = serializers.IntegerField()
+    pending_approvals = serializers.IntegerField()
+    active_jobs = serializers.IntegerField()
+    recent_activity = serializers.ListField(child=serializers.DictField())
 
 
 class UserListSerializer(serializers.Serializer):

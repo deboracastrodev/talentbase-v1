@@ -66,5 +66,14 @@ export {
 
 export { Modal, ModalFooter } from './components/Modal';
 
+export { Sidebar, sidebarVariants, menuItemVariants } from './components/Sidebar';
+export type { SidebarProps, MenuItem } from './components/Sidebar';
+
+export { Navbar, navbarVariants } from './components/Navbar';
+export type { NavbarProps, User } from './components/Navbar';
+
+export { DashboardLayout } from './components/DashboardLayout';
+export type { DashboardLayoutProps, SidebarConfig } from './components/DashboardLayout';
+
 // Utils
 export { cn } from './lib/utils';

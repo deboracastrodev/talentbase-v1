@@ -90,6 +90,7 @@ export const API_ENDPOINTS = {
     userDetail: (id: string) => `/api/v1/admin/users/${id}`,
     updateUserStatus: (id: string) => `/api/v1/admin/users/${id}`,
     pendingCount: '/api/v1/admin/pending-count',
+    stats: '/api/v1/admin/stats',
   },
 } as const;
 

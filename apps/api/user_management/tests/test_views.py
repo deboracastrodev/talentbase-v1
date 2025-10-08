@@ -6,9 +6,10 @@ Testing AC2, AC3, AC4, AC5, AC9
 """
 
 import pytest
-from rest_framework.test import APIClient
-from rest_framework import status
 from django.contrib.auth import get_user_model
+from rest_framework import status
+from rest_framework.test import APIClient
+
 from candidates.models import CandidateProfile
 from companies.models import CompanyProfile
 
@@ -24,9 +25,7 @@ def api_client():
 @pytest.fixture
 def admin_user(db):
     """Create admin user for testing."""
-    return User.objects.create_user(
-        email="admin@test.com", password="admin123", role="admin"
-    )
+    return User.objects.create_user(email="admin@test.com", password="admin123", role="admin")
 
 
 @pytest.fixture
@@ -35,9 +34,7 @@ def candidate_user(db):
     user = User.objects.create_user(
         email="candidate@test.com", password="pass123", role="candidate"
     )
-    CandidateProfile.objects.create(
-        user=user, full_name="Test Candidate", phone="11999999999"
-    )
+    CandidateProfile.objects.create(user=user, full_name="Test Candidate", phone="11999999999")
     return user
 
 
@@ -97,9 +94,7 @@ class TestAdminUserListView:
     - Security: Apenas admins podem acessar
     """
 
-    def test_list_users_requires_admin_permission(
-        self, api_client, candidate_user
-    ):
+    def test_list_users_requires_admin_permission(self, api_client, candidate_user):
         """
         Test that non-admin users receive 403.
 
@@ -119,9 +114,7 @@ class TestAdminUserListView:
         response = api_client.get("/api/v1/admin/users")
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_list_users_success(
-        self, api_client, admin_user, candidate_user, company_user
-    ):
+    def test_list_users_success(self, api_client, admin_user, candidate_user, company_user):
         """
         Test successful user listing with all required columns.
 
@@ -147,9 +140,7 @@ class TestAdminUserListView:
         assert "status" in user_data
         assert "created_at" in user_data
 
-    def test_filter_by_role_candidate(
-        self, api_client, admin_user, candidate_user, company_user
-    ):
+    def test_filter_by_role_candidate(self, api_client, admin_user, candidate_user, company_user):
         """
         Test filtering users by role: candidate.
 
@@ -166,9 +157,7 @@ class TestAdminUserListView:
         assert len(response.data["results"]) == 1
         assert response.data["results"][0]["role"] == "candidate"
 
-    def test_filter_by_role_company(
-        self, api_client, admin_user, candidate_user, company_user
-    ):
+    def test_filter_by_role_company(self, api_client, admin_user, candidate_user, company_user):
         """
         Test filtering users by role: company.
 
@@ -185,9 +174,7 @@ class TestAdminUserListView:
         assert len(response.data["results"]) == 1
         assert response.data["results"][0]["role"] == "company"
 
-    def test_filter_by_role_admin(
-        self, api_client, admin_user, candidate_user, company_user
-    ):
+    def test_filter_by_role_admin(self, api_client, admin_user, candidate_user, company_user):
         """Test filtering users by role: admin."""
         # Arrange
         api_client.force_authenticate(user=admin_user)
@@ -239,9 +226,7 @@ class TestAdminUserListView:
         assert response.data["results"][0]["status"] == "pending"
         assert response.data["results"][0]["role"] == "company"
 
-    def test_search_by_email(
-        self, api_client, admin_user, candidate_user, company_user
-    ):
+    def test_search_by_email(self, api_client, admin_user, candidate_user, company_user):
         """
         Test searching users by email.
 
@@ -258,9 +243,7 @@ class TestAdminUserListView:
         assert len(response.data["results"]) == 1
         assert response.data["results"][0]["email"] == "candidate@test.com"
 
-    def test_search_by_name(
-        self, api_client, admin_user, candidate_user, company_user
-    ):
+    def test_search_by_name(self, api_client, admin_user, candidate_user, company_user):
         """
         Test searching users by name (from profile).
 
@@ -277,9 +260,7 @@ class TestAdminUserListView:
         assert len(response.data["results"]) == 1
         assert response.data["results"][0]["name"] == "Test Candidate"
 
-    def test_search_by_company_name(
-        self, api_client, admin_user, candidate_user, company_user
-    ):
+    def test_search_by_company_name(self, api_client, admin_user, candidate_user, company_user):
         """Test searching users by company name (from profile)."""
         # Arrange
         api_client.force_authenticate(user=admin_user)
@@ -433,9 +414,7 @@ class TestAdminPendingCountView:
         # Assert
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_pending_count_zero_when_no_pending(
-        self, api_client, admin_user, company_user
-    ):
+    def test_pending_count_zero_when_no_pending(self, api_client, admin_user, company_user):
         """Test count is zero when all companies are approved."""
         # Arrange
         api_client.force_authenticate(user=admin_user)
@@ -447,3 +426,111 @@ class TestAdminPendingCountView:
         # Assert
         assert response.status_code == status.HTTP_200_OK
         assert response.data["count"] == 0
+
+
+@pytest.mark.django_db
+class TestAdminStatsView:
+    """
+    Tests for GET /api/v1/admin/stats endpoint.
+
+    Story 2.5.1 - Task 5, Task 9
+    Coverage:
+    - AC16: Endpoint returns all required stats fields
+    - AC17: IsAdmin permission required
+    - Returns correct counts for users by role
+    - Returns pending approvals count
+    - Returns active jobs (placeholder)
+    - Returns recent activity
+    """
+
+    def test_admin_stats_success(
+        self, api_client, admin_user, candidate_user, company_user, pending_company_user
+    ):
+        """Test getting admin dashboard stats with all fields."""
+        # Arrange
+        api_client.force_authenticate(user=admin_user)
+
+        # Act
+        response = api_client.get("/api/v1/admin/stats")
+
+        # Assert
+        assert response.status_code == status.HTTP_200_OK
+        data = response.data
+
+        # Check all required fields are present (AC16)
+        assert "total_users" in data
+        assert "total_candidates" in data
+        assert "total_companies" in data
+        assert "total_admins" in data
+        assert "pending_approvals" in data
+        assert "active_jobs" in data
+        assert "recent_activity" in data
+
+        # Check correct counts
+        assert data["total_users"] == 4  # admin + candidate + 2 companies
+        assert data["total_candidates"] == 1
+        assert data["total_companies"] == 2
+        assert data["total_admins"] == 1
+        assert data["pending_approvals"] == 1  # Only pending_company_user
+        assert data["active_jobs"] == 0  # Placeholder for Epic 4
+
+        # Check recent activity structure
+        assert isinstance(data["recent_activity"], list)
+        assert len(data["recent_activity"]) <= 5  # Max 5 items
+
+    def test_admin_stats_requires_admin_permission(self, api_client, candidate_user):
+        """Test that non-admin users receive 403 (AC17)."""
+        # Arrange
+        api_client.force_authenticate(user=candidate_user)
+
+        # Act
+        response = api_client.get("/api/v1/admin/stats")
+
+        # Assert
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_admin_stats_unauthenticated(self, api_client):
+        """Test that unauthenticated requests receive 401."""
+        # Act
+        response = api_client.get("/api/v1/admin/stats")
+
+        # Assert
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_admin_stats_recent_activity_structure(self, api_client, admin_user, candidate_user):
+        """Test that recent activity has correct structure."""
+        # Arrange
+        api_client.force_authenticate(user=admin_user)
+
+        # Act
+        response = api_client.get("/api/v1/admin/stats")
+
+        # Assert
+        assert response.status_code == status.HTTP_200_OK
+        recent_activity = response.data["recent_activity"]
+
+        if len(recent_activity) > 0:
+            activity = recent_activity[0]
+            assert "id" in activity
+            assert "type" in activity
+            assert "user_email" in activity
+            assert "user_role" in activity
+            assert "timestamp" in activity
+
+    def test_admin_stats_with_no_users(self, api_client, admin_user):
+        """Test stats when only admin exists."""
+        # Arrange
+        api_client.force_authenticate(user=admin_user)
+
+        # Act
+        response = api_client.get("/api/v1/admin/stats")
+
+        # Assert
+        assert response.status_code == status.HTTP_200_OK
+        data = response.data
+
+        assert data["total_users"] == 1  # Only admin
+        assert data["total_candidates"] == 0
+        assert data["total_companies"] == 0
+        assert data["total_admins"] == 1
+        assert data["pending_approvals"] == 0

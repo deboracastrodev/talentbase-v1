@@ -5,10 +5,12 @@ Routes for admin user management endpoints.
 """
 
 from django.urls import path
+
 from user_management.views import (
-    AdminUserListView,
-    AdminUserDetailView,
     AdminPendingCountView,
+    AdminStatsView,
+    AdminUserDetailView,
+    AdminUserListView,
 )
 
 app_name = "user_management"
@@ -19,4 +21,6 @@ urlpatterns = [
     path("users/<uuid:user_id>", AdminUserDetailView.as_view(), name="user-detail"),
     # Pending approvals count (Story 2.5)
     path("pending-count", AdminPendingCountView.as_view(), name="pending-count"),
+    # Admin dashboard stats (Story 2.5.1)
+    path("stats", AdminStatsView.as_view(), name="admin-stats"),
 ]

@@ -98,6 +98,15 @@ export const BrazilianCandidate: Story = {
 };
 
 export const Grid: Story = {
+  args: {
+    name: "X.P.",
+    role: "Senior Product Manager",
+    experience: "15 years",
+    location: "Hong Kong",
+    salary: "$180k - $220k",
+    description: "Experienced product manager",
+    skills: [],
+  },
   render: () => (
     <div className="grid grid-cols-2 gap-6 max-w-6xl p-6 bg-gray-50">
       <CandidateCard

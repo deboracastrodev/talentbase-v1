@@ -23,6 +23,10 @@ const jobOptions = [
 ];
 
 export const Default: Story = {
+  args: {
+    options: jobOptions,
+    placeholder: "Selecione uma área",
+  },
   render: () => (
     <div className="w-[350px]">
       <Select options={jobOptions} placeholder="Selecione uma área" />
@@ -31,6 +35,10 @@ export const Default: Story = {
 };
 
 export const WithLabel: Story = {
+  args: {
+    options: jobOptions,
+    placeholder: "Selecione...",
+  },
   render: () => (
     <div className="w-[350px]">
       <FormField label="Área de atuação" required>
@@ -41,6 +49,11 @@ export const WithLabel: Story = {
 };
 
 export const Error: Story = {
+  args: {
+    options: jobOptions,
+    variant: "error" as const,
+    defaultValue: "",
+  },
   render: () => (
     <div className="w-[350px]">
       <FormField label="Área de atuação" error="Por favor selecione uma área" required>
@@ -51,6 +64,11 @@ export const Error: Story = {
 };
 
 export const Success: Story = {
+  args: {
+    options: jobOptions,
+    variant: "success" as const,
+    defaultValue: "vendas",
+  },
   render: () => (
     <div className="w-[350px]">
       <FormField label="Área de atuação" hint="Área selecionada com sucesso!">
@@ -61,6 +79,10 @@ export const Success: Story = {
 };
 
 export const Sizes: Story = {
+  args: {
+    options: jobOptions,
+    placeholder: "Medium select",
+  },
   render: () => (
     <div className="w-[350px] space-y-4">
       <FormField label="Small">

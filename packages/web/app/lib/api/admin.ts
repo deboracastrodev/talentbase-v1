@@ -187,3 +187,51 @@ export async function fetchPendingApprovalsCount(token: string): Promise<number>
   const data = await response.json();
   return data.count;
 }
+
+/**
+ * Admin dashboard stats
+ * Story 2.5.1 - AC16: Get admin dashboard statistics
+ */
+export interface AdminStats {
+  total_users: number;
+  total_candidates: number;
+  total_companies: number;
+  total_admins: number;
+  pending_approvals: number;
+  active_jobs: number;
+  recent_activity: Array<{
+    id: string;
+    type: string;
+    user_email: string;
+    user_role: string;
+    timestamp: string;
+  }>;
+}
+
+export async function getAdminStats(token: string): Promise<AdminStats> {
+  const url = buildApiUrl(API_ENDPOINTS.admin.stats);
+
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Token ${token}`,
+    },
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error(`API Error: ${response.status} - ${errorText}`);
+
+    if (response.status === 401) {
+      throw new Error('Unauthorized');
+    }
+    if (response.status === 403) {
+      throw new Error('Forbidden: Admin access required');
+    }
+    throw new Error(`Failed to fetch admin stats: ${response.status} - ${errorText}`);
+  }
+
+  return response.json();
+}

@@ -7,15 +7,19 @@ Following Clean Architecture:
 - Permissions enforced at view level
 """
 
-from rest_framework import status
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.pagination import PageNumberPagination
 from django.contrib.auth import get_user_model
+from rest_framework import status
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from core.permissions import IsAdmin
+from user_management.serializers import (
+    AdminStatsSerializer,
+    UserDetailSerializer,
+    UserListSerializer,
+)
 from user_management.services.user_management import UserManagementService
-from user_management.serializers import UserListSerializer, UserDetailSerializer
 
 User = get_user_model()
 
@@ -114,9 +118,7 @@ class AdminUserDetailView(APIView):
         user = UserManagementService.get_user_with_profile(user_id)
 
         if not user:
-            return Response(
-                {"detail": "Usuário não encontrado."}, status=status.HTTP_404_NOT_FOUND
-            )
+            return Response({"detail": "Usuário não encontrado."}, status=status.HTTP_404_NOT_FOUND)
 
         serializer = UserDetailSerializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -138,9 +140,7 @@ class AdminUserDetailView(APIView):
         user = UserManagementService.get_user_with_profile(user_id)
 
         if not user:
-            return Response(
-                {"detail": "Usuário não encontrado."}, status=status.HTTP_404_NOT_FOUND
-            )
+            return Response({"detail": "Usuário não encontrado."}, status=status.HTTP_404_NOT_FOUND)
 
         # Get new status from request
         is_active = request.data.get("is_active")
@@ -165,9 +165,7 @@ class AdminUserDetailView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         except ValueError as e:
-            return Response(
-                {"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class AdminPendingCountView(APIView):
@@ -193,3 +191,69 @@ class AdminPendingCountView(APIView):
         """
         count = UserManagementService.get_pending_approvals_count()
         return Response({"count": count}, status=status.HTTP_200_OK)
+
+
+class AdminStatsView(APIView):
+    """
+    Admin endpoint for dashboard statistics.
+
+    GET /api/v1/admin/stats - Get admin dashboard stats
+
+    Permissions:
+    - IsAdmin
+
+    Story 2.5.1 - AC16, AC17: Dashboard stats with user counts, pending approvals, etc.
+    """
+
+    permission_classes = [IsAdmin]
+
+    def get(self, request):
+        """
+        Get admin dashboard statistics.
+
+        Returns:
+            {
+                "total_users": int,
+                "total_candidates": int,
+                "total_companies": int,
+                "total_admins": int,
+                "pending_approvals": int,
+                "active_jobs": int,  # Placeholder for Epic 4
+                "recent_activity": []  # Last 5 user creations
+            }
+        """
+        # Calculate stats
+        total_users = User.objects.count()
+        total_candidates = User.objects.filter(role="candidate").count()
+        total_companies = User.objects.filter(role="company").count()
+        total_admins = User.objects.filter(role="admin").count()
+        pending_approvals = User.objects.filter(role="company", is_active=False).count()
+
+        # Placeholder for Epic 4 - Jobs feature
+        active_jobs = 0
+
+        # Recent activity - last 5 user creations (MVP placeholder)
+        recent_users = User.objects.order_by("-created_at")[:5]
+        recent_activity = [
+            {
+                "id": str(user.id),
+                "type": "user_registration",
+                "user_email": user.email,
+                "user_role": user.role,
+                "timestamp": user.created_at.isoformat(),
+            }
+            for user in recent_users
+        ]
+
+        stats_data = {
+            "total_users": total_users,
+            "total_candidates": total_candidates,
+            "total_companies": total_companies,
+            "total_admins": total_admins,
+            "pending_approvals": pending_approvals,
+            "active_jobs": active_jobs,
+            "recent_activity": recent_activity,
+        }
+
+        serializer = AdminStatsSerializer(stats_data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
