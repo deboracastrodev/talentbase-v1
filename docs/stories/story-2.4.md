@@ -38,11 +38,11 @@ Para que **eu possa aprovar empresas, desativar usuários e manter a qualidade d
 - [x] Task 2: Implementar permissões admin (AC: 1, 6, 7)
   - [x] Criar IsAdmin permission class
   - [x] Proteger todos os endpoints admin
-  - [ ] Implementar verificação de role no frontend
-- [ ] Task 3: Criar interface de gerenciamento (AC: 1, 2, 6)
-  - [ ] Criar route `/admin/users`
-  - [ ] Implementar tabela com design system
-  - [ ] Criar modal de detalhes do usuário
+  - [x] Implementar verificação de role no frontend
+- [x] Task 3: Criar interface de gerenciamento (AC: 1, 2, 6)
+  - [x] Criar route `/admin/users`
+  - [x] Implementar tabela com design system
+  - [x] Criar modal de detalhes do usuário
 - [ ] Task 4: Implementar alteração de status (AC: 7, 8)
   - [ ] Criar endpoints PATCH para status
   - [ ] Implementar notificações email
@@ -146,6 +146,7 @@ users = User.objects.select_related(
 | -------- | ------- | ------------- | ------------- |
 | 2025-10-02 | 0.1     | Initial draft | Debora |
 | 2025-10-07 | 0.2     | Task 1 & 2 completed - Backend API + permissions | Claude Dev Agent (Amelia) |
+| 2025-10-08 | 0.3     | Task 3 completed - Frontend interface with filters and modal | Claude Dev Agent (Amelia) |
 
 ## Dev Agent Record
 
@@ -175,19 +176,31 @@ Claude Sonnet 4 (claude-sonnet-4-20250514)
 - ✅ IsAdmin permission class criada e aplicada
 - ✅ 40 testes criados, todos passando
 
-**Task 2 - Permissões Admin (COMPLETA - Backend)**
+**Task 2 - Permissões Admin (COMPLETA)**
 - ✅ IsAdmin, IsCandidate, IsCompany, IsOwner permission classes criadas
 - ✅ Endpoints admin protegidos com IsAdmin
-- ⏳ Frontend verification pendente (Task 3)
+- ✅ Frontend verification implementada no loader da rota
+
+**Task 3 - Interface de Gerenciamento (COMPLETA)**
+- ✅ Rota /admin/users criada com Remix loader
+- ✅ UserTable component com design system (Table, Badge)
+- ✅ UserDetailModal component para detalhes do usuário (AC6)
+- ✅ Filtros por role e status funcionando (AC3, AC4)
+- ✅ Busca por nome ou email (AC5)
+- ✅ Paginação 20/página com navegação (AC9)
+- ✅ Click na linha abre modal de detalhes (AC6)
+- ✅ Auth check no loader (redirect se não autenticado)
 
 **Observações Técnicas:**
 - Module renomeado de "admin" para "user_management" para evitar conflito com Django Admin
 - Relacionamentos usam underscore: candidate_profile, company_profile (Django naming convention)
 - GET /api/v1/admin/users/:id implementado para detalhes (usado no modal - AC6)
+- Design System: Criados componentes Table e Modal reutilizáveis
+- Frontend segue FRONTEND_BEST_PRACTICES.md: componentes separados, design system first
 
 ### File List
 
-**Criados:**
+**Backend:**
 - apps/api/user_management/__init__.py
 - apps/api/user_management/services/__init__.py
 - apps/api/user_management/services/user_management.py
@@ -200,6 +213,17 @@ Claude Sonnet 4 (claude-sonnet-4-20250514)
 - apps/api/core/permissions.py
 - apps/api/core/tests/test_permissions.py
 
+**Frontend:**
+- packages/web/app/routes/admin.users.tsx (Rota principal)
+- packages/web/app/components/admin/UserTable.tsx
+- packages/web/app/components/admin/UserDetailModal.tsx
+- packages/web/app/lib/api/admin.ts (API client)
+
+**Design System:**
+- packages/design-system/src/components/Table.tsx
+- packages/design-system/src/components/Modal.tsx
+
 **Modificados:**
 - apps/api/talentbase/settings/base.py (added user_management to INSTALLED_APPS)
 - apps/api/talentbase/urls.py (added user_management URLs)
+- packages/design-system/src/index.ts (export Table and Modal)

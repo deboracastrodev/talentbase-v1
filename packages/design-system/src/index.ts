@@ -55,5 +55,16 @@ export type { AuthCardProps } from './components/AuthCard';
 export { AuthFormField } from './components/AuthFormField';
 export type { AuthFormFieldProps } from './components/AuthFormField';
 
+export {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from './components/Table';
+
+export { Modal, ModalFooter } from './components/Modal';
+
 // Utils
 export { cn } from './lib/utils';
