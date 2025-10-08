@@ -155,7 +155,11 @@ jobs:
       - name: Validate API Health
         run: |
           ENVIRONMENT=${{ github.ref == 'refs/heads/master' && 'prod' || 'dev' }}
-          API_URL="https://api${ENVIRONMENT == 'dev' && '-dev' || ''}.salesdog.click/health/"
+          if [ "$ENVIRONMENT" = "dev" ]; then
+            API_URL="https://api-dev.salesdog.click/health/"
+          else
+            API_URL="https://api.salesdog.click/health/"
+          fi
           echo "Checking API health at $API_URL"
           for i in {1..5}; do
             if curl -f -s "$API_URL" > /dev/null; then
@@ -171,7 +175,11 @@ jobs:
       - name: Validate Web Health
         run: |
           ENVIRONMENT=${{ github.ref == 'refs/heads/master' && 'prod' || 'dev' }}
-          WEB_URL="https://${ENVIRONMENT == 'dev' && 'dev.' || 'www.'}salesdog.click"
+          if [ "$ENVIRONMENT" = "dev" ]; then
+            WEB_URL="https://dev.salesdog.click"
+          else
+            WEB_URL="https://www.salesdog.click"
+          fi
           echo "Checking Web health at $WEB_URL"
           for i in {1..5}; do
             if curl -f -s "$WEB_URL" > /dev/null; then
