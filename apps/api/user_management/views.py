@@ -85,15 +85,18 @@ class AdminUserListView(APIView):
 
 class AdminUserDetailView(APIView):
     """
-    Admin endpoint for retrieving user details.
+    Admin endpoint for user details and status updates.
 
-    GET /api/v1/admin/users/:id
+    GET /api/v1/admin/users/:id - Get user details
+    PATCH /api/v1/admin/users/:id - Update user status
 
     Permissions:
     - IsAdmin
 
     Acceptance Criteria:
     - AC6: View user details (used in modal)
+    - AC7: Admin can change user status
+    - AC8: Status change triggers email notification
     """
 
     permission_classes = [IsAdmin]
@@ -117,3 +120,51 @@ class AdminUserDetailView(APIView):
 
         serializer = UserDetailSerializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def patch(self, request, user_id):
+        """
+        Update user status.
+
+        Args:
+            user_id: UUID of the user
+            request.data: { "is_active": bool, "reason": str (optional) }
+
+        Returns:
+            Updated user details, or 404/400 on error
+
+        AC7: Admin can alter user status (activate, deactivate, approve company)
+        AC8: Status change triggers email notification
+        """
+        user = UserManagementService.get_user_with_profile(user_id)
+
+        if not user:
+            return Response(
+                {"detail": "Usuário não encontrado."}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Get new status from request
+        is_active = request.data.get("is_active")
+        reason = request.data.get("reason", "")
+
+        if is_active is None:
+            return Response(
+                {"detail": "Campo 'is_active' é obrigatório."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Update status using service
+        try:
+            updated_user = UserManagementService.update_user_status(
+                user=user,
+                is_active=is_active,
+                admin_user=request.user,
+                reason=reason,
+            )
+
+            serializer = UserDetailSerializer(updated_user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except ValueError as e:
+            return Response(
+                {"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST
+            )

@@ -23,7 +23,7 @@ import {
 } from '@talentbase/design-system';
 import { UserTable } from '~/components/admin/UserTable';
 import { UserDetailModal } from '~/components/admin/UserDetailModal';
-import { fetchUsers, fetchUserDetail } from '~/lib/api/admin';
+import { fetchUsers, fetchUserDetail, updateUserStatus } from '~/lib/api/admin';
 import type { User, UserDetail, UsersFilters } from '~/lib/api/admin';
 
 interface LoaderData {
@@ -88,6 +88,8 @@ export default function AdminUsersPage() {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [selectedUser, setSelectedUser] = useState<UserDetail | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   // Local state for filters (controlled inputs)
   const [localSearch, setLocalSearch] = useState(filters.search || '');
@@ -152,6 +154,52 @@ export default function AdminUsersPage() {
     setSearchParams(newParams);
   };
 
+  /**
+   * Handle status change (AC7, AC8)
+   */
+  const handleStatusChange = async (userId: string, isActive: boolean) => {
+    setIsUpdatingStatus(true);
+    setFeedback(null);
+
+    const cookieHeader = document.cookie;
+    const token = cookieHeader?.match(/auth_token=([^;]+)/)?.[1];
+
+    if (!token) {
+      window.location.href = '/auth/login';
+      return;
+    }
+
+    try {
+      const updatedUser = await updateUserStatus(userId, isActive, token);
+
+      // Update the selected user with new data
+      setSelectedUser(updatedUser);
+
+      // Show success feedback
+      const statusText = isActive
+        ? (updatedUser.role === 'company' ? 'aprovada' : 'ativado')
+        : 'desativado';
+      setFeedback({
+        type: 'success',
+        message: `Usuário ${statusText} com sucesso! Uma notificação foi enviada por email.`
+      });
+
+      // Refresh the user list after a short delay
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+
+    } catch (error) {
+      console.error('Error updating user status:', error);
+      setFeedback({
+        type: 'error',
+        message: 'Erro ao atualizar status do usuário. Tente novamente.'
+      });
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       {/* Header */}
@@ -161,6 +209,19 @@ export default function AdminUsersPage() {
           {totalCount} {totalCount === 1 ? 'usuário encontrado' : 'usuários encontrados'}
         </p>
       </div>
+
+      {/* Feedback Messages */}
+      {feedback && (
+        <div
+          className={`mb-6 p-4 rounded-lg ${
+            feedback.type === 'success'
+              ? 'bg-green-50 border border-green-200 text-green-800'
+              : 'bg-red-50 border border-red-200 text-red-800'
+          }`}
+        >
+          <p className="text-sm font-medium">{feedback.message}</p>
+        </div>
+      )}
 
       {/* Filters */}
       <Card className="mb-6">
@@ -262,8 +323,11 @@ export default function AdminUsersPage() {
           setIsModalOpen(false);
           setSelectedUser(null);
           setSelectedUserId(null);
+          setFeedback(null);
         }}
         user={selectedUser}
+        onStatusChange={handleStatusChange}
+        isUpdating={isUpdatingStatus}
       />
     </div>
   );

@@ -43,10 +43,10 @@ Para que **eu possa aprovar empresas, desativar usuários e manter a qualidade d
   - [x] Criar route `/admin/users`
   - [x] Implementar tabela com design system
   - [x] Criar modal de detalhes do usuário
-- [ ] Task 4: Implementar alteração de status (AC: 7, 8)
-  - [ ] Criar endpoints PATCH para status
-  - [ ] Implementar notificações email
-  - [ ] Validar transições de status
+- [x] Task 4: Implementar alteração de status (AC: 7, 8)
+  - [x] Criar endpoints PATCH para status
+  - [x] Implementar notificações email
+  - [x] Validar transições de status
 - [ ] Task 5: Implementar criação manual (AC: 10)
   - [ ] Criar formulário de criação de usuário
   - [ ] Implementar criação por role
@@ -147,6 +147,7 @@ users = User.objects.select_related(
 | 2025-10-02 | 0.1     | Initial draft | Debora |
 | 2025-10-07 | 0.2     | Task 1 & 2 completed - Backend API + permissions | Claude Dev Agent (Amelia) |
 | 2025-10-08 | 0.3     | Task 3 completed - Frontend interface with filters and modal | Claude Dev Agent (Amelia) |
+| 2025-10-08 | 0.4     | Task 4 completed - Status change with email notifications | Claude Dev Agent (Amelia) |
 
 ## Dev Agent Record
 
@@ -191,6 +192,19 @@ Claude Sonnet 4 (claude-sonnet-4-20250514)
 - ✅ Click na linha abre modal de detalhes (AC6)
 - ✅ Auth check no loader (redirect se não autenticado)
 
+**Task 4 - Alteração de Status (COMPLETA)**
+- ✅ PATCH endpoint implementado em AdminUserDetailView
+- ✅ update_user_status method no service layer com validação de transições
+- ✅ Email notifications via Celery task (AC8):
+  - Empresa aprovada: "Sua empresa foi aprovada - TalentBase"
+  - Conta ativada: "Sua conta foi ativada - TalentBase"
+  - Conta suspensa: "Sua conta foi suspensa - TalentBase"
+- ✅ Frontend UI: Botões de ativar/desativar no UserDetailModal
+- ✅ Feedback visual de sucesso/erro
+- ✅ Texto contextual baseado em role (Aprovar Empresa vs Ativar Usuário)
+- ✅ Loading state durante atualização
+- ✅ Refresh automático da lista após mudança de status
+
 **Observações Técnicas:**
 - Module renomeado de "admin" para "user_management" para evitar conflito com Django Admin
 - Relacionamentos usam underscore: candidate_profile, company_profile (Django naming convention)
@@ -223,7 +237,12 @@ Claude Sonnet 4 (claude-sonnet-4-20250514)
 - packages/design-system/src/components/Table.tsx
 - packages/design-system/src/components/Modal.tsx
 
-**Modificados:**
+**Modificados (Task 4):**
+- packages/web/app/components/admin/UserDetailModal.tsx (added status change buttons)
+- packages/web/app/routes/admin.users.tsx (added status change handler and feedback)
+- packages/web/app/lib/api/admin.ts (already had updateUserStatus function)
+
+**Modificados (Tasks 1-3):**
 - apps/api/talentbase/settings/base.py (added user_management to INSTALLED_APPS)
 - apps/api/talentbase/urls.py (added user_management URLs)
 - packages/design-system/src/index.ts (export Table and Modal)

@@ -2,20 +2,28 @@
  * User Detail Modal Component
  *
  * Displays detailed user information in a modal.
- * Story 2.4 - Task 3 (AC6)
+ * Story 2.4 - Task 3 (AC6), Task 4 (AC7)
  */
 
-import { Modal, Badge } from '@talentbase/design-system';
+import { Modal, Badge, Button } from '@talentbase/design-system';
 import type { UserDetail } from '~/lib/api/admin';
 
 interface UserDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   user: UserDetail | null;
+  onStatusChange?: (userId: string, isActive: boolean) => void;
+  isUpdating?: boolean;
 }
 
-export function UserDetailModal({ isOpen, onClose, user }: UserDetailModalProps) {
+export function UserDetailModal({ isOpen, onClose, user, onStatusChange, isUpdating = false }: UserDetailModalProps) {
   if (!user) return null;
+
+  const handleStatusToggle = () => {
+    if (onStatusChange && !isUpdating) {
+      onStatusChange(user.id, !user.is_active);
+    }
+  };
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
@@ -147,6 +155,39 @@ export function UserDetailModal({ isOpen, onClose, user }: UserDetailModalProps)
             </div>
           </div>
         </div>
+
+        {/* Status Change Actions (AC7) */}
+        {onStatusChange && (
+          <div className="border-t pt-4">
+            <h3 className="text-sm font-medium text-gray-900 mb-3">Ações de Status</h3>
+            <div className="flex items-center gap-3">
+              {user.is_active ? (
+                <Button
+                  variant="destructive"
+                  onClick={handleStatusToggle}
+                  disabled={isUpdating}
+                >
+                  {isUpdating ? 'Desativando...' : 'Desativar Usuário'}
+                </Button>
+              ) : (
+                <Button
+                  variant="default"
+                  onClick={handleStatusToggle}
+                  disabled={isUpdating}
+                >
+                  {isUpdating ? 'Ativando...' : user.role === 'company' ? 'Aprovar Empresa' : 'Ativar Usuário'}
+                </Button>
+              )}
+              <p className="text-sm text-gray-600">
+                {user.is_active
+                  ? 'Desativar impedirá o acesso do usuário à plataforma.'
+                  : user.role === 'company'
+                  ? 'Aprovar permitirá que a empresa acesse a plataforma.'
+                  : 'Ativar permitirá que o usuário acesse a plataforma.'}
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </Modal>
   );

@@ -107,3 +107,71 @@ class UserManagementService:
             return user.company_profile.company_name
         else:
             return user.email
+
+    @staticmethod
+    def update_user_status(
+        user: User, is_active: bool, admin_user: User, reason: str = ""
+    ) -> User:
+        """
+        Update user status and send notification email.
+
+        Args:
+            user: User to update
+            is_active: New active status
+            admin_user: Admin performing the action
+            reason: Optional reason for status change
+
+        Returns:
+            User: Updated user instance
+
+        Raises:
+            ValueError: If status transition is invalid
+
+        AC7: Admin can change status (activate, deactivate, approve company)
+        AC8: Status change triggers email notification
+        """
+        from core.tasks import send_email_task
+
+        old_status = user.is_active
+
+        # Validate status transition
+        if old_status == is_active:
+            raise ValueError("Novo status é igual ao status atual")
+
+        # Update status
+        user.is_active = is_active
+        user.save()
+
+        # Prepare email notification
+        if is_active and not old_status:
+            # User activated
+            if user.role == "company":
+                subject = "Sua empresa foi aprovada - TalentBase"
+                message = f"Olá {UserManagementService.get_user_display_name(user)},\n\nSua empresa foi aprovada e agora você pode acessar a plataforma TalentBase!\n\nAcesse: https://app.talentbase.com/auth/login"
+            else:
+                subject = "Sua conta foi ativada - TalentBase"
+                message = f"Olá {UserManagementService.get_user_display_name(user)},\n\nSua conta foi ativada e você já pode acessar a plataforma!\n\nAcesse: https://app.talentbase.com/auth/login"
+        else:
+            # User deactivated
+            subject = "Sua conta foi suspensa - TalentBase"
+            message = f"Olá {UserManagementService.get_user_display_name(user)},\n\nSua conta foi suspensa. Entre em contato com o suporte para mais informações.\n\n{f'Motivo: {reason}' if reason else ''}"
+
+        # Send email notification (AC8)
+        send_email_task.delay(
+            subject=subject,
+            message=message,
+            recipient_list=[user.email],
+        )
+
+        # Log the action (audit trail - Constraint #2)
+        # TODO: Create audit log model in future iteration
+        # AuditLog.objects.create(
+        #     user=user,
+        #     action="status_change",
+        #     old_value=old_status,
+        #     new_value=is_active,
+        #     performed_by=admin_user,
+        #     reason=reason,
+        # )
+
+        return user
