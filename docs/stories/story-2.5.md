@@ -1,6 +1,6 @@
 # Story 2.5: Company Approval Workflow
 
-Status: Draft
+Status: Approved
 
 **⚠️ IMPORTANTE: Antes de iniciar esta story, leia:**
 - [Code Quality Standards](../bestpraticies/CODE_QUALITY.md)
@@ -196,7 +196,7 @@ Equipe TalentBase
 
 ### Context Reference
 
-<!-- Path(s) to story context XML/JSON will be added here by context workflow -->
+- [Story Context XML](../stories-context/story-context-2.5.xml) - Generated 2025-10-07
 
 ### Agent Model Used
 

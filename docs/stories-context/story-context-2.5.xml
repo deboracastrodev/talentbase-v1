@@ -1,0 +1,227 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>5</storyId>
+    <title>Company Approval Workflow</title>
+    <status>Draft</status>
+    <generatedAt>2025-10-07</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>/Users/debor/Documents/sistemas/talentbase-v1/docs/stories/story-2.5.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>admin</asA>
+    <iWant>revisar registros de empresas pendentes e aprová-los/rejeitá-los</iWant>
+    <soThat>apenas empresas legítimas possam acessar a plataforma</soThat>
+    <tasks><![CDATA[
+- Task 1: Criar API de aprovação/rejeição (AC: 5, 6, 7, 9)
+  - Implementar POST /api/v1/admin/users/:id/approve
+  - Implementar POST /api/v1/admin/users/:id/reject
+  - Criar log de auditoria
+- Task 2: Implementar widget pending approvals (AC: 1, 2)
+  - Criar query para contar empresas pendentes
+  - Adicionar widget ao admin dashboard
+  - Implementar navegação com filtros
+- Task 3: Criar interface de revisão (AC: 3, 4, 5)
+  - Mostrar detalhes completos da empresa
+  - Integrar verificação CNPJ (ReceitaWS API)
+  - Criar botões aprovar/rejeitar com modal
+- Task 4: Configurar notificações email (AC: 6, 7)
+  - Template email aprovação
+  - Template email rejeição
+  - Integrar com sistema Celery
+- Task 5: Validar acesso pós-aprovação (AC: 8)
+  - Testar login de empresa aprovada
+  - Verificar redirecionamento para dashboard
+  - Validar permissões de acesso
+    ]]></tasks>
+  </story>
+
+  <acceptanceCriteria><![CDATA[
+1. Admin vê widget "Pending Approvals" no dashboard com contagem
+2. Clicar no widget → navega para /admin/users?status=pending&role=company
+3. Admin pode visualizar detalhes da empresa: nome, CNPJ, website, info de contato
+4. Admin pode verificar CNPJ (lookup externo ou verificação manual)
+5. Admin pode clicar "Aprovar" ou "Rejeitar" com motivo opcional
+6. Aprovação: Status do usuário muda para "active", Email enviado
+7. Rejeição: Status do usuário muda para "rejected", Email enviado com motivo
+8. Empresas aprovadas podem imediatamente fazer login e acessar dashboard /company
+9. Log de auditoria registra aprovação/rejeição (admin user, timestamp, motivo)
+  ]]></acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics/tech-spec-epic-2.md</path>
+        <title>Technical Specification - Epic 2</title>
+        <section>Story 2.5: Company Approval Workflow</section>
+        <snippet>API endpoints for approve/reject, approval flow with User.is_active change, audit logging, email notifications</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics/tech-spec-epic-2.md</path>
+        <title>Technical Specification - Epic 2</title>
+        <section>Authorization (RBAC)</section>
+        <snippet>Admin: Full access to all resources, user management, approvals. Company Approval: Companies require admin approval before access</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics/tech-spec-epic-2.md</path>
+        <title>Technical Specification - Epic 2</title>
+        <section>Email Templates</section>
+        <snippet>Company Approval Granted and Rejection email templates in Portuguese</snippet>
+      </doc>
+      <doc>
+        <path>docs/bestpraticies/BACKEND_BEST_PRACTICES.md</path>
+        <title>Backend Best Practices</title>
+        <section>General Guidelines</section>
+        <snippet>API versioning, permission classes, audit logging, input validation</snippet>
+      </doc>
+      <doc>
+        <path>docs/arquitetura/authentication.md</path>
+        <title>Authentication Architecture</title>
+        <section>Role-Based Access Control</section>
+        <snippet>Django permissions system, IsAdmin permission class</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>apps/api/admin/services/user_management.py</path>
+        <kind>service</kind>
+        <symbol>UserManagementService</symbol>
+        <lines>15-110</lines>
+        <reason>Service class to extend with approval/rejection methods</reason>
+      </artifact>
+      <artifact>
+        <path>apps/api/admin/views.py</path>
+        <kind>view</kind>
+        <symbol>admin views module</symbol>
+        <lines>all</lines>
+        <reason>Add approval/rejection API endpoints here</reason>
+      </artifact>
+      <artifact>
+        <path>apps/api/admin/urls.py</path>
+        <kind>urls</kind>
+        <symbol>admin URL patterns</symbol>
+        <lines>all</lines>
+        <reason>Register approve/reject endpoints here</reason>
+      </artifact>
+      <artifact>
+        <path>apps/api/companies/models.py</path>
+        <kind>model</kind>
+        <symbol>CompanyProfile</symbol>
+        <lines>class definition</lines>
+        <reason>Company profile model to approve/reject</reason>
+      </artifact>
+      <artifact>
+        <path>apps/api/core/permissions.py</path>
+        <kind>permission</kind>
+        <symbol>IsAdmin</symbol>
+        <lines>10-34</lines>
+        <reason>Permission class for admin-only endpoints</reason>
+      </artifact>
+      <artifact>
+        <path>apps/api/core/tasks.py</path>
+        <kind>celery_task</kind>
+        <symbol>send_email_task</symbol>
+        <lines>13-48</lines>
+        <reason>Async email sending for notifications</reason>
+      </artifact>
+      <artifact>
+        <path>apps/api/authentication/models.py</path>
+        <kind>model</kind>
+        <symbol>User</symbol>
+        <lines>all</lines>
+        <reason>User model with is_active field for approval</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <backend>
+        <framework>Django 5.0 + Django REST Framework 3.14</framework>
+        <packages>
+          <package>django-cors-headers (^4.3.0)</package>
+          <package>celery (^5.3.0) - async task processing</package>
+          <package>redis (^5.0.0) - celery broker</package>
+          <package>pycpfcnpj (^1.8) - CNPJ validation</package>
+          <package>django-encrypted-model-fields (^0.6.5)</package>
+          <package>psycopg2-binary (^2.9.9) - PostgreSQL</package>
+        </packages>
+      </backend>
+      <frontend>
+        <framework>Remix 2.14 + React 18.2</framework>
+        <packages>
+          <package>@talentbase/design-system (workspace)</package>
+          <package>cpf-cnpj-validator (^1.0.3) - CNPJ client validation</package>
+          <package>lucide-react (^0.544.0) - icons</package>
+          <package>tailwindcss (^3.4.18) - styling</package>
+        </packages>
+      </frontend>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Admin-only permission enforcement using IsAdmin permission class</constraint>
+    <constraint>Audit trail required for all approval/rejection actions</constraint>
+    <constraint>Rate limiting on approval endpoints to prevent abuse</constraint>
+    <constraint>Input validation for rejection reasons (max length, sanitization)</constraint>
+    <constraint>CNPJ verification optional but recommended via ReceitaWS API</constraint>
+    <constraint>Email notifications must use Celery for async processing</constraint>
+    <constraint>Development uses MailHog - no real emails sent in DEV</constraint>
+    <constraint>Status transitions: pending_approval → active (approved) or rejected</constraint>
+    <constraint>User.is_active field controls login access</constraint>
+    <constraint>Follow Clean Architecture: services contain business logic</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>POST /api/v1/admin/users/:id/approve</name>
+      <kind>REST API</kind>
+      <signature>Approve company registration, sets User.is_active=True</signature>
+      <path>apps/api/admin/urls.py + views.py</path>
+    </interface>
+    <interface>
+      <name>POST /api/v1/admin/users/:id/reject</name>
+      <kind>REST API</kind>
+      <signature>Reject company with reason, sets User.is_active=False</signature>
+      <path>apps/api/admin/urls.py + views.py</path>
+    </interface>
+    <interface>
+      <name>GET /api/v1/admin/pending-count</name>
+      <kind>REST API</kind>
+      <signature>Get count of pending company approvals</signature>
+      <path>apps/api/admin/urls.py + views.py</path>
+    </interface>
+    <interface>
+      <name>send_email_task</name>
+      <kind>Celery Task</kind>
+      <signature>send_email_task(subject: str, message: str, recipient_list: list[str])</signature>
+      <path>apps/api/core/tasks.py</path>
+    </interface>
+    <interface>
+      <name>ReceitaWS API</name>
+      <kind>External API</kind>
+      <signature>GET https://receitaws.com.br/v1/cnpj/{cnpj_clean}</signature>
+      <path>External service for CNPJ verification</path>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>Use pytest with Django test fixtures. Test coverage should be above 80%. Use APIClient for API endpoint testing. Create fixtures for admin, candidate, and company users. Test permissions using IsAdmin permission class. Verify email sending through mocked Celery tasks. Test audit log creation for approval/rejection actions.</standards>
+    <locations>
+      <location>apps/api/admin/tests/ - Admin API tests</location>
+      <location>apps/api/authentication/tests/ - User authentication tests</location>
+      <location>apps/api/core/tests/test_permissions.py - Permission tests</location>
+      <location>packages/web/tests/ - Frontend component tests</location>
+      <location>packages/web/e2e/ - E2E Playwright tests</location>
+    </locations>
+    <ideas>
+      <idea ac="5,6">Test admin approval endpoint creates audit log and sends email</idea>
+      <idea ac="5,7">Test admin rejection endpoint with reason validation</idea>
+      <idea ac="1">Test pending count endpoint returns correct number</idea>
+      <idea ac="6">Test approved user can login immediately</idea>
+      <idea ac="7">Test rejected user cannot login</idea>
+      <idea ac="9">Test audit log captures admin user, timestamp, and reason</idea>
+      <idea ac="4">Mock ReceitaWS API for CNPJ verification tests</idea>
+      <idea ac="2">Test widget navigation to filtered users page</idea>
+      <idea ac="3">Test company details display in admin interface</idea>
+      <idea ac="8">E2E test: approve company → company login → dashboard access</idea>
+    </ideas>
+  </tests>
+</story-context>
