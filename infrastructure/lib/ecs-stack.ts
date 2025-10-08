@@ -5,6 +5,9 @@ import * as ecr from 'aws-cdk-lib/aws-ecr';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as logs from 'aws-cdk-lib/aws-logs';
 import * as elbv2 from 'aws-cdk-lib/aws-elasticloadbalancingv2';
+import * as rds from 'aws-cdk-lib/aws-rds';
+import * as elasticache from 'aws-cdk-lib/aws-elasticache';
+import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
 import { Construct } from 'constructs';
 import { EnvironmentConfig } from './config';
 
@@ -26,6 +29,11 @@ export class EcsStack extends cdk.Stack {
     ecsSecurityGroup: ec2.SecurityGroup,
     alb: elbv2.ApplicationLoadBalancer,
     config: EnvironmentConfig,
+    database?: rds.DatabaseInstance,
+    redisCluster?: elasticache.CfnCacheCluster,
+    databaseSecret?: secretsmanager.Secret,
+    djangoSecret?: secretsmanager.Secret,
+    fieldEncryptionSecret?: secretsmanager.Secret,
     props?: cdk.StackProps
   ) {
     super(scope, id, props);
@@ -57,6 +65,17 @@ export class EcsStack extends cdk.Stack {
         iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AmazonECSTaskExecutionRolePolicy'),
       ],
     });
+
+    // Grant read access to secrets
+    if (databaseSecret) {
+      databaseSecret.grantRead(executionRole);
+    }
+    if (djangoSecret) {
+      djangoSecret.grantRead(executionRole);
+    }
+    if (fieldEncryptionSecret) {
+      fieldEncryptionSecret.grantRead(executionRole);
+    }
 
     // Create Task Role (for application permissions)
     const taskRole = new iam.Role(this, 'TaskRole', {
@@ -121,6 +140,46 @@ export class EcsStack extends cdk.Stack {
       taskRole,
     });
 
+    // Build environment variables for API container
+    const apiEnvironment: { [key: string]: string } = {
+      DJANGO_SETTINGS_MODULE:
+        config.tags.Environment === 'production'
+          ? 'talentbase.settings.production'
+          : 'talentbase.settings.development',
+      PORT: config.ecs.apiService.port.toString(),
+      DEBUG: config.tags.Environment === 'production' ? 'False' : 'True',
+      ALLOWED_HOSTS: config.tags.Environment === 'production'
+        ? 'salesdog.click,www.salesdog.click,api.salesdog.click,api-dev.salesdog.click'
+        : 'api-dev.salesdog.click,localhost,127.0.0.1',
+      CORS_ALLOWED_ORIGINS: config.tags.Environment === 'production'
+        ? 'https://salesdog.click,https://www.salesdog.click'
+        : 'https://dev.salesdog.click,http://localhost:3000,http://localhost:3001',
+      CSRF_TRUSTED_ORIGINS: config.tags.Environment === 'production'
+        ? 'https://salesdog.click,https://www.salesdog.click'
+        : 'https://dev.salesdog.click',
+    };
+
+    // Add database and Redis configuration if available
+    if (database && redisCluster) {
+      apiEnvironment.DB_HOST = database.dbInstanceEndpointAddress;
+      apiEnvironment.DB_PORT = database.dbInstanceEndpointPort;
+      apiEnvironment.DB_NAME = config.rds.databaseName;
+      apiEnvironment.DB_USER = 'talentbase_admin';
+      apiEnvironment.REDIS_URL = `redis://${redisCluster.attrRedisEndpointAddress}:${redisCluster.attrRedisEndpointPort}/0`;
+    }
+
+    // Build secrets configuration
+    const apiSecrets: { [key: string]: ecs.Secret } = {};
+    if (databaseSecret) {
+      apiSecrets.DB_PASSWORD = ecs.Secret.fromSecretsManager(databaseSecret, 'password');
+    }
+    if (djangoSecret) {
+      apiSecrets.DJANGO_SECRET_KEY = ecs.Secret.fromSecretsManager(djangoSecret, 'DJANGO_SECRET_KEY');
+    }
+    if (fieldEncryptionSecret) {
+      apiSecrets.FIELD_ENCRYPTION_KEY = ecs.Secret.fromSecretsManager(fieldEncryptionSecret, 'FIELD_ENCRYPTION_KEY');
+    }
+
     apiTaskDefinition.addContainer('ApiContainer', {
       image: ecs.ContainerImage.fromEcrRepository(apiRepository, 'latest'),
       logging: ecs.LogDrivers.awsLogs({
@@ -133,13 +192,8 @@ export class EcsStack extends cdk.Stack {
           protocol: ecs.Protocol.TCP,
         },
       ],
-      environment: {
-        DJANGO_SETTINGS_MODULE:
-          config.tags.Environment === 'production'
-            ? 'talentbase.settings.production'
-            : 'talentbase.settings.development',
-        PORT: config.ecs.apiService.port.toString(),
-      },
+      environment: apiEnvironment,
+      secrets: apiSecrets,
       healthCheck: {
         command: ['CMD-SHELL', `curl -f http://localhost:${config.ecs.apiService.port}/health/ || exit 1`],
         interval: cdk.Duration.seconds(30),
