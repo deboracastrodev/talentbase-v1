@@ -379,6 +379,36 @@ This document provides the complete story-level breakdown for all 5 epics in the
 
 ---
 
+### Story 2.5.1: Admin Dashboard Layout & Navigation
+
+**As an** admin
+**I want** a structured dashboard with sidebar navigation, header, and overview widgets
+**So that** I can easily access all administrative functions and see platform health
+
+**Prerequisites:**
+- Story 2.3 (Login & Token Authentication) completed
+- Story 2.4 (Admin User Management) completed
+
+**Acceptance Criteria:**
+1. Admin homepage route at `/admin` displays overview dashboard
+2. Dashboard shows widgets: Total Users, Pending Approvals, Active Jobs, Total Candidates, Recent Activity
+3. Widgets are clickable and navigate to relevant pages
+4. Sidebar navigation with sections: Dashboard, Users, Companies, Candidates, Jobs, Applications, Matches
+5. Active menu item visually highlighted
+6. Header with logo, page title, and user menu dropdown
+7. User menu contains: profile, settings, logout
+8. AdminLayout component reusable across all admin pages
+9. Mobile responsive (collapsible sidebar with hamburger menu)
+10. API endpoint `GET /api/v1/admin/stats` returns dashboard statistics
+11. All admin routes protected with IsAdmin permission
+
+**Technical Notes:**
+- Creates foundational layout structure for all admin pages
+- Covers gap identified: Stories 2.4 and 2.5 referenced dashboard/widgets that were never specified
+- Implements navigation structure for future Epic 3, 4, 5 admin pages
+
+---
+
 ### Story 2.6: Implement Role-Based Access Control (RBAC)
 
 **As a** system
@@ -448,8 +478,8 @@ This document provides the complete story-level breakdown for all 5 epics in the
 
 ---
 
-**Epic 2 Total Stories:** 7 stories
-**Epic 2 Estimated Duration:** 2 weeks
+**Epic 2 Total Stories:** 8 stories (includes Story 2.5.1 - Admin Dashboard Layout)
+**Epic 2 Estimated Duration:** 2-3 weeks
 
 ---
 
@@ -1244,7 +1274,7 @@ This document provides the complete story-level breakdown for all 5 epics in the
 
 ## Summary
 
-**Total Stories:** 35 stories across 5 epics
+**Total Stories:** 36 stories across 5 epics (includes Story 2.5.1 - Admin Dashboard Layout gap fix)
 **Timeline:** 12 weeks (3 months) MVP
 **Delivery:** Phased by epic, each delivering incremental business value
 
