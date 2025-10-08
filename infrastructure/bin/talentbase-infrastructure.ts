@@ -45,6 +45,8 @@ const devApplication = new ApplicationStack(
   devNetworking.ecsSecurityGroup,
   devDatabase.rdsSecret,
   DEV_CONFIG,
+  devDatabase.rdsInstance,
+  devDatabase.redisCluster,
   {
     env: DEV_CONFIG.env,
     description: 'TalentBase Development - ECS, ALB, and DNS',
@@ -91,6 +93,8 @@ const prodApplication = new ApplicationStack(
   prodNetworking.ecsSecurityGroup,
   prodDatabase.rdsSecret,
   PROD_CONFIG,
+  prodDatabase.rdsInstance,
+  prodDatabase.redisCluster,
   {
     env: PROD_CONFIG.env,
     description: 'TalentBase Production - ECS, ALB, and DNS',

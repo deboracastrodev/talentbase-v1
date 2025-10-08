@@ -4,6 +4,7 @@
  */
 
 export interface EnvironmentConfig {
+  projectName: string;
   env: {
     account: string;
     region: string;
@@ -62,6 +63,7 @@ export const GLOBAL_CONFIG = {
 };
 
 export const DEV_CONFIG: EnvironmentConfig = {
+  projectName: 'talentbase',
   env: {
     account: GLOBAL_CONFIG.account,
     region: GLOBAL_CONFIG.region,
@@ -117,6 +119,7 @@ export const DEV_CONFIG: EnvironmentConfig = {
 };
 
 export const PROD_CONFIG: EnvironmentConfig = {
+  projectName: 'talentbase',
   env: {
     account: GLOBAL_CONFIG.account,
     region: GLOBAL_CONFIG.region,

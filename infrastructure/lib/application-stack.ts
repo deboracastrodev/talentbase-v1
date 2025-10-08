@@ -10,6 +10,8 @@ import * as route53targets from 'aws-cdk-lib/aws-route53-targets';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
+import * as rds from 'aws-cdk-lib/aws-rds';
+import * as elasticache from 'aws-cdk-lib/aws-elasticache';
 import { Construct } from 'constructs';
 import { EnvironmentConfig } from './config';
 
@@ -31,6 +33,8 @@ export class ApplicationStack extends cdk.Stack {
     ecsSecurityGroup: ec2.SecurityGroup,
     rdsSecret: secretsmanager.ISecret,
     config: EnvironmentConfig,
+    rdsInstance?: rds.DatabaseInstance,
+    redisCluster?: elasticache.CfnCacheCluster,
     props?: cdk.StackProps
   ) {
     super(scope, id, props);
@@ -171,6 +175,38 @@ export class ApplicationStack extends cdk.Stack {
       taskRole,
     });
 
+    // Build API environment variables
+    const apiEnvironment: { [key: string]: string } = {
+      DJANGO_SETTINGS_MODULE:
+        config.tags.Environment === 'production'
+          ? 'talentbase.settings.production'
+          : 'talentbase.settings.development',
+      PORT: config.ecs.apiService.port.toString(),
+      DEBUG: config.tags.Environment === 'production' ? 'False' : 'True',
+      ALLOWED_HOSTS: config.tags.Environment === 'production'
+        ? 'salesdog.click,www.salesdog.click,api.salesdog.click'
+        : 'api-dev.salesdog.click,localhost,127.0.0.1',
+      CORS_ALLOWED_ORIGINS: config.tags.Environment === 'production'
+        ? 'https://salesdog.click,https://www.salesdog.click'
+        : 'https://dev.salesdog.click,http://localhost:3000,http://localhost:3001',
+      CSRF_TRUSTED_ORIGINS: config.tags.Environment === 'production'
+        ? 'https://salesdog.click,https://www.salesdog.click'
+        : 'https://dev.salesdog.click',
+    };
+
+    // Add Redis URL if Redis cluster is provided
+    if (redisCluster) {
+      apiEnvironment.REDIS_URL = `redis://${redisCluster.attrRedisEndpointAddress}:${redisCluster.attrRedisEndpointPort}/0`;
+    }
+
+    // Add RDS endpoint if provided (for reference, actual credentials come from secrets)
+    if (rdsInstance) {
+      // These are non-sensitive, can be environment variables
+      apiEnvironment.DB_HOST = rdsInstance.dbInstanceEndpointAddress;
+      apiEnvironment.DB_PORT = rdsInstance.dbInstanceEndpointPort;
+      apiEnvironment.DB_NAME = config.rds.databaseName;
+    }
+
     const apiContainer = apiTaskDefinition.addContainer('ApiContainer', {
       image: ecs.ContainerImage.fromEcrRepository(apiRepository, 'latest'),
       logging: ecs.LogDrivers.awsLogs({
@@ -183,20 +219,11 @@ export class ApplicationStack extends cdk.Stack {
           protocol: ecs.Protocol.TCP,
         },
       ],
-      environment: {
-        DJANGO_SETTINGS_MODULE:
-          config.tags.Environment === 'production'
-            ? 'talentbase.settings.production'
-            : 'talentbase.settings.development',
-        PORT: config.ecs.apiService.port.toString(),
-      },
+      environment: apiEnvironment,
       // Secrets from AWS Secrets Manager (sensitive data)
       secrets: {
-        DB_NAME: ecs.Secret.fromSecretsManager(rdsSecret, 'dbname'),
         DB_USER: ecs.Secret.fromSecretsManager(rdsSecret, 'username'),
         DB_PASSWORD: ecs.Secret.fromSecretsManager(rdsSecret, 'password'),
-        DB_HOST: ecs.Secret.fromSecretsManager(rdsSecret, 'host'),
-        DB_PORT: ecs.Secret.fromSecretsManager(rdsSecret, 'port'),
       },
       // Note: Container health check disabled - using ALB target group health check instead
       // This avoids issues with curl not being installed in the container
