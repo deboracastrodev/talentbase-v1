@@ -11,6 +11,7 @@ export class SecretsStack extends cdk.Stack {
   public readonly djangoSecret: secretsmanager.Secret;
   public readonly fieldEncryptionSecret: secretsmanager.Secret;
   public readonly sendgridApiKey: secretsmanager.Secret;
+  public readonly awsS3Credentials: secretsmanager.Secret;
 
   constructor(
     scope: Construct,
@@ -56,6 +57,18 @@ export class SecretsStack extends cdk.Stack {
       secretStringValue: cdk.SecretValue.unsafePlainText('PLACEHOLDER'), // Will be updated manually
     });
 
+    // Story 3.1: Create AWS S3 Credentials secret (for profile photo uploads)
+    this.awsS3Credentials = new secretsmanager.Secret(this, 'AwsS3Credentials', {
+      secretName: `${config.projectName}/${config.tags.Environment}/aws-s3-credentials`,
+      description: `AWS S3 credentials for ${config.projectName} ${config.tags.Environment}`,
+      secretStringValue: cdk.SecretValue.unsafePlainText(
+        JSON.stringify({
+          AWS_ACCESS_KEY_ID: 'PLACEHOLDER',
+          AWS_SECRET_ACCESS_KEY: 'PLACEHOLDER',
+        })
+      ),
+    });
+
     // Add tags
     Object.entries(config.tags).forEach(([key, value]) => {
       cdk.Tags.of(this).add(key, value);
@@ -78,6 +91,12 @@ export class SecretsStack extends cdk.Stack {
       value: this.sendgridApiKey.secretArn,
       description: 'SendGrid API Key ARN',
       exportName: `${id}-SendGridApiKeyArn`,
+    });
+
+    new cdk.CfnOutput(this, 'AwsS3CredentialsArn', {
+      value: this.awsS3Credentials.secretArn,
+      description: 'AWS S3 Credentials ARN',
+      exportName: `${id}-AwsS3CredentialsArn`,
     });
   }
 }

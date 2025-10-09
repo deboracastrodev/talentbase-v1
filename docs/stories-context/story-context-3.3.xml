@@ -5,6 +5,8 @@
     <title>CSV Import Tool (Admin - Notion Migration)</title>
     <status>Not Started</status>
     <generatedAt>2025-10-09</generatedAt>
+    <lastUpdated>2025-10-09</lastUpdated>
+    <updateNote>CSV import expanded to 36 Notion fields with specialized parsers (boolean, currency, date, list)</updateNote>
     <generator>BMAD Story Context Workflow</generator>
     <sourceStoryPath>/Users/debor/Documents/sistemas/talentbase-v1/docs/stories/story-3.3.md</sourceStoryPath>
   </metadata>

@@ -38,6 +38,7 @@ export class ApplicationStack extends cdk.Stack {
     djangoSecret?: secretsmanager.Secret,
     fieldEncryptionSecret?: secretsmanager.Secret,
     sendgridApiKey?: secretsmanager.Secret,
+    awsS3Credentials?: secretsmanager.Secret,
     props?: cdk.StackProps
   ) {
     super(scope, id, props);
@@ -115,6 +116,9 @@ export class ApplicationStack extends cdk.Stack {
     }
     if (sendgridApiKey) {
       sendgridApiKey.grantRead(executionRole);
+    }
+    if (awsS3Credentials) {
+      awsS3Credentials.grantRead(executionRole);
     }
 
     // Task Role (for application runtime permissions)
@@ -240,6 +244,11 @@ export class ApplicationStack extends cdk.Stack {
     if (sendgridApiKey) {
       // SendGrid secret is a plain string value, not JSON
       apiSecrets.SENDGRID_API_KEY = ecs.Secret.fromSecretsManager(sendgridApiKey);
+    }
+    if (awsS3Credentials) {
+      // AWS S3 credentials are stored as JSON
+      apiSecrets.AWS_ACCESS_KEY_ID = ecs.Secret.fromSecretsManager(awsS3Credentials, 'AWS_ACCESS_KEY_ID');
+      apiSecrets.AWS_SECRET_ACCESS_KEY = ecs.Secret.fromSecretsManager(awsS3Credentials, 'AWS_SECRET_ACCESS_KEY');
     }
 
     const apiContainer = apiTaskDefinition.addContainer('ApiContainer', {

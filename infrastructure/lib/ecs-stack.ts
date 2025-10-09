@@ -157,6 +157,11 @@ export class EcsStack extends cdk.Stack {
       CSRF_TRUSTED_ORIGINS: config.tags.Environment === 'production'
         ? 'https://salesdog.click,https://www.salesdog.click'
         : 'https://dev.salesdog.click',
+      // AWS S3 Configuration (Story 3.1 - Profile Photos Upload)
+      AWS_STORAGE_BUCKET_NAME: config.tags.Environment === 'production'
+        ? 'talentbase-prod-uploads'
+        : 'talentbase-dev-uploads',
+      AWS_S3_REGION_NAME: 'us-east-1',
     };
 
     // Add database and Redis configuration if available

@@ -2,6 +2,8 @@
 
 Status: Ready
 
+**📝 UPDATED 2025-10-09**: CandidateProfile model expanded with 25 new fields from Notion CSV for complete candidate data capture and admin matching capabilities.
+
 **⚠️ IMPORTANTE: Antes de iniciar esta story, leia:**
 - [Code Quality Standards](../bestpraticies/CODE_QUALITY.md)
 - [Backend Best Practices](../bestpraticies/BACKEND_BEST_PRACTICES.md)
@@ -22,7 +24,7 @@ Para que **empresas possam descobrir minhas habilidades e experiência**.
    - Step 2: Posição & Experiência (posição, anos, Inbound/Outbound, Inside/Field, ciclo de vendas, ticket size)
    - Step 3: Ferramentas & Software (multi-select: Salesforce, Hubspot, Apollo.io, etc.)
    - Step 4: Soluções & Departamentos (soluções vendidas, departamentos para quem vendeu)
-   - Step 5: Histórico de Trabalho & Bio (adicionar 1+ empresas anteriores, escrever bio)
+   - Step 5: Histórico de Trabalho, Bio & **Vídeo Pitch** (adicionar 1+ empresas anteriores, escrever bio, **vídeo obrigatório**)
 3. Cada step tem validação client-side antes de "Próximo"
 4. Botão "Salvar Rascunho" em cada step (salva progresso)
 5. Botão "Anterior" preserva dados do step atual antes de navegar
@@ -30,26 +32,33 @@ Para que **empresas possam descobrir minhas habilidades e experiência**.
 7. Upload de arquivo para foto de perfil (max 2MB, JPG/PNG, validação MIME no backend)
 8. Foto armazenada no AWS S3, URL salva no banco de dados
 9. Upload de nova foto substitui foto anterior (delete old file from S3)
-10. Mensagem de sucesso: "Perfil criado! Gere seu link compartilhável."
-11. Redirect para `/candidate/profile` (modo visualização)
-12. Prevent duplicate profile creation (user can have only one CandidateProfile)
+10. **NOVO** Vídeo pitch obrigatório com 2 opções:
+    - **Opção A**: Upload direto para S3 (max 50MB, MP4/MOV/AVI, validação MIME)
+    - **Opção B**: URL do YouTube (validação de formato YouTube)
+11. Vídeo armazenado no S3 (`s3://talentbase-media/pitch-videos/{candidate_id}/`) OU URL YouTube salva no banco
+12. Upload de novo vídeo substitui vídeo anterior (delete old file from S3 if exists)
+13. Mensagem de sucesso: "Perfil criado! Gere seu link compartilhável."
+14. Redirect para `/candidate/profile` (modo visualização)
+15. Prevent duplicate profile creation (user can have only one CandidateProfile)
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Criar modelo CandidateProfile estendido (AC: 5, 7)
+- [ ] Task 1: Criar modelo CandidateProfile estendido (AC: 6, 7, 10)
   - [ ] Estender CandidateProfile model com todos os campos
   - [ ] Adicionar campos: position, years_experience, sales_type, sales_cycle, ticket_size
   - [ ] Adicionar campos: tools (JSONField), solutions (JSONField), departments (JSONField)
   - [ ] Adicionar campos: bio (TextField), profile_photo_url (URLField)
+  - [ ] **NOVO** Adicionar campos: pitch_video_url (URLField), pitch_video_type (CharField: 's3' ou 'youtube')
   - [ ] Executar migrações Django
 
-- [ ] Task 2: Implementar API de criação de perfil (AC: 6, 7, 8, 9, 12)
+- [ ] Task 2: Implementar API de criação de perfil (AC: 6, 7, 8, 9, 10, 11, 12, 15)
   - [ ] Criar CandidateProfileSerializer completo
   - [ ] Criar view `POST /api/v1/candidates` com validação de duplicação
-  - [ ] Implementar validação de campos obrigatórios
-  - [ ] Implementar validação MIME no backend (JPG/PNG apenas)
-  - [ ] Implementar upload para S3 (presigned URLs)
-  - [ ] Implementar delete de foto antiga ao fazer upload de nova
+  - [ ] Implementar validação de campos obrigatórios (incluindo vídeo pitch)
+  - [ ] Implementar validação MIME no backend (JPG/PNG para foto, MP4/MOV/AVI para vídeo)
+  - [ ] Implementar upload para S3 (presigned URLs) para foto E vídeo
+  - [ ] Implementar validação de URL YouTube (regex pattern)
+  - [ ] Implementar delete de foto/vídeo antigo ao fazer upload de novo
 
 - [ ] Task 3: Criar formulário multi-step frontend (AC: 1, 2, 3, 5, 11)
   - [ ] Criar route `/candidate/profile/create`
@@ -77,41 +86,97 @@ Para que **empresas possam descobrir minhas habilidades e experiência**.
 
 ### Candidate Profile Data Model
 
-**CandidateProfile Fields:**
+> **UPDATED 2025-10-09**: Model expanded to include 25 new fields from Notion CSV. See full model specification in [tech-spec-epic-3.md](../epics/tech-spec-epic-3.md#story-31).
+
+**CandidateProfile Core Fields (Multi-Step Form):**
 ```python
 class CandidateProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
 
     # Step 1: Basic Info
+    full_name = models.CharField(max_length=200)
     phone = models.CharField(max_length=20)
-    location = models.CharField(max_length=100)  # City, State
+    location = models.CharField(max_length=100, blank=True)  # DEPRECATED - use 'city'
+    city = models.CharField(max_length=100, blank=True)
     profile_photo_url = models.URLField(blank=True, null=True)
 
     # Step 2: Position & Experience
     position = models.CharField(max_length=50)  # SDR/BDR, AE, CSM
     years_experience = models.IntegerField()
-    sales_type = models.JSONField(default=list)  # ["Inbound", "Outbound"]
-    sales_model = models.JSONField(default=list)  # ["Inside Sales", "Field Sales"]
-    sales_cycle = models.CharField(max_length=20)  # "1-3mo", "3-6mo", etc.
-    ticket_size = models.CharField(max_length=20)  # "12-24K", "24-60K", etc.
+    sales_type = models.CharField(max_length=50, blank=True)  # "Inbound", "Outbound", "Both"
+    sales_cycle = models.CharField(max_length=100, blank=True)  # "30-60 dias"
+    avg_ticket = models.CharField(max_length=100, blank=True)  # "R$ 10k-50k MRR"
 
     # Step 3: Tools & Software
-    tools = models.JSONField(default=list)  # ["Salesforce", "Hubspot", ...]
+    top_skills = models.JSONField(default=list)  # ["Outbound", "Negociação"]
+    tools_software = models.JSONField(default=list)  # ["Salesforce", "Hubspot", ...]
 
     # Step 4: Solutions & Departments
-    solutions = models.JSONField(default=list)  # ["SaaS", "Cybersecurity", ...]
-    departments = models.JSONField(default=list)  # ["IT", "Finance", ...]
+    solutions_sold = models.JSONField(default=list)  # ["SaaS", "Cybersecurity", ...]
+    departments_sold_to = models.JSONField(default=list)  # ["IT", "Finance", ...]
 
-    # Step 5: Work History & Bio
+    # Step 5: Work History & Bio & Pitch Video
     bio = models.TextField(blank=True)
+
+    # **PITCH VIDEO (OBRIGATÓRIO)**
+    pitch_video_url = models.URLField(help_text="URL do vídeo pitch (S3 ou YouTube)")
+    pitch_video_type = models.CharField(
+        max_length=10,
+        choices=[('s3', 'S3 Upload'), ('youtube', 'YouTube')],
+        help_text="Tipo de vídeo: upload direto (S3) ou YouTube"
+    )
     # Work history in separate Experience model
 
     # Metadata
     status = models.CharField(max_length=20, default='available')
-    verified = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    is_verified = models.BooleanField(default=False)
+    is_public = models.BooleanField(default=False)
+    public_token = models.UUIDField(default=uuid.uuid4, unique=True)
+
+    # ============ OPTIONAL FIELDS (Step 6 - Optional Preferences) ============
+    # These fields are primarily for admin use (CSV import) but can be
+    # optionally collected during onboarding
+
+    # Personal & Legal
+    cpf = models.CharField(max_length=255, blank=True)
+    linkedin = models.URLField(blank=True)
+    zip_code = models.CharField(max_length=10, blank=True)
+    accepts_pj = models.BooleanField(default=False)
+    is_pcd = models.BooleanField(default=False)
+
+    # Contract & Interview (Admin only)
+    contract_signed = models.BooleanField(default=False)
+    interview_date = models.DateField(null=True, blank=True)
+
+    # Mobility & Availability (Optional in Step 6)
+    relocation_availability = models.CharField(max_length=50, blank=True)
+    travel_availability = models.CharField(max_length=100, blank=True)
+    has_drivers_license = models.BooleanField(default=False)
+    has_vehicle = models.BooleanField(default=False)
+
+    # Education & Languages (Optional in Step 6)
+    academic_degree = models.CharField(max_length=200, blank=True)
+    languages = models.JSONField(default=list)
+
+    # Work Preferences & Compensation (Optional in Step 6)
+    work_model = models.CharField(max_length=100, blank=True)
+    positions_of_interest = models.JSONField(default=list)
+    minimum_salary = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    salary_notes = models.TextField(blank=True)
+
+    # Sales Experience Details (Admin/CSV import only)
+    active_prospecting_experience = models.CharField(max_length=100, blank=True)
+    inbound_qualification_experience = models.CharField(max_length=100, blank=True)
+    portfolio_retention_experience = models.CharField(max_length=100, blank=True)
+    portfolio_expansion_experience = models.CharField(max_length=100, blank=True)
+    portfolio_size = models.CharField(max_length=100, blank=True)
+    inbound_sales_experience = models.CharField(max_length=100, blank=True)
+    outbound_sales_experience = models.CharField(max_length=100, blank=True)
+    field_sales_experience = models.CharField(max_length=100, blank=True)
+    inside_sales_experience = models.CharField(max_length=100, blank=True)
 ```
+
+**Note**: The 25 new fields are `blank=True` and optional. Candidate onboarding form can collect a subset of these fields in an optional Step 6 (Preferences), while the full set is populated via CSV import for existing candidates.
 
 **Experience Model (Work History):**
 ```python
@@ -126,29 +191,53 @@ class Experience(models.Model):
 
 ### S3 Upload Strategy
 
-**Presigned URL Flow:**
-1. Frontend requests presigned URL: `GET /api/v1/candidates/upload-url?filename=photo.jpg`
+> **UPDATED 2025-10-09**: Expanded to support pitch video uploads (S3 ou YouTube).
+
+**Presigned URL Flow (Photo & Video):**
+1. Frontend requests presigned URL:
+   - Photo: `GET /api/v1/candidates/upload-url?filename=photo.jpg&type=photo`
+   - Video: `GET /api/v1/candidates/upload-url?filename=pitch.mp4&type=video`
 2. Backend validates MIME type from filename extension
-3. Backend generates S3 presigned POST URL (expires in 5 minutes)
+3. Backend generates S3 presigned POST URL (expires in 10 minutes for videos)
 4. Frontend uploads directly to S3 using presigned URL
 5. Frontend sends S3 URL to backend with profile data
 6. Backend validates URL is from our S3 bucket and saves
-7. If updating photo: Backend deletes old photo from S3 before saving new URL
+7. If updating photo/video: Backend deletes old file from S3 before saving new URL
 
 **S3 Bucket Structure:**
 ```
 s3://talentbase-media/
   candidate-photos/
-    {user_id}/
+    {candidate_id}/
       profile_{timestamp}.jpg  # timestamp prevents cache issues
+  pitch-videos/
+    {candidate_id}/
+      pitch_{timestamp}.mp4  # timestamp prevents cache issues
 ```
 
 **S3 Security & Retention:**
 - Bucket policy: Private (no public read)
 - Access: Via CloudFront CDN with signed URLs
-- Retention: Photos deleted when user account is deleted
-- MIME validation: Backend verifies Content-Type header (image/jpeg or image/png)
-- Max file size: 2MB enforced on backend
+- Retention: Files deleted when user account is deleted
+- MIME validation: Backend verifies Content-Type header
+  - **Photos**: image/jpeg or image/png
+  - **Videos**: video/mp4, video/quicktime, video/x-msvideo
+- Max file size:
+  - **Photos**: 2MB enforced on backend
+  - **Videos**: 50MB enforced on backend
+
+**Video Options:**
+1. **S3 Upload** (pitch_video_type='s3'):
+   - Upload direto para S3 via presigned URL
+   - Max 50MB, MP4/MOV/AVI
+   - Armazenado em `s3://talentbase-media/pitch-videos/{candidate_id}/`
+   - Servido via CloudFront CDN
+
+2. **YouTube URL** (pitch_video_type='youtube'):
+   - Candidato fornece URL do YouTube
+   - Backend valida formato: `https://www.youtube.com/watch?v=VIDEO_ID` ou `https://youtu.be/VIDEO_ID`
+   - Salva URL no campo `pitch_video_url`
+   - Frontend embeda vídeo usando YouTube iframe API
 
 **XSS Prevention & Sanitization:**
 - **Backend (Python):** Use `bleach 6.1+` to sanitize bio field
@@ -222,6 +311,9 @@ s3://talentbase-media/
 - Step 5:
   - bio (required, min 100 characters) → "Bio deve ter no mínimo 100 caracteres (atual: X)"
   - work experience (at least 1 entry) → "Adicione pelo menos 1 experiência profissional"
+  - **NOVO** pitch video (required) → "Vídeo pitch é obrigatório. Escolha upload de arquivo ou URL do YouTube"
+    - Se S3 upload: max 50MB, MP4/MOV/AVI → "Arquivo deve ser MP4, MOV ou AVI e menor que 50MB"
+    - Se YouTube: formato válido → "URL do YouTube inválida. Use formato: https://www.youtube.com/watch?v=VIDEO_ID"
 
 **Navigation Behavior:**
 - "Próximo": Valida step atual → salva no state → avança
@@ -241,29 +333,39 @@ s3://talentbase-media/
 POST /api/v1/candidates
 - Creates candidate profile
 - Auth: Required (candidate role)
-- Body: Full CandidateProfile data + experiences array
+- Body: Full CandidateProfile data + experiences array + pitch_video_url + pitch_video_type
 - Validations:
   - Check if user already has a CandidateProfile (return 409 Conflict if exists)
   - Validate MIME type of profile_photo_url
+  - **NOVO** Validate pitch_video_url is required
+  - **NOVO** If pitch_video_type='s3': Validate S3 URL is from our bucket
+  - **NOVO** If pitch_video_type='youtube': Validate YouTube URL format
   - Sanitize bio field (strip HTML, prevent XSS)
   - Validate S3 URL is from our bucket
 - Response: 201 Created + profile ID
 - Error: 409 Conflict "You already have a profile"
+- Error: 400 Bad Request "Pitch video is required"
+- Error: 400 Bad Request "Invalid YouTube URL format"
 
-GET /api/v1/candidates/upload-url?filename=photo.jpg&content_type=image/jpeg
-- Returns presigned S3 URL for photo upload
+GET /api/v1/candidates/upload-url?filename=photo.jpg&content_type=image/jpeg&type=photo
+- Returns presigned S3 URL for photo or video upload
 - Auth: Required (candidate role)
+- Query params:
+  - filename: nome do arquivo
+  - content_type: MIME type
+  - type: 'photo' ou 'video'
 - Validations:
-  - content_type must be image/jpeg or image/png
+  - If type=photo: content_type must be image/jpeg or image/png, max 2MB
+  - **NOVO** If type=video: content_type must be video/mp4, video/quicktime, or video/x-msvideo, max 50MB
   - filename extension must match content_type
-- Response: { upload_url, photo_url }
+- Response: { upload_url, file_url }
 - Error: 400 Bad Request "Invalid file type"
 
 PATCH /api/v1/candidates/:id/draft
 - Saves partial profile data as draft
 - Auth: Required (candidate role, owner only)
 - Body: Partial CandidateProfile data
-- No validation (allows incomplete data)
+- No validation (allows incomplete data, including missing pitch video)
 - Response: 200 OK
 
 PUT /api/v1/candidates/:id/photo
@@ -272,6 +374,16 @@ PUT /api/v1/candidates/:id/photo
 - Body: { profile_photo_url }
 - Validations: Same as POST /api/v1/candidates
 - Side effect: Deletes previous photo from S3
+- Response: 200 OK
+
+PUT /api/v1/candidates/:id/video
+- Updates pitch video (deletes old video from S3 if type='s3')
+- Auth: Required (candidate role, owner only)
+- Body: { pitch_video_url, pitch_video_type }
+- Validations:
+  - If pitch_video_type='s3': Validate S3 URL is from our bucket
+  - If pitch_video_type='youtube': Validate YouTube URL format
+- Side effect: If type='s3', deletes previous video from S3
 - Response: 200 OK
 ```
 

@@ -63,6 +63,7 @@ const devApplication = new ApplicationStack(
   devSecrets.djangoSecret,
   devSecrets.fieldEncryptionSecret,
   devSecrets.sendgridApiKey,
+  devSecrets.awsS3Credentials,
   {
     env: DEV_CONFIG.env,
     description: 'TalentBase Development - ECS, ALB, and DNS',
@@ -127,6 +128,7 @@ const prodApplication = new ApplicationStack(
   prodSecrets.djangoSecret,
   prodSecrets.fieldEncryptionSecret,
   prodSecrets.sendgridApiKey,
+  prodSecrets.awsS3Credentials,
   {
     env: PROD_CONFIG.env,
     description: 'TalentBase Production - ECS, ALB, and DNS',

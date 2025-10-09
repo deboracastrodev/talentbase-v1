@@ -5,6 +5,8 @@
     <title>Admin Candidate Curation &amp; Editing</title>
     <status>Not Started</status>
     <generatedAt>2025-10-09</generatedAt>
+    <lastUpdated>2025-10-09</lastUpdated>
+    <updateNote>Admin table expanded with 9 advanced filters and 6 toggleable columns for new Notion fields. Detail view organized in 4 tabs to display 25+ new fields.</updateNote>
     <generator>BMAD Story Context Workflow</generator>
     <sourceStoryPath>/Users/debor/Documents/sistemas/talentbase-v1/docs/stories/story-3.4.md</sourceStoryPath>
   </metadata>

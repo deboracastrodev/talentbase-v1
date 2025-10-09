@@ -1,0 +1,16 @@
+# AWS Automation Scripts - Gitignore
+# Generated configs and credentials should NOT be committed
+
+# Generated configuration files
+configs/
+*.json
+
+# Credentials and secrets
+credentials/
+*-credentials.txt
+*.pem
+*.key
+
+# Temporary files
+*.tmp
+*.log

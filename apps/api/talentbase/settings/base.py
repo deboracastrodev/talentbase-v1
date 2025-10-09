@@ -194,3 +194,21 @@ CORS_ALLOW_HEADERS = [
     "x-csrftoken",
     "x-requested-with",
 ]
+
+# AWS S3 Configuration (Story 3.1 - Profile Photos Upload)
+AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY")
+AWS_STORAGE_BUCKET_NAME = config("AWS_STORAGE_BUCKET_NAME")  # 'talentbase-dev-uploads' or 'talentbase-prod-uploads'
+AWS_S3_REGION_NAME = config("AWS_S3_REGION_NAME", default="us-east-1")
+AWS_S3_SIGNATURE_VERSION = "s3v4"
+AWS_S3_FILE_OVERWRITE = False  # Prevent accidental overwrites
+AWS_DEFAULT_ACL = None  # Use bucket ACL (private)
+AWS_S3_ENCRYPTION = "AES256"  # Server-side encryption
+
+# Presigned URL Configuration
+AWS_PRESIGNED_EXPIRY = 300  # 5 minutes (in seconds)
+
+# File Upload Constraints
+MAX_UPLOAD_SIZE = 2 * 1024 * 1024  # 2MB in bytes
+ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png"]
+ALLOWED_IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png"]

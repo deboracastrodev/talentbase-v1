@@ -2,6 +2,8 @@
 
 Status: ContextReadyDraft
 
+**📝 UPDATED 2025-10-09**: CSV import expanded to support all 36 Notion fields with specialized parsers for boolean, currency, date, and list types. Complete column mapping defined.
+
 **⚠️ IMPORTANTE: Antes de iniciar esta story, leia:**
 - [Code Quality Standards](../bestpraticies/CODE_QUALITY.md)
 - [Backend Best Practices](../bestpraticies/BACKEND_BEST_PRACTICES.md)
@@ -69,29 +71,33 @@ Para que **eu possa migrar dados existentes do Notion rapidamente**.
 
 ### CSV Format
 
-**Expected CSV Columns:**
+> **UPDATED 2025-10-09**: Full Notion CSV format with 36 columns. See complete mapping in [tech-spec-epic-3.md](../epics/tech-spec-epic-3.md#story-33).
+
+**Notion CSV Columns (36 total):**
 ```csv
-name,email,phone,position,years_experience,location,sales_type,tools,solutions,bio
-João Silva,joao@email.com,11999999999,AE,5,São Paulo,Outbound,"Salesforce,Hubspot","SaaS,Fintech",Bio text...
+Nome,Aceita ser PJ?,CEP,CPF,Cidade,Contrato Assinado?,Data da Entrevista,Departamentos que já vendeu,Disp. p/ Mudança?,Disponibilidade para viagem?,Expansão/Venda pra carteira de clientes,Formação,Formação Acadêmica,ID,Idiomas,LinkedIn,Modelo de Trabalho,Mín Mensal Remuneração Total,Obs. Remuneração,PCD?,Posições de Interesse,Possui CNH?,Possui veículo próprio?,Prospecção Ativa,Qualificação de Leads Inbound,Retenção de Carteira de Clientes,Softwares de Vendas,Soluções que já vendeu,Status/Contrato,Tamanho da carteira gerida,Venda p/ Leads Inbound,Venda p/ Leads Outbound,Vendas em Field Sales,Vendas em Inside Sales,[Vendas/Closer] Ciclo de vendas,[Vendas/Closer] Ticket Médio
 ```
 
-**Field Mapping:**
-- **Required Fields:** name, email, position
-- **Optional Fields:** phone, location, years_experience, sales_type, tools, solutions, departments, bio
-- **Auto-detection Logic:**
-  - "Name" / "Nome" → name
-  - "Email" / "E-mail" → email
-  - "Phone" / "Telefone" / "Tel" → phone
-  - "Position" / "Posição" / "Cargo" → position
-  - "Experience" / "Experiência" / "Anos" → years_experience
-  - etc.
+**Complete Field Mapping (36 columns → Model fields):**
+
+See `DEFAULT_COLUMN_MAPPING` in [tech-spec-epic-3.md](../epics/tech-spec-epic-3.md#story-33) for the complete dictionary mapping all 36 Notion CSV columns to Django model fields.
+
+**Key Field Types Requiring Parsing:**
+- **Boolean Fields** (Sim/Não → True/False): `Aceita ser PJ?`, `Contrato Assinado?`, `PCD?`, `Possui CNH?`, `Possui veículo próprio?`
+- **Currency Fields** (R$ 7.500,00 → Decimal): `Mín Mensal Remuneração Total`
+- **Date Fields**: `Data da Entrevista`
+- **List Fields** (comma-separated): `Departamentos`, `Idiomas`, `Posições de Interesse`, `Softwares de Vendas`, `Soluções`
+- **Text Fields**: All experience fields (Prospecção Ativa, Qualificação, Retenção, etc.) store ranges like "Entre 3 e 5 anos"
 
 ### Backend Implementation
 
-**CSV Parsing with Pandas:**
+> **UPDATED 2025-10-09**: Added field parsers for boolean, currency, date, and list types. See complete implementation in [tech-spec-epic-3.md](../epics/tech-spec-epic-3.md#story-33).
+
+**CSV Parsing with Pandas + Field Parsers:**
 ```python
 import pandas as pd
 from celery import shared_task
+from decimal import Decimal
 
 @shared_task
 def process_csv_import(file_path, column_mapping, admin_user_id):
@@ -102,36 +108,104 @@ def process_csv_import(file_path, column_mapping, admin_user_id):
         'errors': []
     }
 
+    # Field parsers
+    def parse_bool(value):
+        """Parse Sim/Não to True/False"""
+        if not value or pd.isna(value):
+            return False
+        return str(value).strip().lower() in ['sim', 'yes', 'true']
+
+    def parse_currency(value):
+        """Parse R$ 7.500,00 to Decimal(7500.00)"""
+        if not value or pd.isna(value):
+            return None
+        try:
+            cleaned = str(value).replace('R$', '').replace('.', '').replace(',', '.').strip()
+            return Decimal(cleaned)
+        except:
+            return None
+
+    def parse_list(value):
+        """Parse comma-separated string to list"""
+        if not value or pd.isna(value):
+            return []
+        return [item.strip() for item in str(value).split(',') if item.strip()]
+
+    def parse_date(value):
+        """Parse date string"""
+        if not value or pd.isna(value):
+            return None
+        try:
+            return pd.to_datetime(value).date()
+        except:
+            return None
+
     for index, row in df.iterrows():
         try:
-            # Map CSV columns to model fields
-            data = {
-                model_field: row[csv_column]
-                for model_field, csv_column in column_mapping.items()
-            }
-
             # Create or get user
+            email = row.get('Email', '')
+            if not email:
+                raise ValueError('Email missing')
+
             user, created = User.objects.get_or_create(
-                email=data['email'],
-                defaults={
-                    'username': data['email'],
-                    'role': 'candidate',
-                    'is_active': True
-                }
+                email=email,
+                defaults={'role': 'candidate'}
             )
 
-            # Create candidate profile
-            candidate = CandidateProfile.objects.create(
+            # Create candidate profile with ALL 36 fields parsed
+            candidate = CandidateProfile.objects.update_or_create(
                 user=user,
-                **data
+                defaults={
+                    # Basic fields
+                    'full_name': row.get('Nome', ''),
+                    'cpf': row.get('CPF', ''),
+                    'linkedin': row.get('LinkedIn', ''),
+
+                    # New fields with parsers
+                    'accepts_pj': parse_bool(row.get('Aceita ser PJ?')),
+                    'zip_code': row.get('CEP', ''),
+                    'city': row.get('Cidade', ''),
+                    'contract_signed': parse_bool(row.get('Contrato Assinado?')),
+                    'interview_date': parse_date(row.get('Data da Entrevista')),
+                    'relocation_availability': row.get('Disp. p/ Mudança?', ''),
+                    'travel_availability': row.get('Disponibilidade para viagem?', ''),
+                    'academic_degree': row.get('Formação Acadêmica', ''),
+                    'languages': parse_list(row.get('Idiomas', '')),
+                    'work_model': row.get('Modelo de Trabalho', ''),
+                    'minimum_salary': parse_currency(row.get('Mín Mensal Remuneração Total')),
+                    'salary_notes': row.get('Obs. Remuneração', ''),
+                    'is_pcd': parse_bool(row.get('PCD?')),
+                    'positions_of_interest': parse_list(row.get('Posições de Interesse', '')),
+                    'has_drivers_license': parse_bool(row.get('Possui CNH?')),
+                    'has_vehicle': parse_bool(row.get('Possui veículo próprio?')),
+
+                    # Experience fields (text ranges)
+                    'active_prospecting_experience': row.get('Prospecção Ativa', ''),
+                    'inbound_qualification_experience': row.get('Qualificação de Leads Inbound', ''),
+                    'portfolio_retention_experience': row.get('Retenção de Carteira de Clientes', ''),
+                    'portfolio_expansion_experience': row.get('Expansão/Venda pra carteira de clientes', ''),
+                    'portfolio_size': row.get('Tamanho da carteira gerida', ''),
+                    'inbound_sales_experience': row.get('Venda p/ Leads Inbound', ''),
+                    'outbound_sales_experience': row.get('Venda p/ Leads Outbound', ''),
+                    'field_sales_experience': row.get('Vendas em Field Sales', ''),
+                    'inside_sales_experience': row.get('Vendas em Inside Sales', ''),
+
+                    # Existing fields
+                    'tools_software': parse_list(row.get('Softwares de Vendas', '')),
+                    'solutions_sold': parse_list(row.get('Soluções que já vendeu', '')),
+                    'departments_sold_to': parse_list(row.get('Departamentos que já vendeu', '')),
+                    'sales_cycle': row.get('[Vendas/Closer] Ciclo de vendas', ''),
+                    'avg_ticket': row.get('[Vendas/Closer] Ticket Médio', ''),
+                    'status': row.get('Status/Contrato', 'available'),
+                }
             )
 
             results['success'] += 1
 
         except Exception as e:
             results['errors'].append({
-                'row': index + 2,  # +2 for header + 0-index
-                'data': row.to_dict(),
+                'row': index + 2,
+                'nome': row.get('Nome', 'Unknown'),
                 'error': str(e)
             })
 
@@ -144,6 +218,12 @@ def process_csv_import(file_path, column_mapping, admin_user_id):
 
     return results
 ```
+
+**Key Changes:**
+- ✅ Added 4 parser functions: `parse_bool()`, `parse_currency()`, `parse_list()`, `parse_date()`
+- ✅ All 36 Notion CSV columns mapped to model fields
+- ✅ Handles special formats (R$ currency, Sim/Não booleans, comma-separated lists)
+- ✅ Experience fields stored as text (ranges like "Entre 3 e 5 anos")
 
 **Duplicate Handling Strategies:**
 1. **Skip:** If email exists, skip row (default)

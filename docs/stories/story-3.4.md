@@ -2,6 +2,8 @@
 
 Status: ContextReadyDraft
 
+**📝 UPDATED 2025-10-09**: Admin table expanded with advanced filters and columns for new Notion fields (city, salary, work_model, mobility, etc.). Detail view now includes tabs for organizing 25+ new fields.
+
 **⚠️ IMPORTANTE: Antes de iniciar esta story, leia:**
 - [Code Quality Standards](../bestpraticies/CODE_QUALITY.md)
 - [Backend Best Practices](../bestpraticies/BACKEND_BEST_PRACTICES.md)
@@ -17,26 +19,43 @@ Para que **eu possa manter qualidade dos dados e marcar disponibilidade**.
 ## Acceptance Criteria
 
 1. Página admin em `/admin/candidates`
-2. Tabela lista todos candidatos: nome, posição, status, ranking score, created_at
-3. Filtros: posição, status (available, inactive, under contract), verificado
+2. Tabela lista todos candidatos: nome, posição, cidade, salário, modelo trabalho, status
+3. **UPDATED** Filtros avançados:
+   - Posição (select)
+   - Status (select: available, inactive, under contract)
+   - Cidade (text search)
+   - Modelo de Trabalho (multi-select: Home-office, Híbrido, Presencial)
+   - Salário Mínimo (range slider)
+   - Aceita PJ (boolean)
+   - PCD (boolean)
+   - CNH (boolean)
+   - Disponibilidade Viagem (select)
 4. Busca por nome ou email
-5. Clicar linha do candidato → abre formulário de edição
-6. Admin pode editar todos os campos (mesmo formulário de perfil do candidato)
-7. Admin pode definir:
+5. **UPDATED** Colunas toggleable adicionais:
+   - Aceita PJ, PCD, CNH, Disponibilidade Viagem, Tamanho Carteira, Idiomas
+6. Clicar linha do candidato → abre detail view com tabs
+7. **UPDATED** Detail view organizado em tabs:
+   - Tab 1: Informações Básicas (nome, telefone, LinkedIn, formação, idiomas)
+   - Tab 2: Experiência Detalhada (prospecção, qualificação, retenção, expansão, carteira, field/inside sales)
+   - Tab 3: Mobilidade & Preferências (modelo trabalho, viagem, mudança, CNH, veículo)
+   - Tab 4: Remuneração (salário mínimo, observações, aceita PJ)
+8. Admin pode editar todos os campos (incluindo 25 novos campos do Notion)
+9. Admin pode definir:
    - Status: Available, Inactive, Under Contract
    - Verified: Yes/No (badge no perfil público)
    - Category: SDR/BDR Specialist, AE/Closer, CSM Expert
-8. Endpoint API `PATCH /api/v1/admin/candidates/:id`
-9. Mudanças salvas com log de auditoria (admin user, timestamp)
-10. Candidato recebe notificação por email se status mudar
+10. Endpoint API `PATCH /api/v1/admin/candidates/:id`
+11. Mudanças salvas com log de auditoria (admin user, timestamp)
+12. Candidato recebe notificação por email se status mudar
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Criar página de listagem de candidatos (AC: 1, 2, 3, 4)
+- [ ] Task 1: Criar página de listagem de candidatos (AC: 1, 2, 3, 4, 5)
   - [ ] Criar route `/admin/candidates`
-  - [ ] Endpoint `GET /api/v1/admin/candidates` com filtros
-  - [ ] Implementar tabela com colunas
-  - [ ] Implementar filtros (posição, status, verificado)
+  - [ ] Endpoint `GET /api/v1/admin/candidates` com filtros avançados (9 filtros)
+  - [ ] Implementar tabela com colunas default (nome, posição, cidade, salário, trabalho, status)
+  - [ ] Implementar colunas toggleable (6 colunas adicionais)
+  - [ ] Implementar filtros avançados (cidade, work_model, salary range, accepts_pj, is_pcd, has_drivers_license, travel_availability)
   - [ ] Implementar busca por nome/email
 
 - [ ] Task 2: Adicionar campos admin ao modelo (AC: 7, 9)
@@ -45,9 +64,13 @@ Para que **eu possa manter qualidade dos dados e marcar disponibilidade**.
   - [ ] Adicionar campo `admin_notes` (TextField)
   - [ ] Executar migrações
 
-- [ ] Task 3: Implementar formulário de edição (AC: 5, 6, 7)
-  - [ ] Modal/página de edição de candidato
-  - [ ] Formulário pre-populado com dados atuais
+- [ ] Task 3: Implementar detail view com tabs (AC: 6, 7, 8)
+  - [ ] Modal/página detail view de candidato
+  - [ ] Tab 1: Informações Básicas (nome, telefone, LinkedIn, CPF, formação acadêmica, idiomas)
+  - [ ] Tab 2: Experiência Detalhada (9 campos de experience: prospecção ativa, qualificação inbound, retenção, expansão, carteira, inbound sales, outbound sales, field sales, inside sales)
+  - [ ] Tab 3: Mobilidade & Preferências (modelo trabalho, viagem, mudança, CNH, veículo)
+  - [ ] Tab 4: Remuneração (salário mínimo, observações, aceita PJ)
+  - [ ] Modo edição: todos campos editáveis incluindo 25 novos campos
   - [ ] Campos admin-only: status, verified, category, notes
   - [ ] Validação client-side
 
