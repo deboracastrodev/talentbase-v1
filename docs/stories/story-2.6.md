@@ -45,10 +45,10 @@ Para que **usuários possam acessar apenas recursos apropriados à sua role**.
   - [x] Decorar todas as views com permission_classes
   - [x] Configurar IsAuthenticated como padrão
   - [x] Mapear endpoints específicos por role
-- [ ] Task 3: Implementar proteção frontend (AC: 7, 8)
-  - [ ] Criar requireAuth utility para loaders
-  - [ ] Implementar verificação de role em componentes
-  - [ ] Configurar redirects para login
+- [x] Task 3: Implementar proteção frontend (AC: 7, 8)
+  - [x] Criar requireAuth utility para loaders
+  - [x] Implementar verificação de role em componentes
+  - [x] Configurar redirects para login
 - [x] Task 4: Configurar middleware de autenticação (AC: 1)
   - [x] Configurar DRF authentication classes
   - [x] Implementar token validation middleware
@@ -274,16 +274,16 @@ Story 2.6 (RBAC) foi analisado e verificado como **JÁ IMPLEMENTADO** durante as
 - Token validation configurado
 - Exception handling padrão DRF
 
-⚠️ **TASK 3: Proteção Frontend** - PARCIALMENTE IMPLEMENTADO
+✅ **TASK 3: Proteção Frontend** - 100% IMPLEMENTADO
 - ✅ Rotas admin verificam token e redirecionam para /auth/login
 - ✅ Pattern de verificação aplicado em admin._index.tsx e admin.users.tsx
-- ❌ NÃO existe utility requireAuth reutilizável (código duplicado)
-- ❌ NÃO verifica role do usuário (apenas token presente/ausente)
-- ❌ Candidate/Company com token válido pode acessar UI admin (backend nega)
-- ❌ Falta componente RequireRole para UI condicional
-- ❌ Falta UserContext/useAuth hook
-- **Impacto:** Baixo (backend valida), mas UX ruim
-- **Ação:** Implementar utilities e refatorar (ver seção Frontend Gaps)
+- ✅ Utility requireAuth reutilizável criada (app/utils/auth.server.ts)
+- ✅ Verifica role do usuário (requireAdmin, requireCandidate, requireCompany)
+- ✅ Redirecionamento apropriado se role incorreta
+- ✅ Componente RequireRole para UI condicional (app/components/RequireRole.tsx)
+- ✅ Hook useAuth para componentes client-side (app/hooks/useAuth.ts)
+- **Implementado em:** 2025-10-09
+- **Commit:** 24e32da
 
 ❌ **TASK 5: Autorização Granular** - PARCIALMENTE IMPLEMENTADO
 - IsOwner existe e funciona
@@ -303,24 +303,37 @@ Story 2.6 (RBAC) foi analisado e verificado como **JÁ IMPLEMENTADO** durante as
 - AC4 ⚠️: Role company - permissões definidas, endpoints não existem
 - AC5 ✅: DRF retorna 403 automaticamente
 - AC6 ✅: Pattern aplicado onde há views
-- AC7 ⚠️: Rotas protegidas com token, MAS falta verificação de role
-- AC8 ❌: Frontend NÃO esconde elementos por role (componente RequireRole não existe)
+- AC7 ✅: Rotas protegidas com token E verificação de role (requireAuth utilities)
+- AC8 ✅: Frontend esconde elementos por role (RequireRole component)
 
-**Frontend Gaps Identificados:**
-1. Missing: `app/utils/auth.server.ts` com requireAuth(request, role?)
-2. Missing: `app/hooks/useAuth.ts` para componentes client-side
-3. Missing: `app/components/RequireRole.tsx` para UI condicional
-4. Missing: UserContext para compartilhar estado de autenticação
-5. Code Smell: Lógica de token duplicada em cada loader
+**Frontend Gaps - RESOLVIDOS (2025-10-09):**
+1. ✅ FIXED: `app/utils/auth.server.ts` com requireAuth(request, role?)
+2. ✅ FIXED: `app/hooks/useAuth.ts` para componentes client-side
+3. ✅ FIXED: `app/components/RequireRole.tsx` para UI condicional
+4. ✅ FIXED: Hook useAuth fornece estado de autenticação compartilhado
+5. ✅ FIXED: Lógica de token centralizada em utilities
+6. ✅ FIXED: Bug crítico - Session perdida ao clicar tabela usuários (document.cookie não lê httpOnly)
 
 **Conclusão:**
-Backend RBAC está **100% COMPLETO**. Frontend tem proteção **BÁSICA** (token check) mas precisa de melhorias de arquitetura (utilities reutilizáveis) e verificação de role. O impacto de segurança é baixo porque o backend valida corretamente.
+Backend RBAC está **100% COMPLETO**. Frontend RBAC agora também está **100% COMPLETO** com utilities reutilizáveis, verificação de role, e UI condicional. Todos os gaps foram resolvidos.
 
 ### File List
 
 **Arquivos Implementados:**
+
+**Backend (100% Completo):**
 - `apps/api/core/permissions.py` - Permission classes (89 linhas)
 - `apps/api/core/tests/test_permissions.py` - Tests (211 linhas, 10 testes)
 - `apps/api/talentbase/settings/base.py` - DRF config (linhas 146-162)
 - `apps/api/user_management/views.py` - Exemplo de uso (IsAdmin)
 - `apps/api/authentication/views.py` - Exemplo de uso (AllowAny)
+
+**Frontend (100% Completo - Implementado 2025-10-09):**
+- `packages/web/app/utils/auth.server.ts` - Server-side auth utilities (115 linhas)
+  - requireAuth(), requireAdmin(), requireCandidate(), requireCompany()
+- `packages/web/app/hooks/useAuth.ts` - Client-side auth hook (67 linhas)
+  - useAuth hook com isAuthenticated, hasRole(), logout()
+- `packages/web/app/components/RequireRole.tsx` - Role-based UI (56 linhas)
+  - RequireRole, HideForRole, RequireAuth components
+- `packages/web/app/routes/admin._index.tsx` - Refatorado com requireAdmin
+- `packages/web/app/routes/admin.users.tsx` - Refatorado + bug fix httpOnly cookie
