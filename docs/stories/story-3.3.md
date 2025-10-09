@@ -1,6 +1,6 @@
 # Story 3.3: CSV Import Tool (Admin - Notion Migration)
 
-Status: Not Started
+Status: ContextReadyDraft
 
 **⚠️ IMPORTANTE: Antes de iniciar esta story, leia:**
 - [Code Quality Standards](../bestpraticies/CODE_QUALITY.md)
@@ -323,3 +323,19 @@ Maria Santos,maria@email.com,11988888888,SDR,2,Rio de Janeiro,Inbound,"Salesforc
 - [ ] Deployed to staging
 - [ ] QA sign-off
 - [ ] Admin can import 100+ candidates without issues
+
+## Dev Agent Record
+
+### Context Reference
+
+- [Story Context XML](../stories-context/story-context-3.3.xml) - Generated 2025-10-09
+
+### Agent Model Used
+
+Claude Sonnet 4 (claude-sonnet-4-20250514)
+
+### Debug Log References
+
+### Completion Notes List
+
+### File List

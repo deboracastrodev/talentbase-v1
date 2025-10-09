@@ -1,0 +1,32 @@
+Cadastro Recebido com Sucesso!
+
+Olá {{ contact_name }},
+
+Obrigado por registrar a {{ company_name }} no TalentBase!
+
+✓ Seu cadastro foi recebido com sucesso!
+
+Informações da empresa:
+- Empresa: {{ company_name }}
+- Email: {{ email }}
+{% if cnpj %}- CNPJ: {{ cnpj }}{% endif %}
+
+⏳ O que acontece agora?
+Seu cadastro está em análise pela nossa equipe. Você receberá um email de confirmação em até 24 horas assim que sua conta for aprovada.
+
+Enquanto isso, você pode:
+- Conhecer mais sobre a plataforma TalentBase
+- Explorar nossos cases de sucesso
+- Preparar a descrição das suas futuras vagas
+
+Acesse nosso site: https://www.salesdog.click
+
+Se você tiver alguma dúvida durante o processo de aprovação, entre em contato conosco.
+
+Atenciosamente,
+Equipe TalentBase
+
+📧 contato@salesdog.click
+🌐 www.salesdog.click
+
+Para cancelar a inscrição: {{ unsubscribe_url|default:'https://www.salesdog.click/unsubscribe' }}

@@ -133,34 +133,26 @@ class UserStatusAudit(models.Model):
         ("deactivate", "Deactivate"),
     ]
 
-    id = models.UUIDField(
-        primary_key=True, default=uuid.uuid4, editable=False
-    )
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name="status_audits",
-        help_text="User whose status was changed"
+        help_text="User whose status was changed",
     )
     changed_by = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
         null=True,
         related_name="status_changes_made",
-        help_text="Admin who made the change"
+        help_text="Admin who made the change",
     )
     old_status = models.BooleanField(help_text="Previous is_active value")
     new_status = models.BooleanField(help_text="New is_active value")
     action_type = models.CharField(
-        max_length=20,
-        choices=ACTION_CHOICES,
-        help_text="Type of action performed"
+        max_length=20, choices=ACTION_CHOICES, help_text="Type of action performed"
     )
-    reason = models.TextField(
-        blank=True,
-        default="",
-        help_text="Reason for status change"
-    )
+    reason = models.TextField(blank=True, default="", help_text="Reason for status change")
     timestamp = models.DateTimeField(auto_now_add=True)
 
     class Meta:

@@ -1,0 +1,31 @@
+Parabéns! Sua Empresa Foi Aprovada!
+
+Olá {{ contact_name }},
+
+Temos uma excelente notícia! A {{ company_name }} foi aprovada e agora você tem acesso total à plataforma TalentBase.
+
+✓ Sua conta está ativa!
+Você já pode começar a publicar vagas e buscar os melhores talentos.
+
+O que você pode fazer agora:
+- Publicar suas primeiras vagas
+- Configurar o perfil da sua empresa
+- Buscar candidatos qualificados
+- Gerenciar todo o processo seletivo em um só lugar
+
+Acesse seu dashboard: {{ dashboard_url }}
+
+💡 Primeiros passos:
+Complete o perfil da sua empresa com logo, descrição e cultura organizacional para atrair os melhores talentos!
+
+Nossa equipe está aqui para ajudar você a ter sucesso na busca pelos melhores profissionais.
+
+Bem-vindo ao TalentBase! 🚀
+
+Atenciosamente,
+Equipe TalentBase
+
+📧 contato@salesdog.click
+🌐 www.salesdog.click
+
+Para cancelar a inscrição: {{ unsubscribe_url|default:'https://www.salesdog.click/unsubscribe' }}

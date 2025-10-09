@@ -1,6 +1,6 @@
 # Story 3.4: Admin Candidate Curation & Editing
 
-Status: Not Started
+Status: ContextReadyDraft
 
 **⚠️ IMPORTANTE: Antes de iniciar esta story, leia:**
 - [Code Quality Standards](../bestpraticies/CODE_QUALITY.md)
@@ -335,3 +335,19 @@ Equipe TalentBase
 - [ ] Code reviewed and merged
 - [ ] Deployed to staging
 - [ ] QA sign-off
+
+## Dev Agent Record
+
+### Context Reference
+
+- [Story Context XML](../stories-context/story-context-3.4.xml) - Generated 2025-10-09
+
+### Agent Model Used
+
+Claude Sonnet 4 (claude-sonnet-4-20250514)
+
+### Debug Log References
+
+### Completion Notes List
+
+### File List

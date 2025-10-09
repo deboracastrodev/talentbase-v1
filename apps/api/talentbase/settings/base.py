@@ -17,7 +17,7 @@ SECRET_KEY = config("DJANGO_SECRET_KEY", default="django-insecure-change-me-in-p
 # Must be a 32 url-safe base64-encoded bytes (Fernet key format)
 FIELD_ENCRYPTION_KEY = config(
     "FIELD_ENCRYPTION_KEY",
-    default="P5RnBWl-QNpNMl067ajWPeGYvOqcDKMxGb4OoJRHDK4="  # Development only - change in production
+    default="P5RnBWl-QNpNMl067ajWPeGYvOqcDKMxGb4OoJRHDK4=",  # Development only - change in production
 )
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -69,7 +69,7 @@ ROOT_URLCONF = "talentbase.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "templates"],  # Story 2.7: Email templates directory
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -180,7 +180,7 @@ AUTH_USER_MODEL = "authentication.User"
 CORS_ALLOWED_ORIGINS = config(
     "CORS_ALLOWED_ORIGINS",
     default="http://localhost:3000,http://localhost:3001",
-    cast=lambda v: [s.strip() for s in v.split(",")]
+    cast=lambda v: [s.strip() for s in v.split(",")],
 )
 CORS_ALLOW_CREDENTIALS = True  # Allow cookies to be sent
 CORS_ALLOW_HEADERS = [

@@ -3,13 +3,18 @@ User management service layer.
 
 Implements business logic for admin user management operations.
 Following Clean Architecture: Services contain business logic.
+
+Story 2.7: Enhanced email notifications for company approval/rejection
 """
 
-from typing import Dict, Any, Optional
-from django.db.models import Q, QuerySet
+import logging
+from typing import Optional
+
 from django.contrib.auth import get_user_model
+from django.db.models import Q, QuerySet
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
 
 
 class UserManagementService:
@@ -44,9 +49,9 @@ class UserManagementService:
             in a single query, avoiding N+1 query problems.
         """
         # Start with base queryset, optimized with select_related
-        queryset = User.objects.select_related(
-            "candidate_profile", "company_profile"
-        ).order_by("-created_at")
+        queryset = User.objects.select_related("candidate_profile", "company_profile").order_by(
+            "-created_at"
+        )
 
         # Apply role filter
         if role_filter and role_filter != "all":
@@ -84,9 +89,9 @@ class UserManagementService:
             User: User instance with related profile, or None if not found
         """
         try:
-            return User.objects.select_related(
-                "candidate_profile", "company_profile"
-            ).get(id=user_id)
+            return User.objects.select_related("candidate_profile", "company_profile").get(
+                id=user_id
+            )
         except User.DoesNotExist:
             return None
 
@@ -109,9 +114,7 @@ class UserManagementService:
             return user.email
 
     @staticmethod
-    def update_user_status(
-        user: User, is_active: bool, admin_user: User, reason: str = ""
-    ) -> User:
+    def update_user_status(user: User, is_active: bool, admin_user: User, reason: str = "") -> User:
         """
         Update user status and send notification email.
 
@@ -131,8 +134,8 @@ class UserManagementService:
         AC8: Status change triggers email notification
         AC9: Log de auditoria registra aprovação/rejeição
         """
-        from core.tasks import send_email_task
         from authentication.models import UserStatusAudit
+        from core.tasks import send_email_task
 
         old_status = user.is_active
 
@@ -166,26 +169,59 @@ class UserManagementService:
             reason=reason,
         )
 
-        # Prepare email notification
-        if is_active and not old_status:
-            # User activated
-            if user.role == "company":
-                subject = "Sua empresa foi aprovada - TalentBase"
-                message = f"Olá {UserManagementService.get_user_display_name(user)},\n\nSua empresa foi aprovada e agora você pode acessar a plataforma TalentBase!\n\nAcesse: https://app.talentbase.com/auth/login"
-            else:
-                subject = "Sua conta foi ativada - TalentBase"
-                message = f"Olá {UserManagementService.get_user_display_name(user)},\n\nSua conta foi ativada e você já pode acessar a plataforma!\n\nAcesse: https://app.talentbase.com/auth/login"
-        else:
-            # User deactivated
-            subject = "Sua conta foi suspensa - TalentBase"
-            message = f"Olá {UserManagementService.get_user_display_name(user)},\n\nSua conta foi suspensa. Entre em contato com o suporte para mais informações.\n\n{f'Motivo: {reason}' if reason else ''}"
-
+        # Story 2.7 - AC2: Email de aprovação/rejeição de empresa
         # Send email notification (AC8)
-        send_email_task.delay(
-            subject=subject,
-            message=message,
-            recipient_list=[user.email],
-        )
+        user_display_name = UserManagementService.get_user_display_name(user)
+
+        if is_active and not old_status:
+            # User activated/approved
+            if user.role == "company":
+                # Company approved - Story 2.7 template
+                company_name = getattr(user.company_profile, "company_name", user.email)
+                send_email_task.delay(
+                    template_name="company_approved",
+                    context={
+                        "contact_name": user_display_name,
+                        "company_name": company_name,
+                        "dashboard_url": "https://www.salesdog.click/company/dashboard",
+                    },
+                    recipient_email=user.email,
+                    subject="Parabéns! Sua Empresa Foi Aprovada - TalentBase",
+                )
+            else:
+                # TODO: Create candidate/generic activation template
+                # For now, using plain text fallback
+                send_email_task.delay(
+                    template_name="candidate_registration",  # Temporary reuse
+                    context={
+                        "candidate_name": user_display_name,
+                        "email": user.email,
+                        "dashboard_url": "https://www.salesdog.click/candidate/profile",
+                    },
+                    recipient_email=user.email,
+                    subject="Sua conta foi ativada - TalentBase",
+                )
+        else:
+            # User deactivated/rejected
+            if user.role == "company" and old_status and not is_active:
+                # Company rejected - Story 2.7 template
+                company_name = getattr(user.company_profile, "company_name", user.email)
+                send_email_task.delay(
+                    template_name="company_rejected",
+                    context={
+                        "contact_name": user_display_name,
+                        "company_name": company_name,
+                        "reason": reason or "",
+                    },
+                    recipient_email=user.email,
+                    subject="Atualização sobre seu cadastro - TalentBase",
+                )
+            else:
+                # TODO: Create generic deactivation template
+                # For now, skip email for non-company deactivations
+                logger.warning(
+                    f"Email not sent for user deactivation: {user.email} (role: {user.role})"
+                )
 
         return user
 

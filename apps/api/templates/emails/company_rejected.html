@@ -1,0 +1,36 @@
+{% extends 'emails/base.html' %}
+
+{% block content %}
+<h2>Atualização sobre seu cadastro</h2>
+
+<p>Olá <strong>{{ contact_name }}</strong>,</p>
+
+<p>Agradecemos seu interesse em fazer parte do TalentBase. Após análise do cadastro da <strong>{{ company_name }}</strong>, infelizmente não foi possível aprovar sua conta neste momento.</p>
+
+{% if reason %}
+<div class="warning-box">
+    <p><strong>Motivo:</strong><br>
+    {{ reason }}</p>
+</div>
+{% endif %}
+
+<p><strong>O que você pode fazer:</strong></p>
+<ul>
+    <li>Revisar as informações fornecidas no cadastro</li>
+    <li>Entrar em contato conosco para esclarecimentos</li>
+    <li>Solicitar uma nova análise após correções necessárias</li>
+</ul>
+
+<div class="info-box">
+    <p><strong>📞 Entre em contato conosco:</strong><br>
+    Nossa equipe está disponível para esclarecer dúvidas e ajudar você no processo de cadastro.</p>
+</div>
+
+<center>
+    <a href="mailto:contato@salesdog.click" class="button">Falar com o Suporte</a>
+</center>
+
+<div class="divider"></div>
+
+<p>Estamos à disposição para ajudar e queremos que você faça parte da nossa plataforma assim que possível.</p>
+{% endblock %}

@@ -1,0 +1,221 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>3.2</storyId>
+    <title>Shareable Public Candidate Profile</title>
+    <status>Not Started</status>
+    <generatedAt>2025-10-09</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>/Users/debor/Documents/sistemas/talentbase-v1/docs/stories/story-3.2.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>um candidato</asA>
+    <iWant>gerar um link público compartilhável do meu perfil</iWant>
+    <soThat>eu possa compartilhá-lo no LinkedIn e com recrutadores</soThat>
+    <tasks>
+      <task id="1" status="pending">
+        <title>Adicionar campo share_token ao modelo</title>
+        <ac_refs>2, 3</ac_refs>
+        <subtasks>
+          <subtask>Adicionar campo share_token (UUIDField) ao CandidateProfile</subtask>
+          <subtask>Adicionar campo public_sharing_enabled (BooleanField, default=False)</subtask>
+          <subtask>Executar migrações Django</subtask>
+        </subtasks>
+      </task>
+      <task id="2" status="pending">
+        <title>Implementar API de geração de token</title>
+        <ac_refs>2, 3, 8, 9</ac_refs>
+        <subtasks>
+          <subtask>Criar endpoint POST /api/v1/candidates/:id/generate-share-token</subtask>
+          <subtask>Gerar UUID único</subtask>
+          <subtask>Endpoint PATCH /api/v1/candidates/:id/toggle-sharing</subtask>
+          <subtask>Validar apenas owner pode gerar token</subtask>
+        </subtasks>
+      </task>
+      <task id="3" status="pending">
+        <title>Criar página pública do candidato</title>
+        <ac_refs>4, 5, 6, 7</ac_refs>
+        <subtasks>
+          <subtask>Criar route /share/candidate/:token (pública, sem auth)</subtask>
+          <subtask>Endpoint GET /api/v1/public/candidates/:token</subtask>
+          <subtask>Renderizar perfil completo exceto dados privados</subtask>
+          <subtask>Implementar botão "Contatar via TalentBase"</subtask>
+        </subtasks>
+      </task>
+      <task id="4" status="pending">
+        <title>Implementar funcionalidade de contato</title>
+        <ac_refs>6</ac_refs>
+        <subtasks>
+          <subtask>Modal de contato com formulário (nome, email, mensagem)</subtask>
+          <subtask>Endpoint POST /api/v1/public/candidates/:token/contact</subtask>
+          <subtask>Enviar email para admin com dados de contato</subtask>
+        </subtasks>
+      </task>
+      <task id="5" status="pending">
+        <title>Implementar SEO e meta tags</title>
+        <ac_refs>10</ac_refs>
+        <subtasks>
+          <subtask>Meta tags: title, description</subtask>
+          <subtask>OG tags: og:title, og:description, og:image (foto do candidato)</subtask>
+          <subtask>Twitter cards</subtask>
+          <subtask>Schema.org Person markup</subtask>
+        </subtasks>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">Botão "Gerar Link Compartilhável" no dashboard do candidato</criterion>
+    <criterion id="2">Endpoint API POST /api/v1/candidates/:id/generate-share-token</criterion>
+    <criterion id="3">Token único gerado (UUID), armazenado no banco de dados</criterion>
+    <criterion id="4">Formato da URL pública: https://www.salesdog.click/share/candidate/:token</criterion>
+    <criterion id="5">Página pública renderizada em /share/candidate/:token (sem autenticação requerida)</criterion>
+    <criterion id="6">
+      <title>Perfil público exibe:</title>
+      <items>
+        <item>Nome, foto, posição, localização</item>
+        <item>Anos de experiência, especialização em vendas</item>
+        <item>Ferramentas &amp; software proficiency (badges)</item>
+        <item>Soluções vendidas, departamentos (tags)</item>
+        <item>Histórico de trabalho (empresa, cargo, datas)</item>
+        <item>Bio/resumo</item>
+        <item>Botão "Contatar via TalentBase" (abre formulário de contato → admin)</item>
+      </items>
+    </criterion>
+    <criterion id="7">Perfil público exclui: email, telefone, expectativas salariais</criterion>
+    <criterion id="8">Candidato pode regenerar token (invalida link antigo)</criterion>
+    <criterion id="9">Candidato pode desabilitar compartilhamento público (retorna 404 no token)</criterion>
+    <criterion id="10">Perfil público é otimizado para SEO (meta tags, OG tags para preview no LinkedIn)</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics/tech-spec-epic-3.md</path>
+        <title>Technical Specification - Epic 3: Candidate Management System</title>
+        <section>Public Profile Strategy</section>
+        <snippet>UUID token per candidate (shareable link). Public route /share/candidate/:token (no auth). SEO optimized with meta tags (LinkedIn preview). Candidate can regenerate token or disable sharing</snippet>
+      </doc>
+      <doc>
+        <path>docs/bestpraticies/FRONTEND_BEST_PRACTICES.md</path>
+        <title>Frontend Best Practices</title>
+        <section>SEO and meta tags patterns</section>
+        <snippet>Open Graph tags, Twitter cards, Schema.org markup for social media previews</snippet>
+      </doc>
+      <doc>
+        <path>docs/bestpraticies/BACKEND_BEST_PRACTICES.md</path>
+        <title>Backend Best Practices</title>
+        <section>Public API endpoints and security</section>
+        <snippet>Rate limiting, CSRF protection, public endpoint patterns without authentication</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>apps/api/candidates/models.py</path>
+        <kind>module</kind>
+        <symbol>CandidateProfile.public_token, CandidateProfile.is_public</symbol>
+        <lines>130-133</lines>
+        <reason>Model ALREADY HAS public_token (UUIDField) and is_public (BooleanField) fields - NO NEED to add them! Just need to use them in API endpoints</reason>
+      </artifact>
+      <artifact>
+        <path>apps/api/core/tasks.py</path>
+        <kind>module</kind>
+        <symbol>send_email_task</symbol>
+        <lines>14-54</lines>
+        <reason>Existing Celery task for sending emails - will be used for contact form to send email to admin</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <python>
+        <package name="django" version="^5.0" />
+        <package name="djangorestframework" version="^3.14" />
+      </python>
+      <node>
+        <package name="@remix-run/react" version="^2.14.0" />
+        <package name="react" version="^18.2.0" />
+        <package name="@talentbase/design-system" version="workspace:*" note="Public profile template components" />
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint id="model1" category="database">CandidateProfile ALREADY HAS public_token and is_public fields - DO NOT add them again! Just use existing fields</constraint>
+    <constraint id="security1" category="security">Public endpoints (/api/v1/public/candidates/:token) must NOT require authentication - use AllowAny permission</constraint>
+    <constraint id="security2" category="security">Public profile must EXCLUDE sensitive data: email, phone, user_id, status, internal notes, salary expectations</constraint>
+    <constraint id="seo1" category="frontend">Meta tags must be server-side rendered for LinkedIn/Twitter preview crawlers - use Remix meta export</constraint>
+    <constraint id="token1" category="business">Regenerating token must invalidate old token - use uuid.uuid4() to generate new unique token</constraint>
+    <constraint id="privacy1" category="business">When is_public=False, public endpoint must return 404 (not 403) to avoid leaking profile existence</constraint>
+    <constraint id="rate1" category="security">Contact form endpoint must have rate limiting (max 5 submissions per hour per IP)</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>CandidateProfile.public_token</name>
+      <kind>model_field</kind>
+      <signature>UUIDField(default=uuid.uuid4, unique=True, db_index=True)</signature>
+      <path>apps/api/candidates/models.py:131-133</path>
+      <description>Existing UUID token field for public profile sharing - already implemented</description>
+    </interface>
+    <interface>
+      <name>CandidateProfile.is_public</name>
+      <kind>model_field</kind>
+      <signature>BooleanField(default=False)</signature>
+      <path>apps/api/candidates/models.py:130</path>
+      <description>Existing boolean flag to enable/disable public sharing - already implemented</description>
+    </interface>
+    <interface>
+      <name>send_email_task</name>
+      <kind>celery_task</kind>
+      <signature>send_email_task(subject: str, message: str, recipient_list: list[str])</signature>
+      <path>apps/api/core/tasks.py:14-54</path>
+      <description>Existing async email task - use for contact form to send email to admin</description>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Framework: pytest with pytest-django for backend, Vitest for frontend, Playwright for E2E
+      Test Location Pattern: apps/api/*/tests/test_*.py for backend, packages/web/app/**/*.test.ts for frontend
+      Database: Use @pytest.mark.django_db decorator for tests requiring database
+      Public Endpoint Testing: Test without authentication (no auth headers), verify 404 when is_public=False
+      SEO Testing: Verify meta tags rendered in HTML, test og:image URLs valid
+      Contact Form Testing: Mock send_email_task, verify email sent to admin with correct data
+    </standards>
+    <locations>
+      <location>apps/api/candidates/tests/test_public_profile.py - public profile API tests (to be created)</location>
+      <location>packages/web/app/routes/share.candidate.$token.tsx - public profile page (to be created)</location>
+      <location>packages/web/tests/e2e/public-profile-sharing.spec.ts - E2E sharing flow</location>
+    </locations>
+    <ideas>
+      <test_idea ac_ref="1,2,3">
+        <title>Test token generation and regeneration</title>
+        <approach>Backend: POST generate-share-token, verify new UUID created, verify is_public=True. Test regenerate invalidates old token</approach>
+      </test_idea>
+      <test_idea ac_ref="4,5">
+        <title>Test public profile access</title>
+        <approach>Backend: GET /api/v1/public/candidates/:token without auth, verify profile data returned. Test 404 when is_public=False</approach>
+      </test_idea>
+      <test_idea ac_ref="6,7">
+        <title>Test public data serialization excludes private fields</title>
+        <approach>Backend: Verify response excludes email, phone, user_id. Verify includes name, photo, position, tools, experiences</approach>
+      </test_idea>
+      <test_idea ac_ref="8">
+        <title>Test token regeneration invalidates old link</title>
+        <approach>Generate token, access public URL (works), regenerate token, access old URL (404), access new URL (works)</approach>
+      </test_idea>
+      <test_idea ac_ref="9">
+        <title>Test disable sharing returns 404</title>
+        <approach>Enable sharing, access URL (works), disable sharing (is_public=False), access URL (404)</approach>
+      </test_idea>
+      <test_idea ac_ref="10">
+        <title>Test SEO meta tags and LinkedIn preview</title>
+        <approach>Frontend: Render public profile, verify og:title, og:description, og:image, og:url present. E2E: Test LinkedIn preview URL validator</approach>
+      </test_idea>
+      <test_idea ac_ref="6">
+        <title>Test contact form submission</title>
+        <approach>Backend: POST /api/v1/public/candidates/:token/contact with name, email, message. Mock send_email_task, verify called with admin email</approach>
+      </test_idea>
+    </ideas>
+  </tests>
+</story-context>

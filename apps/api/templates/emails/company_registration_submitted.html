@@ -1,0 +1,40 @@
+{% extends 'emails/base.html' %}
+
+{% block content %}
+<h2>Cadastro Recebido com Sucesso! 📝</h2>
+
+<p>Olá <strong>{{ contact_name }}</strong>,</p>
+
+<p>Obrigado por registrar a <strong>{{ company_name }}</strong> no TalentBase!</p>
+
+<div class="success-box">
+    <p><strong>✓ Seu cadastro foi recebido com sucesso!</strong></p>
+</div>
+
+<p><strong>Informações da empresa:</strong></p>
+<ul>
+    <li><strong>Empresa:</strong> {{ company_name }}</li>
+    <li><strong>Email:</strong> {{ email }}</li>
+    {% if cnpj %}<li><strong>CNPJ:</strong> {{ cnpj }}</li>{% endif %}
+</ul>
+
+<div class="info-box">
+    <p><strong>⏳ O que acontece agora?</strong><br>
+    Seu cadastro está em análise pela nossa equipe. Você receberá um email de confirmação em até <strong>24 horas</strong> assim que sua conta for aprovada.</p>
+</div>
+
+<p><strong>Enquanto isso, você pode:</strong></p>
+<ul>
+    <li>Conhecer mais sobre a plataforma TalentBase</li>
+    <li>Explorar nossos cases de sucesso</li>
+    <li>Preparar a descrição das suas futuras vagas</li>
+</ul>
+
+<center>
+    <a href="https://www.salesdog.click" class="button">Visitar Site TalentBase</a>
+</center>
+
+<div class="divider"></div>
+
+<p>Se você tiver alguma dúvida durante o processo de aprovação, entre em contato conosco.</p>
+{% endblock %}

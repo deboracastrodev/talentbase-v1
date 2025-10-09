@@ -6,6 +6,7 @@ Story 2.4 - Task 1: Service layer business logic
 
 import pytest
 from django.contrib.auth import get_user_model
+
 from candidates.models import CandidateProfile
 from companies.models import CompanyProfile
 from user_management.services.user_management import UserManagementService
@@ -19,9 +20,7 @@ def candidate_user(db):
     user = User.objects.create_user(
         email="candidate@test.com", password="pass123", role="candidate"
     )
-    CandidateProfile.objects.create(
-        user=user, full_name="John Candidate", phone="11999999999"
-    )
+    CandidateProfile.objects.create(user=user, full_name="John Candidate", phone="11999999999")
     return user
 
 
@@ -70,18 +69,14 @@ def pending_company(db):
 @pytest.fixture
 def admin_user(db):
     """Create admin user."""
-    return User.objects.create_user(
-        email="admin@test.com", password="admin123", role="admin"
-    )
+    return User.objects.create_user(email="admin@test.com", password="admin123", role="admin")
 
 
 @pytest.mark.django_db
 class TestUserManagementService:
     """Tests for UserManagementService class."""
 
-    def test_get_users_queryset_all(
-        self, candidate_user, company_user, admin_user
-    ):
+    def test_get_users_queryset_all(self, candidate_user, company_user, admin_user):
         """Test getting all users without filters."""
         # Act
         queryset = UserManagementService.get_users_queryset()
@@ -92,9 +87,7 @@ class TestUserManagementService:
         assert queryset.filter(role="company").exists()
         assert queryset.filter(role="admin").exists()
 
-    def test_get_users_queryset_filter_by_role_candidate(
-        self, candidate_user, company_user
-    ):
+    def test_get_users_queryset_filter_by_role_candidate(self, candidate_user, company_user):
         """Test filtering by role: candidate."""
         # Act
         queryset = UserManagementService.get_users_queryset(role_filter="candidate")
@@ -103,9 +96,7 @@ class TestUserManagementService:
         assert queryset.count() == 1
         assert queryset.first().role == "candidate"
 
-    def test_get_users_queryset_filter_by_role_company(
-        self, candidate_user, company_user
-    ):
+    def test_get_users_queryset_filter_by_role_company(self, candidate_user, company_user):
         """Test filtering by role: company."""
         # Act
         queryset = UserManagementService.get_users_queryset(role_filter="company")
@@ -114,9 +105,7 @@ class TestUserManagementService:
         assert queryset.count() == 1
         assert queryset.first().role == "company"
 
-    def test_get_users_queryset_filter_by_status_active(
-        self, candidate_user, pending_company
-    ):
+    def test_get_users_queryset_filter_by_status_active(self, candidate_user, pending_company):
         """Test filtering by status: active."""
         # Act
         queryset = UserManagementService.get_users_queryset(status_filter="active")
@@ -125,9 +114,7 @@ class TestUserManagementService:
         assert queryset.count() == 1
         assert queryset.first().is_active is True
 
-    def test_get_users_queryset_filter_by_status_pending(
-        self, candidate_user, pending_company
-    ):
+    def test_get_users_queryset_filter_by_status_pending(self, candidate_user, pending_company):
         """Test filtering by status: pending (company with is_active=False)."""
         # Act
         queryset = UserManagementService.get_users_queryset(status_filter="pending")
@@ -138,14 +125,10 @@ class TestUserManagementService:
         assert user.role == "company"
         assert user.is_active is False
 
-    def test_get_users_queryset_search_by_email(
-        self, candidate_user, company_user
-    ):
+    def test_get_users_queryset_search_by_email(self, candidate_user, company_user):
         """Test searching by email."""
         # Act
-        queryset = UserManagementService.get_users_queryset(
-            search="candidate@test.com"
-        )
+        queryset = UserManagementService.get_users_queryset(search="candidate@test.com")
 
         # Assert
         assert queryset.count() == 1
@@ -231,9 +214,7 @@ class TestUserManagementService:
         # Assert
         assert name == "admin@test.com"
 
-    def test_update_user_status_creates_audit_log(
-        self, pending_company, admin_user, db
-    ):
+    def test_update_user_status_creates_audit_log(self, pending_company, admin_user, db):
         """
         Test that updating user status creates an audit log entry.
 
@@ -264,9 +245,7 @@ class TestUserManagementService:
         assert audit_log.action_type == "approve"
         assert audit_log.reason == "Company verified"
 
-    def test_update_user_status_reject_creates_audit_log(
-        self, company_user, admin_user, db
-    ):
+    def test_update_user_status_reject_creates_audit_log(self, company_user, admin_user, db):
         """Test that rejecting a company creates audit log with 'reject' action type."""
         from authentication.models import UserStatusAudit
 
@@ -286,9 +265,7 @@ class TestUserManagementService:
         assert audit_log.action_type == "reject"
         assert audit_log.reason == "Invalid CNPJ"
 
-    def test_get_pending_approvals_count(
-        self, pending_company, company_user, candidate_user, db
-    ):
+    def test_get_pending_approvals_count(self, pending_company, company_user, candidate_user, db):
         """
         Test getting count of pending company approvals.
 

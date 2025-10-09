@@ -10,13 +10,13 @@ DEBUG = True
 
 # Allow all hosts in development (simplifies ALB health checks)
 # TODO: Restrict this in production to specific domains only
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ["*"]
 
 # CORS Configuration - Override base.py to include localhost:3001 for development
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://localhost:3001",
-    "https://dev.salesdog.click"
+    "https://dev.salesdog.click",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -24,7 +24,7 @@ CORS_ALLOW_CREDENTIALS = True
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
     "http://localhost:3001",
-    "https://dev.salesdog.click"
+    "https://dev.salesdog.click",
 ]
 
 # Development-specific apps
@@ -42,7 +42,9 @@ REST_FRAMEWORK["DEFAULT_RENDERER_CLASSES"] = [
 # Usa MailHog para capturar emails localmente (não envia emails reais)
 # MailHog UI: http://localhost:8025
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = config("EMAIL_HOST", default="mailhog")  # "mailhog" no Docker, "localhost" se rodar local
+EMAIL_HOST = config(
+    "EMAIL_HOST", default="mailhog"
+)  # "mailhog" no Docker, "localhost" se rodar local
 EMAIL_PORT = config("EMAIL_PORT", default=1025, cast=int)  # MailHog SMTP port
 EMAIL_USE_TLS = False  # MailHog não usa TLS
 EMAIL_USE_SSL = False
@@ -63,5 +65,5 @@ CELERY_TASK_EAGER_PROPAGATES = True
 # SESSION_COOKIE_SECURE and CSRF_COOKIE_SECURE should be False in dev
 SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
-SESSION_COOKIE_SAMESITE = 'Lax'  # More permissive for dev (Strict in production)
-CSRF_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SAMESITE = "Lax"  # More permissive for dev (Strict in production)
+CSRF_COOKIE_SAMESITE = "Lax"

@@ -1,6 +1,6 @@
 # Story 3.2: Shareable Public Candidate Profile
 
-Status: Not Started
+Status: ContextReadyDraft
 
 **⚠️ IMPORTANTE: Antes de iniciar esta story, leia:**
 - [Code Quality Standards](../bestpraticies/CODE_QUALITY.md)
@@ -284,3 +284,19 @@ POST /api/v1/public/candidates/:token/contact
 - [ ] Deployed to staging
 - [ ] QA sign-off
 - [ ] LinkedIn share preview tested
+
+## Dev Agent Record
+
+### Context Reference
+
+- [Story Context XML](../stories-context/story-context-3.2.xml) - Generated 2025-10-09
+
+### Agent Model Used
+
+Claude Sonnet 4 (claude-sonnet-4-20250514)
+
+### Debug Log References
+
+### Completion Notes List
+
+### File List

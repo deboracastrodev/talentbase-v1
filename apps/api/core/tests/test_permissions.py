@@ -5,8 +5,9 @@ Story 2.4 - Task 2: Implementar permissões admin
 """
 
 import pytest
-from rest_framework.test import APIRequestFactory
 from django.contrib.auth import get_user_model
+from rest_framework.test import APIRequestFactory
+
 from core.permissions import IsAdmin, IsCandidate, IsCompany, IsOwner
 
 User = get_user_model()
@@ -21,9 +22,7 @@ def request_factory():
 @pytest.fixture
 def admin_user(db):
     """Create admin user."""
-    return User.objects.create_user(
-        email="admin@test.com", password="admin123", role="admin"
-    )
+    return User.objects.create_user(email="admin@test.com", password="admin123", role="admin")
 
 
 @pytest.fixture
@@ -37,9 +36,7 @@ def candidate_user(db):
 @pytest.fixture
 def company_user(db):
     """Create company user."""
-    return User.objects.create_user(
-        email="company@test.com", password="pass123", role="company"
-    )
+    return User.objects.create_user(email="company@test.com", password="pass123", role="company")
 
 
 @pytest.mark.django_db
@@ -187,9 +184,7 @@ class TestIsOwnerPermission:
         # Assert
         assert has_permission is True
 
-    def test_non_owner_no_permission(
-        self, request_factory, candidate_user, admin_user
-    ):
+    def test_non_owner_no_permission(self, request_factory, candidate_user, admin_user):
         """Test that non-owner does not have permission."""
         # Arrange
         permission = IsOwner()

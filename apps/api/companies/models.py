@@ -46,9 +46,7 @@ class CompanyProfile(BaseModel):
         help_text="Usuário associado (null se criado por admin)",
     )
     company_name = models.CharField(max_length=200, help_text="Razão social ou nome fantasia")
-    cnpj = EncryptedCharField(
-        max_length=255, help_text="CNPJ encriptado (PII protection)"
-    )
+    cnpj = EncryptedCharField(max_length=255, help_text="CNPJ encriptado (PII protection)")
     website = models.URLField(help_text="Site da empresa")
     industry = models.CharField(max_length=100, help_text="Setor/indústria (ex: SaaS, Fintech)")
     size = models.CharField(max_length=20, choices=SIZE_CHOICES, help_text="Tamanho da empresa")

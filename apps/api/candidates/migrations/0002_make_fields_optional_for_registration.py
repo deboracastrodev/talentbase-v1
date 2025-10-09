@@ -3,7 +3,6 @@
 # Per constraint dev2: minimal profile on registration
 
 from django.db import migrations, models
-import candidates.models
 
 
 class Migration(migrations.Migration):

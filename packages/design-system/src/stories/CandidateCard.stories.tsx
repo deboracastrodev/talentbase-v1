@@ -20,23 +20,23 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const ProductManager: Story = {
+export const AccountExecutive: Story = {
   args: {
-    name: 'X.P.',
-    initials: 'XP',
-    role: 'Senior Product Manager',
-    experience: '15 years',
-    location: 'Hong Kong S.A.R.',
-    country: '🇭🇰',
-    salary: '$10k',
-    hourlyRate: '$60/h',
+    name: 'Rafael Mendes',
+    initials: 'RM',
+    role: 'Account Executive',
+    experience: '8 anos',
+    location: 'São Paulo',
+    country: '🇧🇷',
+    salary: 'R$ 12.000/mês',
+    hourlyRate: 'R$ 72/h',
     description:
-      'Senior product manager from top companies with 15+ years PM experience across software/hardware',
+      'Account Executive especializado em SaaS B2B com histórico de superação de metas e ciclos de venda enterprise',
     skills: [
-      { name: 'Product Vision And Strategy', verified: true },
-      { name: 'Agile', verified: true },
-      { name: 'Product Roadmap Definition', verified: true },
-      { name: 'Stakeholder Management', verified: false },
+      { name: 'Vendas Enterprise', verified: true },
+      { name: 'Salesforce', verified: true },
+      { name: 'Negociação C-Level', verified: true },
+      { name: 'Inside Sales', verified: false },
     ],
     verified: true,
     badges: [
@@ -50,25 +50,25 @@ export const ProductManager: Story = {
   },
 };
 
-export const DataEngineer: Story = {
+export const SDR: Story = {
   args: {
-    name: 'G.S.',
-    initials: 'GS',
+    name: 'Carolina Silva',
+    initials: 'CS',
     avatar: 'https://i.pravatar.cc/150?img=12',
-    role: 'Senior Data Engineer',
-    experience: '5 years',
-    location: 'India',
-    country: '🇮🇳',
-    salary: '$7,612/month',
-    hourlyRate: '$46/h',
+    role: 'SDR/BDR',
+    experience: '3 anos',
+    location: 'Rio de Janeiro',
+    country: '🇧🇷',
+    salary: 'R$ 5.500/mês',
+    hourlyRate: 'R$ 33/h',
     description:
-      'Experienced data engineer from top university, strong cloud and ETL background',
+      'SDR especializada em prospecção outbound com experiência em ferramentas de automação e geração de pipeline',
     skills: [
-      { name: 'Data Libraries', verified: true },
-      { name: 'SQL', verified: true },
-      { name: 'Data Engineering', verified: true },
-      { name: 'Python', verified: false },
-      { name: 'AWS', verified: false },
+      { name: 'Prospecção Outbound', verified: true },
+      { name: 'Apollo.io', verified: true },
+      { name: 'Cold Calling', verified: true },
+      { name: 'LinkedIn Sales Navigator', verified: false },
+      { name: 'Hubspot', verified: false },
     ],
     verified: true,
   },
@@ -99,83 +99,83 @@ export const BrazilianCandidate: Story = {
 
 export const Grid: Story = {
   args: {
-    name: "X.P.",
-    role: "Senior Product Manager",
-    experience: "15 years",
-    location: "Hong Kong",
-    salary: "$180k - $220k",
-    description: "Experienced product manager",
+    name: "Rafael Mendes",
+    role: "Account Executive",
+    experience: "8 anos",
+    location: "São Paulo",
+    salary: "R$ 12.000/mês",
+    description: "AE especializado em SaaS B2B",
     skills: [],
   },
   render: () => (
     <div className="grid grid-cols-2 gap-6 max-w-6xl p-6 bg-gray-50">
       <CandidateCard
-        name="X.P."
-        initials="XP"
-        role="Senior Product Manager"
-        experience="15 years"
-        location="Hong Kong S.A.R."
-        country="🇭🇰"
-        salary="$10k"
-        hourlyRate="$60/h"
-        description="Senior product manager from top companies with 15+ years PM experience"
+        name="Rafael Mendes"
+        initials="RM"
+        role="Account Executive"
+        experience="8 anos"
+        location="São Paulo"
+        country="🇧🇷"
+        salary="R$ 12.000/mês"
+        hourlyRate="R$ 72/h"
+        description="AE especializado em SaaS B2B com histórico de superação de metas"
         skills={[
-          { name: 'Product Vision', verified: true },
-          { name: 'Agile', verified: true },
-          { name: 'Roadmap', verified: true },
+          { name: 'Vendas Enterprise', verified: true },
+          { name: 'Salesforce', verified: true },
+          { name: 'Negociação C-Level', verified: true },
         ]}
         verified
       />
       <CandidateCard
-        name="G.S."
-        initials="GS"
-        role="Senior Data Engineer"
-        experience="5 years"
-        location="India"
-        country="🇮🇳"
-        salary="$7,612/month"
-        hourlyRate="$46/h"
-        description="Experienced data engineer from top university, strong cloud background"
+        name="Carolina Silva"
+        initials="CS"
+        role="SDR/BDR"
+        experience="3 anos"
+        location="Rio de Janeiro"
+        country="🇧🇷"
+        salary="R$ 5.500/mês"
+        hourlyRate="R$ 33/h"
+        description="SDR especializada em prospecção outbound e geração de pipeline"
         skills={[
-          { name: 'Data Libraries', verified: true },
-          { name: 'SQL', verified: true },
-          { name: 'Data Engineering', verified: true },
+          { name: 'Prospecção Outbound', verified: true },
+          { name: 'Apollo.io', verified: true },
+          { name: 'Cold Calling', verified: true },
         ]}
         verified
       />
       <CandidateCard
-        name="D.H."
-        initials="DH"
+        name="Mateus Souza"
+        initials="MS"
         avatar="https://i.pravatar.cc/150?img=5"
-        role="Product Manager"
-        experience="5 years"
-        location="United Kingdom"
-        country="🇬🇧"
-        salary="$11,937/month"
-        hourlyRate="$69/h"
-        description="Experienced Product Manager from top companies with Python, SQL background"
+        role="Customer Success Manager"
+        experience="5 anos"
+        location="Belo Horizonte"
+        country="🇧🇷"
+        salary="R$ 9.500/mês"
+        hourlyRate="R$ 57/h"
+        description="CSM com experiência em SaaS, expansão de contas e redução de churn"
         skills={[
-          { name: 'Product Vision', verified: true },
-          { name: 'Agile', verified: true },
-          { name: 'Roadmap', verified: true },
+          { name: 'Account Expansion', verified: true },
+          { name: 'Churn Reduction', verified: true },
+          { name: 'Gainsight', verified: true },
         ]}
         verified
       />
       <CandidateCard
-        name="B.T."
-        initials="BT"
+        name="Juliana Fernandes"
+        initials="JF"
         avatar="https://i.pravatar.cc/150?img=9"
-        role="ML Data Analyst"
-        experience="4 years"
-        location="India"
-        country="🇮🇳"
-        salary="$5,363/month"
-        hourlyRate="$31/h"
-        description="Experienced ML data analyst from a top company with relevant skills"
+        role="Sales Manager"
+        experience="12 anos"
+        location="São Paulo"
+        country="🇧🇷"
+        salary="R$ 18.000/mês"
+        hourlyRate="R$ 108/h"
+        description="Gerente de vendas com experiência em gestão de equipes e grandes contas"
         skills={[
-          { name: 'Data Annotation', verified: true },
-          { name: 'Quality Assurance', verified: true },
-          { name: 'Handling Ambiguity', verified: true },
+          { name: 'Gestão de Equipes', verified: true },
+          { name: 'Field Sales', verified: true },
+          { name: 'Grandes Contas', verified: true },
         ]}
         verified
         isFavorite

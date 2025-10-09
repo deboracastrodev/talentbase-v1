@@ -3,10 +3,10 @@ Serializers for authentication views.
 Handles validation of input data and serialization of output.
 """
 
-from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from django.core import exceptions as django_exceptions
 from pycpfcnpj import cnpj as cnpj_validator
+from rest_framework import serializers
 
 
 class CandidateRegistrationSerializer(serializers.Serializer):
@@ -18,26 +18,15 @@ class CandidateRegistrationSerializer(serializers.Serializer):
     business logic is in services.
     """
 
-    email = serializers.EmailField(
-        required=True,
-        help_text="Email address (will be username)"
-    )
+    email = serializers.EmailField(required=True, help_text="Email address (will be username)")
     password = serializers.CharField(
         required=True,
         write_only=True,
-        style={'input_type': 'password'},
-        help_text="Password (min 8 characters)"
+        style={"input_type": "password"},
+        help_text="Password (min 8 characters)",
     )
-    full_name = serializers.CharField(
-        required=True,
-        max_length=200,
-        help_text="Full name"
-    )
-    phone = serializers.CharField(
-        required=True,
-        max_length=20,
-        help_text="Contact phone number"
-    )
+    full_name = serializers.CharField(required=True, max_length=200, help_text="Full name")
+    phone = serializers.CharField(required=True, max_length=20, help_text="Contact phone number")
 
     def validate_email(self, value):
         """Validate email format and lowercase domain."""
@@ -64,12 +53,10 @@ class CandidateRegistrationSerializer(serializers.Serializer):
     def validate_phone(self, value):
         """Validate phone number format (basic check)."""
         # Remove common formatting characters
-        cleaned = ''.join(filter(str.isdigit, value))
+        cleaned = "".join(filter(str.isdigit, value))
 
         if len(cleaned) < 10 or len(cleaned) > 15:
-            raise serializers.ValidationError(
-                "Phone number must be between 10 and 15 digits"
-            )
+            raise serializers.ValidationError("Phone number must be between 10 and 15 digits")
 
         return value
 
@@ -102,15 +89,9 @@ class LoginSerializer(serializers.Serializer):
     Per Story 2.3: Login & Token Authentication
     """
 
-    email = serializers.EmailField(
-        required=True,
-        help_text="Email address"
-    )
+    email = serializers.EmailField(required=True, help_text="Email address")
     password = serializers.CharField(
-        required=True,
-        write_only=True,
-        style={'input_type': 'password'},
-        help_text="Password"
+        required=True, write_only=True, style={"input_type": "password"}, help_text="Password"
     )
 
     def validate_email(self, value):
@@ -139,61 +120,44 @@ class CompanyRegistrationSerializer(serializers.Serializer):
     Per constraint validation1: Format XX.XXX.XXX/XXXX-XX + pycpfcnpj digit validation.
     """
 
-    email = serializers.EmailField(
-        required=True,
-        help_text="Email address (will be username)"
-    )
+    email = serializers.EmailField(required=True, help_text="Email address (will be username)")
     password = serializers.CharField(
         required=True,
         write_only=True,
-        style={'input_type': 'password'},
-        help_text="Password (min 8 characters)"
+        style={"input_type": "password"},
+        help_text="Password (min 8 characters)",
     )
     company_name = serializers.CharField(
-        required=True,
-        max_length=200,
-        help_text="Company legal or trade name"
+        required=True, max_length=200, help_text="Company legal or trade name"
     )
     cnpj = serializers.CharField(
         required=True,
         max_length=18,  # XX.XXX.XXX/XXXX-XX format
-        help_text="Brazilian company tax ID (CNPJ)"
+        help_text="Brazilian company tax ID (CNPJ)",
     )
     website = serializers.URLField(
         required=False,
         allow_blank=True,
         allow_null=True,
-        help_text="Company website URL (optional)"
+        help_text="Company website URL (optional)",
     )
     contact_person_name = serializers.CharField(
-        required=True,
-        max_length=200,
-        help_text="Responsible person's name"
+        required=True, max_length=200, help_text="Responsible person's name"
     )
     contact_person_email = serializers.EmailField(
         required=False,
         allow_blank=True,
-        help_text="Responsible person's email (optional, defaults to main email)"
+        help_text="Responsible person's email (optional, defaults to main email)",
     )
     contact_person_phone = serializers.CharField(
-        required=True,
-        max_length=20,
-        help_text="Responsible person's phone"
+        required=True, max_length=20, help_text="Responsible person's phone"
     )
     industry = serializers.CharField(
-        required=False,
-        max_length=100,
-        help_text="Industry/sector (optional)"
+        required=False, max_length=100, help_text="Industry/sector (optional)"
     )
-    size = serializers.CharField(
-        required=False,
-        max_length=20,
-        help_text="Company size (optional)"
-    )
+    size = serializers.CharField(required=False, max_length=20, help_text="Company size (optional)")
     description = serializers.CharField(
-        required=False,
-        allow_blank=True,
-        help_text="Company description (optional)"
+        required=False, allow_blank=True, help_text="Company description (optional)"
     )
 
     def validate_email(self, value):
@@ -235,19 +199,15 @@ class CompanyRegistrationSerializer(serializers.Serializer):
             ValidationError: If CNPJ format or check digits are invalid
         """
         # Remove formatting characters
-        cleaned_cnpj = ''.join(filter(str.isdigit, value))
+        cleaned_cnpj = "".join(filter(str.isdigit, value))
 
         # Check length (CNPJ must have exactly 14 digits)
         if len(cleaned_cnpj) != 14:
-            raise serializers.ValidationError(
-                "CNPJ deve conter exatamente 14 dígitos"
-            )
+            raise serializers.ValidationError("CNPJ deve conter exatamente 14 dígitos")
 
         # Validate check digits using pycpfcnpj library
         if not cnpj_validator.validate(cleaned_cnpj):
-            raise serializers.ValidationError(
-                "CNPJ inválido. Verifique os dígitos verificadores."
-            )
+            raise serializers.ValidationError("CNPJ inválido. Verifique os dígitos verificadores.")
 
         # Return cleaned CNPJ (digits only) for storage
         return cleaned_cnpj
@@ -255,11 +215,9 @@ class CompanyRegistrationSerializer(serializers.Serializer):
     def validate_contact_person_phone(self, value):
         """Validate phone number format (basic check)."""
         # Remove common formatting characters
-        cleaned = ''.join(filter(str.isdigit, value))
+        cleaned = "".join(filter(str.isdigit, value))
 
         if len(cleaned) < 10 or len(cleaned) > 15:
-            raise serializers.ValidationError(
-                "Telefone deve conter entre 10 e 15 dígitos"
-            )
+            raise serializers.ValidationError("Telefone deve conter entre 10 e 15 dígitos")
 
         return value

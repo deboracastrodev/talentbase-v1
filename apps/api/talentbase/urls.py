@@ -15,10 +15,10 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import include, path
 
+from authentication.views import login, register_candidate, register_company
 from core.views import health_check, ping
-from authentication.views import register_candidate, register_company, login
 
 urlpatterns = [
     path("ping/", ping, name="ping"),  # Simple health check for ALB
