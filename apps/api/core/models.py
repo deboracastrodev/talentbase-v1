@@ -90,7 +90,11 @@ class EmailLog(BaseModel):
     error_message = models.TextField(blank=True, help_text="Error message if sending failed")
     sent_at = models.DateTimeField(null=True, blank=True, help_text="Timestamp when email was sent")
     task_id = models.CharField(
-        max_length=100, blank=True, db_index=True, help_text="Celery task ID"
+        max_length=100,
+        blank=True,
+        null=True,
+        db_index=True,
+        help_text="Celery task ID (null in EAGER mode)",
     )
 
     class Meta:

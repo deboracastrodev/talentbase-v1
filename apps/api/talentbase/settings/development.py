@@ -39,21 +39,33 @@ REST_FRAMEWORK["DEFAULT_RENDERER_CLASSES"] = [
 ]
 
 # Email Configuration - Development
-# Usa MailHog para capturar emails localmente (não envia emails reais)
-# MailHog UI: http://localhost:8025
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = config(
-    "EMAIL_HOST", default="mailhog"
-)  # "mailhog" no Docker, "localhost" se rodar local
-EMAIL_PORT = config("EMAIL_PORT", default=1025, cast=int)  # MailHog SMTP port
-EMAIL_USE_TLS = False  # MailHog não usa TLS
-EMAIL_USE_SSL = False
-EMAIL_HOST_USER = ""  # MailHog não requer autenticação
-EMAIL_HOST_PASSWORD = ""
-DEFAULT_FROM_EMAIL = "noreply@talentbase.local"
+# Story 2.7: Supports both MailHog (default) and SendGrid (if configured)
+EMAIL_PROVIDER = config("EMAIL_PROVIDER", default="mailhog")
 
-# Fallback: Se MailHog não estiver rodando, use console backend
-# Para usar console: EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+if EMAIL_PROVIDER == "sendgrid":
+    # SendGrid configuration for testing real emails in development
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+    EMAIL_HOST = "smtp.sendgrid.net"
+    EMAIL_PORT = 587
+    EMAIL_USE_TLS = True
+    EMAIL_HOST_USER = "apikey"
+    EMAIL_HOST_PASSWORD = config("SENDGRID_API_KEY")
+    DEFAULT_FROM_EMAIL = config(
+        "DEFAULT_FROM_EMAIL", default="noreply@salesdog.click"
+    )
+else:
+    # MailHog (default) - Captura emails localmente sem enviar reais
+    # MailHog UI: http://localhost:8025
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+    EMAIL_HOST = config(
+        "EMAIL_HOST", default="mailhog"
+    )  # "mailhog" no Docker, "localhost" local
+    EMAIL_PORT = config("EMAIL_PORT", default=1025, cast=int)
+    EMAIL_USE_TLS = False
+    EMAIL_USE_SSL = False
+    EMAIL_HOST_USER = ""
+    EMAIL_HOST_PASSWORD = ""
+    DEFAULT_FROM_EMAIL = "noreply@talentbase.local"
 
 # Celery Configuration - Development
 # Run tasks synchronously in development (no need for Celery worker)
