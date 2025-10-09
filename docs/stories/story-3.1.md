@@ -1,6 +1,6 @@
 # Story 3.1: Candidate Profile Creation (Self-Registration)
 
-Status: ContextReadyDraft
+Status: Ready
 
 **⚠️ IMPORTANTE: Antes de iniciar esta story, leia:**
 - [Code Quality Standards](../bestpraticies/CODE_QUALITY.md)
@@ -330,11 +330,10 @@ PUT /api/v1/candidates/:id/photo
 
 - Story 2.1: Candidate registration completed
 - AWS S3 bucket configured for media storage
-- **⚠️ BLOCKER:** Design system `MultiStepWizard` component must be implemented FIRST
-  - **Component:** MultiStepWizard (reutilizável para outros fluxos)
-  - **Props:** steps, currentStep, onNext, onPrevious, onSaveDraft, children
-  - **Features:** Progress indicator, navigation buttons, validation hooks
-  - **Recommendation:** Create in design system before starting Story 3.1 implementation
+- **✅ READY:** Design system `MultiStepWizard` component implemented
+  - **Location:** `@talentbase/design-system/MultiStepWizard`
+  - **Storybook:** Available with interactive examples
+  - **Wireframe:** See [wireframe-story-3.1-multistep.md](wireframe-story-3.1-multistep.md)
 
 ## Definition of Done
 

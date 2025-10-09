@@ -75,5 +75,8 @@ export type { NavbarProps, User } from './components/Navbar';
 export { DashboardLayout } from './components/DashboardLayout';
 export type { DashboardLayoutProps, SidebarConfig } from './components/DashboardLayout';
 
+export { MultiStepWizard } from './components/MultiStepWizard';
+export type { MultiStepWizardProps, WizardStep } from './components/MultiStepWizard';
+
 // Utils
 export { cn } from './lib/utils';
