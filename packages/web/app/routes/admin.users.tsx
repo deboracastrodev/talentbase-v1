@@ -15,9 +15,9 @@
  */
 
 import { useState } from 'react';
-import { json, redirect } from '@remix-run/node';
+import { json } from '@remix-run/node';
 import type { LoaderFunctionArgs } from '@remix-run/node';
-import { useLoaderData, useSearchParams } from '@remix-run/react';
+import { useLoaderData, useSearchParams, useRevalidator } from '@remix-run/react';
 import {
   Card,
   Input,
@@ -29,6 +29,7 @@ import { UserTable } from '~/components/admin/UserTable';
 import { UserDetailModal } from '~/components/admin/UserDetailModal';
 import { fetchUsers, fetchUserDetail, updateUserStatus } from '~/lib/api/admin';
 import type { User, UserDetail, UsersFilters } from '~/lib/api/admin';
+import { requireAdmin } from '~/utils/auth.server';
 
 interface LoaderData {
   users: User[];
@@ -42,6 +43,7 @@ interface LoaderData {
     email: string;
     avatar?: string;
   };
+  token: string;
 }
 
 /**
@@ -49,17 +51,8 @@ interface LoaderData {
  * Requires admin authentication
  */
 export async function loader({ request }: LoaderFunctionArgs) {
-  // Get auth token from cookie (assuming session-based auth)
-  const cookieHeader = request.headers.get('Cookie');
-  const token = cookieHeader?.match(/auth_token=([^;]+)/)?.[1];
-
-  console.log('[Admin Loader] Cookie header:', cookieHeader ? 'present' : 'missing');
-  console.log('[Admin Loader] Token extracted:', token ? 'yes' : 'no');
-
-  if (!token) {
-    console.log('[Admin Loader] No token found, redirecting to login');
-    return redirect('/auth/login');
-  }
+  // Require admin authentication
+  const { token } = await requireAdmin(request);
 
   // Parse URL search params for filters
   const url = new URL(request.url);
@@ -70,44 +63,28 @@ export async function loader({ request }: LoaderFunctionArgs) {
     page: parseInt(url.searchParams.get('page') || '1', 10),
   };
 
-  try {
-    const response = await fetchUsers(filters, token);
-    console.log('[Admin Loader] API Response:', {
-      count: response.count,
-      resultsLength: response.results?.length,
-      hasResults: !!response.results
-    });
+  const response = await fetchUsers(filters, token);
 
-    // TODO: Get actual user info from token/session
-    const user = {
-      name: 'Admin User',
-      email: 'admin@talentbase.com',
-    };
+  // TODO: Get actual user info from token/session
+  const user = {
+    name: 'Admin User',
+    email: 'admin@talentbase.com',
+  };
 
-    return json<LoaderData>({
-      users: response.results || [],
-      totalCount: response.count || 0,
-      currentPage: filters.page || 1,
-      hasNext: !!response.next,
-      hasPrevious: !!response.previous,
-      filters,
-      user,
-    });
-  } catch (error) {
-    console.error('[Admin Loader] Error:', error);
-    // Handle auth errors
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return redirect('/auth/login');
-    }
-    if (error instanceof Error && error.message.includes('Forbidden')) {
-      throw new Response('Access Denied: Admin only', { status: 403 });
-    }
-    throw error;
-  }
+  return json<LoaderData>({
+    users: response.results || [],
+    totalCount: response.count || 0,
+    currentPage: filters.page || 1,
+    hasNext: !!response.next,
+    hasPrevious: !!response.previous,
+    filters,
+    user,
+    token,
+  });
 }
 
 export default function AdminUsersPage() {
-  const { users, totalCount, currentPage, hasNext, hasPrevious, filters, user } =
+  const { users, totalCount, currentPage, hasNext, hasPrevious, filters, user, token } =
     useLoaderData<typeof loader>();
 
   const [searchParams, setSearchParams] = useSearchParams();
@@ -125,15 +102,6 @@ export default function AdminUsersPage() {
    */
   const handleUserClick = async (userId: string) => {
     setSelectedUserId(userId);
-
-    // Fetch user details
-    const cookieHeader = document.cookie;
-    const token = cookieHeader?.match(/auth_token=([^;]+)/)?.[1];
-
-    if (!token) {
-      window.location.href = '/auth/login';
-      return;
-    }
 
     try {
       const userDetail = await fetchUserDetail(userId, token);
@@ -187,14 +155,6 @@ export default function AdminUsersPage() {
   const handleStatusChange = async (userId: string, isActive: boolean, reason?: string) => {
     setIsUpdatingStatus(true);
     setFeedback(null);
-
-    const cookieHeader = document.cookie;
-    const token = cookieHeader?.match(/auth_token=([^;]+)/)?.[1];
-
-    if (!token) {
-      window.location.href = '/auth/login';
-      return;
-    }
 
     try {
       const updatedUser = await updateUserStatus(userId, isActive, token, reason);

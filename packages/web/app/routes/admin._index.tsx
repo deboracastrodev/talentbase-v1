@@ -10,7 +10,7 @@
  * AC13: Rota /admin protegida com auth
  */
 
-import { json, redirect } from '@remix-run/node';
+import { json } from '@remix-run/node';
 import type { LoaderFunctionArgs } from '@remix-run/node';
 import { useLoaderData, Link } from '@remix-run/react';
 import { AdminLayout } from '~/components/layouts/AdminLayout';
@@ -18,6 +18,7 @@ import { StatCard } from '~/components/admin/StatCard';
 import { getAdminStats, type AdminStats } from '~/lib/api/admin';
 import { Users, AlertCircle, Briefcase, UserCheck, Activity } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@talentbase/design-system';
+import { requireAdmin } from '~/utils/auth.server';
 
 interface LoaderData {
   stats: AdminStats;
@@ -31,22 +32,18 @@ interface LoaderData {
 /**
  * Loader - Fetch admin dashboard stats
  * Requires admin authentication (AC13)
+ * Story 2.6: Updated to use requireAdmin utility
  */
 export async function loader({ request }: LoaderFunctionArgs) {
-  // Get auth token from cookie
-  const cookieHeader = request.headers.get('Cookie');
-  const token = cookieHeader?.match(/auth_token=([^;]+)/)?.[1];
-
-  if (!token) {
-    return redirect('/auth/login');
-  }
+  // Story 2.6: Require admin role (checks auth + role)
+  const { token } = await requireAdmin(request);
 
   try {
     // Fetch dashboard stats
     const stats = await getAdminStats(token);
 
-    // TODO: Get actual user info from token/session
-    // For now, using placeholder
+    // Get user from localStorage (set during login)
+    // TODO: Future improvement - fetch from API /api/v1/auth/me
     const user = {
       name: 'Admin User',
       email: 'admin@talentbase.com',
@@ -59,12 +56,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   } catch (error) {
     console.error('[Admin Dashboard Loader] Error:', error);
 
-    // If unauthorized, redirect to login
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return redirect('/auth/login');
-    }
-
-    // For other errors, throw to error boundary
+    // For errors, throw to error boundary
     throw new Response('Failed to load dashboard stats', { status: 500 });
   }
 }

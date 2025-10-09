@@ -1,6 +1,6 @@
 # Story 2.7: Email Notification System (Basic)
 
-Status: Draft
+Status: Approved
 
 **⚠️ IMPORTANTE: Antes de iniciar esta story, leia:**
 - [Code Quality Standards](../bestpraticies/CODE_QUALITY.md)
@@ -294,7 +294,7 @@ class EmailLog(BaseModel):
 
 ### Context Reference
 
-<!-- Path(s) to story context XML/JSON will be added here by context workflow -->
+- [Story Context XML](../stories-context/story-context-2.7.xml) - Generated 2025-10-09
 
 ### Agent Model Used
 

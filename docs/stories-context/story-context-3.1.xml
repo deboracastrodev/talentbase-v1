@@ -1,0 +1,227 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>3.1</storyId>
+    <title>Candidate Profile Creation (Self-Registration)</title>
+    <status>Not Started</status>
+    <generatedAt>2025-10-09</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>/Users/debor/Documents/sistemas/talentbase-v1/docs/stories/story-3.1.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>um candidato</asA>
+    <iWant>criar meu perfil de vendas abrangente</iWant>
+    <soThat>empresas possam descobrir minhas habilidades e experiência</soThat>
+    <tasks>
+      <task id="1" status="pending">
+        <title>Criar modelo CandidateProfile estendido</title>
+        <ac_refs>5, 7</ac_refs>
+        <subtasks>
+          <subtask>Estender CandidateProfile model com todos os campos</subtask>
+          <subtask>Adicionar campos: position, years_experience, sales_type, sales_cycle, ticket_size</subtask>
+          <subtask>Adicionar campos: tools (JSONField), solutions (JSONField), departments (JSONField)</subtask>
+          <subtask>Adicionar campos: bio (TextField), profile_photo_url (URLField)</subtask>
+          <subtask>Executar migrações Django</subtask>
+        </subtasks>
+      </task>
+      <task id="2" status="pending">
+        <title>Implementar API de criação de perfil</title>
+        <ac_refs>5, 6, 7</ac_refs>
+        <subtasks>
+          <subtask>Criar CandidateProfileSerializer completo</subtask>
+          <subtask>Criar view POST /api/v1/candidates</subtask>
+          <subtask>Implementar validação de campos obrigatórios</subtask>
+          <subtask>Implementar upload para S3 (presigned URLs)</subtask>
+        </subtasks>
+      </task>
+      <task id="3" status="pending">
+        <title>Criar formulário multi-step frontend</title>
+        <ac_refs>1, 2, 3, 9</ac_refs>
+        <subtasks>
+          <subtask>Criar route /candidate/profile/create</subtask>
+          <subtask>Implementar wizard com 5 steps e indicador de progresso</subtask>
+          <subtask>Implementar validação client-side por step</subtask>
+          <subtask>Integrar com design system</subtask>
+        </subtasks>
+      </task>
+      <task id="4" status="pending">
+        <title>Implementar funcionalidade "Salvar Rascunho"</title>
+        <ac_refs>4</ac_refs>
+        <subtasks>
+          <subtask>Endpoint PATCH /api/v1/candidates/:id/draft</subtask>
+          <subtask>Salvar estado parcial do formulário</subtask>
+          <subtask>Carregar rascunho ao retornar</subtask>
+        </subtasks>
+      </task>
+      <task id="5" status="pending">
+        <title>Implementar redirect pós-criação</title>
+        <ac_refs>8, 9</ac_refs>
+        <subtasks>
+          <subtask>Mensagem de sucesso</subtask>
+          <subtask>Redirect para visualização de perfil</subtask>
+        </subtasks>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">Candidato redirecionado para /candidate/profile/create após registro</criterion>
+    <criterion id="2">
+      <title>Formulário multi-step wizard com indicador de progresso (5 steps):</title>
+      <items>
+        <item>Step 1: Informações Básicas (nome, telefone, localização, foto upload para S3)</item>
+        <item>Step 2: Posição &amp; Experiência (posição, anos, Inbound/Outbound, Inside/Field, ciclo de vendas, ticket size)</item>
+        <item>Step 3: Ferramentas &amp; Software (multi-select: Salesforce, Hubspot, Apollo.io, etc.)</item>
+        <item>Step 4: Soluções &amp; Departamentos (soluções vendidas, departamentos para quem vendeu)</item>
+        <item>Step 5: Histórico de Trabalho &amp; Bio (adicionar 1+ empresas anteriores, escrever bio)</item>
+      </items>
+    </criterion>
+    <criterion id="3">Cada step tem validação client-side antes de "Próximo"</criterion>
+    <criterion id="4">Botão "Salvar Rascunho" em cada step (salva progresso)</criterion>
+    <criterion id="5">Endpoint API POST /api/v1/candidates cria perfil</criterion>
+    <criterion id="6">Upload de arquivo para foto de perfil (max 2MB, JPG/PNG)</criterion>
+    <criterion id="7">Foto armazenada no AWS S3, URL salva no banco de dados</criterion>
+    <criterion id="8">Mensagem de sucesso: "Perfil criado! Gere seu link compartilhável."</criterion>
+    <criterion id="9">Redirect para /candidate/profile (modo visualização)</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics/tech-spec-epic-3.md</path>
+        <title>Technical Specification - Epic 3: Candidate Management System</title>
+        <section>Story 3.1: Candidate Profile Creation (Multi-Step Form)</section>
+        <snippet>Multi-Step Form (5 Steps): Basic Info, Position &amp; Experience, Tools &amp; Software, Solutions &amp; Departments, Work History &amp; Bio. State Management: Remix form with session-based draft storage. Progress indicator shows completion (20% per step)</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics/tech-spec-epic-3.md</path>
+        <title>Technical Specification - Epic 3</title>
+        <section>File Storage (AWS S3)</section>
+        <snippet>Profile photos: Direct browser upload via presigned URLs. Max 2MB JPG/PNG, stored in s3://talentbase-uploads/profiles/{candidate_id}/photo.jpg. CloudFront CDN for fast delivery</snippet>
+      </doc>
+      <doc>
+        <path>docs/bestpraticies/FRONTEND_BEST_PRACTICES.md</path>
+        <title>Frontend Best Practices</title>
+        <section>Multi-step forms and validation patterns</section>
+        <snippet>Remix form patterns, client-side validation, state management approaches</snippet>
+      </doc>
+      <doc>
+        <path>docs/bestpraticies/BACKEND_BEST_PRACTICES.md</path>
+        <title>Backend Best Practices</title>
+        <section>File upload and S3 integration patterns</section>
+        <snippet>Presigned URL generation, security best practices for uploads, validation</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>apps/api/candidates/models.py</path>
+        <kind>module</kind>
+        <symbol>CandidateProfile, Experience</symbol>
+        <lines>31-190</lines>
+        <reason>Complete models already exist with all required fields (full_name, phone, current_position, years_of_experience, sales_type, tools_software, solutions_sold, departments_sold_to, bio, public_token). Just need to add photo_url field and location field</reason>
+      </artifact>
+      <artifact>
+        <path>apps/api/authentication/services/registration.py</path>
+        <kind>module</kind>
+        <symbol>CandidateRegistrationService</symbol>
+        <lines>50-120</lines>
+        <reason>Existing candidate registration creates basic CandidateProfile with user, full_name, phone - this story extends it with complete profile creation</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <python>
+        <package name="django" version="^5.0" />
+        <package name="djangorestframework" version="^3.14" />
+        <package name="boto3" version="latest" note="AWS S3 SDK for presigned URLs" />
+        <package name="pillow" version="latest" note="Image processing for photo validation" />
+      </python>
+      <node>
+        <package name="@remix-run/react" version="^2.14.0" />
+        <package name="react" version="^18.2.0" />
+        <package name="@talentbase/design-system" version="workspace:*" note="Multi-step form components" />
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint id="model1" category="database">CandidateProfile and Experience models already exist - DO NOT recreate, only add missing fields (photo_url, location if needed)</constraint>
+    <constraint id="s3_1" category="storage">Use presigned URLs for direct browser-to-S3 upload - never upload through Django backend</constraint>
+    <constraint id="s3_2" category="storage">Photos max 2MB, JPG/PNG only. Store in s3://talentbase-uploads/profiles/{candidate_id}/photo.jpg</constraint>
+    <constraint id="form1" category="frontend">Multi-step wizard must save draft progress to backend on each "Save Draft" click</constraint>
+    <constraint id="validation1" category="validation">Client-side validation before "Next" button, server-side validation on final submit and draft save</constraint>
+    <constraint id="redirect1" category="flow">After successful profile creation, redirect to /candidate/profile (view mode), not edit mode</constraint>
+    <constraint id="auth1" category="security">POST /api/v1/candidates requires IsAuthenticated + IsCandidate permissions</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>CandidateProfile</name>
+      <kind>django_model</kind>
+      <signature>CandidateProfile(BaseModel)</signature>
+      <path>apps/api/candidates/models.py:31-147</path>
+      <description>Existing comprehensive candidate profile model with all required fields. Need to verify photo_url and location fields exist</description>
+    </interface>
+    <interface>
+      <name>Experience</name>
+      <kind>django_model</kind>
+      <signature>Experience(BaseModel)</signature>
+      <path>apps/api/candidates/models.py:149-190</path>
+      <description>Work history model with ForeignKey to CandidateProfile. Fields: company_name, position, start_date, end_date, responsibilities</description>
+    </interface>
+    <interface>
+      <name>boto3.client('s3').generate_presigned_post</name>
+      <kind>aws_sdk_method</kind>
+      <signature>generate_presigned_post(Bucket, Key, Fields, Conditions, ExpiresIn)</signature>
+      <path>boto3 AWS SDK</path>
+      <description>Generate presigned POST URL for direct browser upload to S3. Returns URL and form fields</description>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Framework: pytest with pytest-django plugin for backend, Vitest for frontend, Playwright for E2E
+      Test Location Pattern: apps/api/*/tests/test_*.py for backend, packages/web/app/**/*.test.ts for frontend
+      Database: Use @pytest.mark.django_db decorator for tests requiring database
+      S3 Mocking: Use moto library to mock S3 operations in tests
+      Multi-step Form Testing: Test each step validation independently, test full flow E2E
+    </standards>
+    <locations>
+      <location>apps/api/candidates/tests/test_models.py - existing model tests</location>
+      <location>apps/api/candidates/tests/test_views.py - API endpoint tests (to be created)</location>
+      <location>apps/api/candidates/tests/test_serializers.py - serializer validation tests (to be created)</location>
+      <location>packages/web/app/routes/candidate.profile.create.test.tsx - multi-step wizard tests</location>
+      <location>packages/web/tests/e2e/candidate-profile-creation.spec.ts - E2E flow test</location>
+    </locations>
+    <ideas>
+      <test_idea ac_ref="1">
+        <title>Test redirect to /candidate/profile/create after registration</title>
+        <approach>E2E: Complete candidate registration, verify redirect to profile creation wizard</approach>
+      </test_idea>
+      <test_idea ac_ref="2">
+        <title>Test 5-step wizard progression and validation</title>
+        <approach>Unit: Test each step validates required fields. E2E: Complete all 5 steps, verify data saved correctly</approach>
+      </test_idea>
+      <test_idea ac_ref="3">
+        <title>Test client-side validation blocks invalid progression</title>
+        <approach>Frontend: Try to click "Next" with invalid/empty required fields, verify blocked with error message</approach>
+      </test_idea>
+      <test_idea ac_ref="4">
+        <title>Test "Save Draft" functionality</title>
+        <approach>Fill step 1, click Save Draft, refresh page, verify data restored. Test draft save on each step</approach>
+      </test_idea>
+      <test_idea ac_ref="5">
+        <title>Test POST /api/v1/candidates creates complete profile</title>
+        <approach>Backend: POST with all 5 steps data, verify CandidateProfile + Experience records created correctly</approach>
+      </test_idea>
+      <test_idea ac_ref="6,7">
+        <title>Test photo upload flow with S3 presigned URLs</title>
+        <approach>Backend: Test presigned URL generation. Frontend: Mock S3 upload, verify URL saved to profile</approach>
+      </test_idea>
+      <test_idea ac_ref="8,9">
+        <title>Test success message and redirect after profile creation</title>
+        <approach>E2E: Complete wizard, verify success message displayed, verify redirect to /candidate/profile view mode</approach>
+      </test_idea>
+    </ideas>
+  </tests>
+</story-context>

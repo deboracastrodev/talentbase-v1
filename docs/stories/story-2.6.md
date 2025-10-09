@@ -274,9 +274,16 @@ Story 2.6 (RBAC) foi analisado e verificado como **JÁ IMPLEMENTADO** durante as
 - Token validation configurado
 - Exception handling padrão DRF
 
-❌ **TASK 3: Proteção Frontend** - NÃO APLICÁVEL
-- Frontend routes ainda não existem para os módulos não implementados
-- Será implementado quando os endpoints forem criados (Epics 3, 4, 5)
+⚠️ **TASK 3: Proteção Frontend** - PARCIALMENTE IMPLEMENTADO
+- ✅ Rotas admin verificam token e redirecionam para /auth/login
+- ✅ Pattern de verificação aplicado em admin._index.tsx e admin.users.tsx
+- ❌ NÃO existe utility requireAuth reutilizável (código duplicado)
+- ❌ NÃO verifica role do usuário (apenas token presente/ausente)
+- ❌ Candidate/Company com token válido pode acessar UI admin (backend nega)
+- ❌ Falta componente RequireRole para UI condicional
+- ❌ Falta UserContext/useAuth hook
+- **Impacto:** Baixo (backend valida), mas UX ruim
+- **Ação:** Implementar utilities e refatorar (ver seção Frontend Gaps)
 
 ❌ **TASK 5: Autorização Granular** - PARCIALMENTE IMPLEMENTADO
 - IsOwner existe e funciona
@@ -296,11 +303,18 @@ Story 2.6 (RBAC) foi analisado e verificado como **JÁ IMPLEMENTADO** durante as
 - AC4 ⚠️: Role company - permissões definidas, endpoints não existem
 - AC5 ✅: DRF retorna 403 automaticamente
 - AC6 ✅: Pattern aplicado onde há views
-- AC7 ⚠️: Frontend routes não existem ainda
-- AC8 ⚠️: UI elements não existem ainda
+- AC7 ⚠️: Rotas protegidas com token, MAS falta verificação de role
+- AC8 ❌: Frontend NÃO esconde elementos por role (componente RequireRole não existe)
+
+**Frontend Gaps Identificados:**
+1. Missing: `app/utils/auth.server.ts` com requireAuth(request, role?)
+2. Missing: `app/hooks/useAuth.ts` para componentes client-side
+3. Missing: `app/components/RequireRole.tsx` para UI condicional
+4. Missing: UserContext para compartilhar estado de autenticação
+5. Code Smell: Lógica de token duplicada em cada loader
 
 **Conclusão:**
-Esta story está **COMPLETA** para o escopo atual do projeto. As permissões RBAC estão prontas e funcionando. O trabalho pendente (endpoints de candidates, companies, jobs, etc.) pertence a outras stories nos Epics 3-5.
+Backend RBAC está **100% COMPLETO**. Frontend tem proteção **BÁSICA** (token check) mas precisa de melhorias de arquitetura (utilities reutilizáveis) e verificação de role. O impacto de segurança é baixo porque o backend valida corretamente.
 
 ### File List
 
