@@ -208,7 +208,13 @@ AWS_S3_ENCRYPTION = "AES256"  # Server-side encryption
 # Presigned URL Configuration
 AWS_PRESIGNED_EXPIRY = 300  # 5 minutes (in seconds)
 
-# File Upload Constraints
+# File Upload Constraints - Photos
 MAX_UPLOAD_SIZE = 2 * 1024 * 1024  # 2MB in bytes
 ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png"]
 ALLOWED_IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png"]
+
+# File Upload Constraints - Videos (Story 3.1)
+MAX_VIDEO_SIZE = 50 * 1024 * 1024  # 50MB in bytes
+ALLOWED_VIDEO_TYPES = ["video/mp4", "video/quicktime", "video/x-msvideo"]
+ALLOWED_VIDEO_EXTENSIONS = [".mp4", ".mov", ".avi"]
+VIDEO_PRESIGNED_EXPIRY = 600  # 10 minutes (in seconds) - videos take longer to upload

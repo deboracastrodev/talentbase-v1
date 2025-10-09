@@ -30,4 +30,6 @@ urlpatterns = [
     path("api/v1/auth/login", login, name="login"),  # Story 2.3: Login endpoint
     # Admin endpoints (Story 2.4)
     path("api/v1/admin/", include("user_management.urls")),
+    # Candidate endpoints (Story 3.1)
+    path("api/v1/candidates/", include("candidates.urls")),
 ]
