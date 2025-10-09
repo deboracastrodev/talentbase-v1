@@ -10,6 +10,7 @@ import { EnvironmentConfig } from './config';
 export class SecretsStack extends cdk.Stack {
   public readonly djangoSecret: secretsmanager.Secret;
   public readonly fieldEncryptionSecret: secretsmanager.Secret;
+  public readonly sendgridApiKey: secretsmanager.Secret;
 
   constructor(
     scope: Construct,
@@ -48,6 +49,13 @@ export class SecretsStack extends cdk.Stack {
       },
     });
 
+    // Story 2.7: Create SendGrid API Key secret
+    this.sendgridApiKey = new secretsmanager.Secret(this, 'SendGridApiKey', {
+      secretName: `${config.projectName}/${config.tags.Environment}/sendgrid-api-key`,
+      description: `SendGrid API key for ${config.projectName} ${config.tags.Environment}`,
+      secretStringValue: cdk.SecretValue.unsafePlainText('PLACEHOLDER'), // Will be updated manually
+    });
+
     // Add tags
     Object.entries(config.tags).forEach(([key, value]) => {
       cdk.Tags.of(this).add(key, value);
@@ -64,6 +72,12 @@ export class SecretsStack extends cdk.Stack {
       value: this.fieldEncryptionSecret.secretArn,
       description: 'Field Encryption Key ARN',
       exportName: `${id}-FieldEncryptionSecretArn`,
+    });
+
+    new cdk.CfnOutput(this, 'SendGridApiKeyArn', {
+      value: this.sendgridApiKey.secretArn,
+      description: 'SendGrid API Key ARN',
+      exportName: `${id}-SendGridApiKeyArn`,
     });
   }
 }

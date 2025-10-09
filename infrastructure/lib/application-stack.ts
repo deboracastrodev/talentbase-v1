@@ -35,6 +35,9 @@ export class ApplicationStack extends cdk.Stack {
     config: EnvironmentConfig,
     rdsInstance?: rds.DatabaseInstance,
     redisCluster?: elasticache.CfnCacheCluster,
+    djangoSecret?: secretsmanager.Secret,
+    fieldEncryptionSecret?: secretsmanager.Secret,
+    sendgridApiKey?: secretsmanager.Secret,
     props?: cdk.StackProps
   ) {
     super(scope, id, props);
@@ -102,6 +105,17 @@ export class ApplicationStack extends cdk.Stack {
     sessionSecret.grantRead(executionRole);  // Now this works correctly with fromSecretCompleteArn
     apiUrlParameter.grantRead(executionRole);
     rdsSecret.grantRead(executionRole);
+
+    // Story 2.7: Grant read access to new secrets
+    if (djangoSecret) {
+      djangoSecret.grantRead(executionRole);
+    }
+    if (fieldEncryptionSecret) {
+      fieldEncryptionSecret.grantRead(executionRole);
+    }
+    if (sendgridApiKey) {
+      sendgridApiKey.grantRead(executionRole);
+    }
 
     // Task Role (for application runtime permissions)
     const taskRole = new iam.Role(this, 'TaskRole', {
@@ -192,6 +206,9 @@ export class ApplicationStack extends cdk.Stack {
       CSRF_TRUSTED_ORIGINS: config.tags.Environment === 'production'
         ? 'https://salesdog.click,https://www.salesdog.click'
         : 'https://dev.salesdog.click',
+      // Story 2.7: Email configuration
+      EMAIL_PROVIDER: 'sendgrid',
+      DEFAULT_FROM_EMAIL: 'noreply@salesdog.click',
     };
 
     // Add Redis URL if Redis cluster is provided
@@ -205,6 +222,24 @@ export class ApplicationStack extends cdk.Stack {
       apiEnvironment.DB_HOST = rdsInstance.dbInstanceEndpointAddress;
       apiEnvironment.DB_PORT = rdsInstance.dbInstanceEndpointPort;
       apiEnvironment.DB_NAME = config.rds.databaseName;
+    }
+
+    // Build API secrets configuration
+    const apiSecrets: { [key: string]: ecs.Secret } = {
+      DB_USER: ecs.Secret.fromSecretsManager(rdsSecret, 'username'),
+      DB_PASSWORD: ecs.Secret.fromSecretsManager(rdsSecret, 'password'),
+    };
+
+    // Story 2.7: Add Django, Field Encryption, and SendGrid secrets
+    if (djangoSecret) {
+      apiSecrets.DJANGO_SECRET_KEY = ecs.Secret.fromSecretsManager(djangoSecret, 'DJANGO_SECRET_KEY');
+    }
+    if (fieldEncryptionSecret) {
+      apiSecrets.FIELD_ENCRYPTION_KEY = ecs.Secret.fromSecretsManager(fieldEncryptionSecret, 'FIELD_ENCRYPTION_KEY');
+    }
+    if (sendgridApiKey) {
+      // SendGrid secret is a plain string value, not JSON
+      apiSecrets.SENDGRID_API_KEY = ecs.Secret.fromSecretsManager(sendgridApiKey);
     }
 
     const apiContainer = apiTaskDefinition.addContainer('ApiContainer', {
@@ -221,10 +256,7 @@ export class ApplicationStack extends cdk.Stack {
       ],
       environment: apiEnvironment,
       // Secrets from AWS Secrets Manager (sensitive data)
-      secrets: {
-        DB_USER: ecs.Secret.fromSecretsManager(rdsSecret, 'username'),
-        DB_PASSWORD: ecs.Secret.fromSecretsManager(rdsSecret, 'password'),
-      },
+      secrets: apiSecrets,
       // Note: Container health check disabled - using ALB target group health check instead
       // This avoids issues with curl not being installed in the container
     });
