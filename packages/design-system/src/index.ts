@@ -69,6 +69,9 @@ export { Modal, ModalFooter } from './components/Modal';
 export { Sidebar, sidebarVariants, menuItemVariants } from './components/Sidebar';
 export type { SidebarProps, MenuItem } from './components/Sidebar';
 
+export { Logo, logoVariants } from './components/Logo';
+export type { LogoProps } from './components/Logo';
+
 export { Navbar, navbarVariants } from './components/Navbar';
 export type { NavbarProps, User } from './components/Navbar';
 

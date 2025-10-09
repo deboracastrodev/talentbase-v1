@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { Sidebar } from './Sidebar';
+import { Logo } from './Logo';
 import { Home, Users, Building2, User, Briefcase, FileText, Target, Settings } from 'lucide-react';
 import { useState } from 'react';
 
@@ -49,7 +50,7 @@ export const Default: Story = {
   args: {
     menuItems: sampleMenuItems,
     activeItemId: 'dashboard',
-    logo: <span className="text-xl font-bold text-primary-600">TalentBase</span>,
+    logo: <Logo variant="full" theme="primary" size="md" />,
   },
 };
 
@@ -60,7 +61,7 @@ export const ActiveItemHighlighted: Story = {
   args: {
     menuItems: sampleMenuItems,
     activeItemId: 'users',
-    logo: <span className="text-xl font-bold text-primary-600">TalentBase</span>,
+    logo: <Logo variant="full" theme="primary" size="md" />,
   },
 };
 
@@ -71,7 +72,7 @@ export const WithBadges: Story = {
   args: {
     menuItems: sampleMenuItemsWithBadges,
     activeItemId: 'dashboard',
-    logo: <span className="text-xl font-bold text-primary-600">TalentBase</span>,
+    logo: <Logo variant="full" theme="primary" size="md" />,
   },
 };
 
@@ -82,7 +83,7 @@ export const WithDisabledItems: Story = {
   args: {
     menuItems: sampleMenuItemsDisabled,
     activeItemId: 'users',
-    logo: <span className="text-xl font-bold text-primary-600">TalentBase</span>,
+    logo: <Logo variant="full" theme="primary" size="md" />,
   },
 };
 
@@ -93,7 +94,7 @@ export const MobileCollapsed: Story = {
   args: {
     menuItems: sampleMenuItems,
     activeItemId: 'dashboard',
-    logo: <span className="text-xl font-bold text-primary-600">TalentBase</span>,
+    logo: <Logo variant="symbol" theme="primary" size="sm" />,
     isCollapsed: true,
   },
   parameters: {
@@ -110,7 +111,7 @@ export const MobileExpanded: Story = {
   args: {
     menuItems: sampleMenuItems,
     activeItemId: 'dashboard',
-    logo: <span className="text-xl font-bold text-primary-600">TalentBase</span>,
+    logo: <Logo variant="full" theme="primary" size="md" />,
     isCollapsed: false,
   },
   parameters: {
@@ -160,7 +161,7 @@ export const Interactive: Story = {
   args: {
     menuItems: sampleMenuItemsWithBadges,
     activeItemId: 'dashboard',
-    logo: <span className="text-xl font-bold text-primary-600">TalentBase</span>,
+    logo: <Logo variant="full" theme="primary" size="md" />,
   },
 };
 
@@ -171,7 +172,7 @@ export const NarrowWidth: Story = {
   args: {
     menuItems: sampleMenuItems,
     activeItemId: 'dashboard',
-    logo: <span className="text-lg font-bold text-primary-600">TB</span>,
+    logo: <Logo variant="symbol" theme="primary" size="sm" />,
     width: 'narrow',
   },
 };
@@ -183,7 +184,7 @@ export const WideWidth: Story = {
   args: {
     menuItems: sampleMenuItems,
     activeItemId: 'dashboard',
-    logo: <span className="text-xl font-bold text-primary-600">TalentBase Platform</span>,
+    logo: <Logo variant="full" theme="primary" size="lg" />,
     width: 'wide',
   },
 };

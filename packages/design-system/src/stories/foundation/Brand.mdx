@@ -1,0 +1,221 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Foundation/Brand" />
+
+<style>
+  {`
+    .logo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 2rem;
+      margin: 2rem 0;
+    }
+    .logo-card {
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 2rem;
+      text-align: center;
+    }
+    .logo-card.dark {
+      background: linear-gradient(135deg, #1a365d 0%, #2d3748 100%);
+    }
+    .logo-card.light {
+      background: #ffffff;
+      border: 2px solid #e5e7eb;
+    }
+    .logo-card.gray {
+      background: #f3f4f6;
+    }
+    .logo-card img {
+      max-width: 100%;
+      height: auto;
+      margin-bottom: 1rem;
+    }
+    .logo-card h4 {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #6b7280;
+      margin: 0.5rem 0 0 0;
+    }
+    .logo-card.dark h4 {
+      color: #ffffff;
+    }
+    .color-swatch {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+      margin-right: 4px;
+      vertical-align: middle;
+    }
+  `}
+</style>
+
+# 🎨 Brand Identity
+
+A identidade visual da **TalentBase** reflete nossa missão de conectar talentos com oportunidades através de tecnologia moderna e atendimento humanizado.
+
+---
+
+## Logo
+
+### Versões Completas (Full Logo)
+
+Use estas versões quando houver espaço suficiente para mostrar o símbolo + nome.
+
+<div className="logo-grid">
+  <div className="logo-card dark">
+    <img src="/logos/logo-full-white.svg" alt="Logo White" />
+    <h4>White</h4>
+    <p style={{ color: '#cbd5e1', fontSize: '0.75rem', margin: '0.25rem 0 0 0' }}>
+      Para fundos escuros
+    </p>
+  </div>
+
+  <div className="logo-card light">
+    <img src="/logos/logo-full-primary.svg" alt="Logo Primary" />
+    <h4>Primary <span className="color-swatch" style={{ background: '#00B8D4' }}></span>#00B8D4</h4>
+    <p style={{ color: '#6b7280', fontSize: '0.75rem', margin: '0.25rem 0 0 0' }}>
+      Para fundos claros
+    </p>
+  </div>
+
+  <div className="logo-card gray">
+    <img src="/logos/logo-full-dark.svg" alt="Logo Dark" />
+    <h4>Dark <span className="color-swatch" style={{ background: '#1E3A8A' }}></span>#1E3A8A</h4>
+    <p style={{ color: '#6b7280', fontSize: '0.75rem', margin: '0.25rem 0 0 0' }}>
+      Para fundos muito claros
+    </p>
+  </div>
+</div>
+
+---
+
+### Símbolo (Symbol Only)
+
+Use o símbolo em espaços reduzidos ou como ícone da aplicação.
+
+<div className="logo-grid">
+  <div className="logo-card dark">
+    <img src="/logos/logo-symbol-white.svg" alt="Symbol White" style={{ maxWidth: '80px' }} />
+    <h4>Symbol White</h4>
+    <p style={{ color: '#cbd5e1', fontSize: '0.75rem', margin: '0.25rem 0 0 0' }}>
+      Favicon, app icons
+    </p>
+  </div>
+
+  <div className="logo-card light">
+    <img src="/logos/logo-symbol-primary.svg" alt="Symbol Primary" style={{ maxWidth: '80px' }} />
+    <h4>Symbol Primary</h4>
+    <p style={{ color: '#6b7280', fontSize: '0.75rem', margin: '0.25rem 0 0 0' }}>
+      Ícone em fundos claros
+    </p>
+  </div>
+
+  <div className="logo-card gray">
+    <img src="/logos/logo-symbol-dark.svg" alt="Symbol Dark" style={{ maxWidth: '80px' }} />
+    <h4>Symbol Dark</h4>
+    <p style={{ color: '#6b7280', fontSize: '0.75rem', margin: '0.25rem 0 0 0' }}>
+      Alternativa escura
+    </p>
+  </div>
+</div>
+
+---
+
+## Diretrizes de Uso
+
+### ✅ **FAZER**
+
+- Usar a logo **white** em fundos escuros (#000000, #1E3A8A, gradientes)
+- Usar a logo **primary** em fundos claros (#FFFFFF, #F9FAFB)
+- Manter área de proteção (metade da altura do símbolo)
+- Usar versões SVG sempre que possível
+- Garantir tamanho mínimo: **120px de largura** (full), **32px** (symbol)
+
+### ❌ **NÃO FAZER**
+
+- ❌ Distorcer ou esticar a logo
+- ❌ Alterar as cores ou proporções
+- ❌ Adicionar efeitos (sombras, brilhos, bordas)
+- ❌ Rotacionar ou inverter
+- ❌ Usar sobre fundos complexos sem área de proteção
+- ❌ Usar logos de baixa resolução
+
+---
+
+## Área de Proteção
+
+Mantenha uma área livre ao redor da logo equivalente a **metade da altura do símbolo** em todas as direções:
+
+```
+┌─────────────────────────────────┐
+│           (espaço)              │
+│   ┌─────────────────────┐       │
+│   │  🔷 talentbase       │       │
+│   └─────────────────────┘       │
+│           (espaço)              │
+└─────────────────────────────────┘
+```
+
+---
+
+## Cores da Logo
+
+### Logo White
+- **Hex:** `#FFFFFF`
+- **Uso:** Sobre fundos escuros, gradientes, imagens
+
+### Logo Primary (Ciano)
+- **Hex:** `#00B8D4`
+- **Uso:** Fundos claros, documentos, interfaces
+
+### Logo Dark (Azul)
+- **Hex:** `#1E3A8A`
+- **Uso:** Fundos muito claros, necessidade de contraste
+
+---
+
+## Downloads
+
+### Para Desenvolvimento
+```tsx
+// Importar no React
+import LogoPrimary from '/logos/logo-full-primary.svg';
+import LogoWhite from '/logos/logo-full-white.svg';
+import LogoSymbol from '/logos/logo-symbol-primary.svg';
+```
+
+### Para Email (HTML)
+```html
+<!-- Logo branca para emails (fundo escuro) -->
+<img src="https://design-system.talentbase.com/logos/logo-full-white.svg"
+     alt="TalentBase"
+     height="48" />
+```
+
+### Para Documentos
+- **PNG High-Res:** Exporte SVGs em 2x ou 3x para documentos
+- **Print:** Use sempre vetorial (SVG/PDF)
+
+---
+
+## Aplicações
+
+### Sidebar / Header
+```tsx
+<img src="/logos/logo-full-primary.svg" alt="TalentBase" height="40" />
+```
+
+### Favicon
+```html
+<link rel="icon" type="image/svg+xml" href="/logos/logo-symbol-primary.svg" />
+```
+
+### Email Signature
+```html
+<img src="https://talentbase.com/logos/logo-full-primary.svg"
+     alt="TalentBase"
+     width="160" />
+```
+

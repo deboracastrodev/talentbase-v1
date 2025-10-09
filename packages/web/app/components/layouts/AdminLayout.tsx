@@ -1,4 +1,4 @@
-import { DashboardLayout, type MenuItem } from '@talentbase/design-system';
+import { DashboardLayout, Logo, type MenuItem } from '@talentbase/design-system';
 import { Home, Users, Building2, User, Briefcase, FileText, Target } from 'lucide-react';
 
 const adminMenuItems: MenuItem[] = [
@@ -42,7 +42,7 @@ export function AdminLayout({ children, pageTitle, activeItem, user }: AdminLayo
       sidebarConfig={{
         menuItems: adminMenuItems,
         activeItemId: activeItem,
-        logo: <span className="text-xl font-bold text-primary-600">TalentBase</span>,
+        logo: <Logo variant="full" theme="primary" size="md" />,
       }}
       user={user}
       pageTitle={pageTitle}

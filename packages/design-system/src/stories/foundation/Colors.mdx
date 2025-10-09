@@ -1,0 +1,393 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Foundation/Colors" />
+
+<style>
+  {`
+    .color-palette {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 1rem;
+      margin: 2rem 0;
+    }
+    .color-swatch {
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .color-preview {
+      height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 600;
+      font-size: 0.875rem;
+    }
+    .color-info {
+      padding: 0.75rem;
+      background: white;
+    }
+    .color-info h4 {
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin: 0 0 0.25rem 0;
+      color: #111827;
+    }
+    .color-info p {
+      font-size: 0.75rem;
+      margin: 0;
+      color: #6b7280;
+      font-family: 'SF Mono', monospace;
+    }
+    .gradient-preview {
+      height: 150px;
+      border-radius: 8px;
+      margin: 1rem 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 1.25rem;
+    }
+    .usage-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+      margin: 2rem 0;
+    }
+    .usage-card {
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 1.5rem;
+    }
+    .usage-card h4 {
+      color: #111827;
+      margin: 0 0 0.5rem 0;
+    }
+    .usage-card ul {
+      margin: 0;
+      padding-left: 1.25rem;
+    }
+    .usage-card li {
+      color: #4b5563;
+      font-size: 0.875rem;
+      margin-bottom: 0.25rem;
+    }
+  `}
+</style>
+
+# 🎨 Colors - Paleta de Cores
+
+A paleta de cores da **TalentBase** reflete modernidade, confiança e tecnologia, criando uma experiência visual profissional e acessível.
+
+---
+
+## Primary - Ciano
+
+A cor principal da marca, usada para CTAs, links e elementos de destaque.
+
+<div className="color-palette">
+  <div className="color-swatch">
+    <div className="color-preview" style={{ background: '#00B8D4' }}>500</div>
+    <div className="color-info">
+      <h4>Primary 500</h4>
+      <p>#00B8D4</p>
+    </div>
+  </div>
+  <div className="color-swatch">
+    <div className="color-preview" style={{ background: '#4DD0E1' }}>300</div>
+    <div className="color-info">
+      <h4>Primary 300</h4>
+      <p>#4DD0E1</p>
+    </div>
+  </div>
+  <div className="color-swatch">
+    <div className="color-preview" style={{ background: '#26C6DA' }}>400</div>
+    <div className="color-info">
+      <h4>Primary 400</h4>
+      <p>#26C6DA</p>
+    </div>
+  </div>
+  <div className="color-swatch">
+    <div className="color-preview" style={{ background: '#00ACC1' }}>600</div>
+    <div className="color-info">
+      <h4>Primary 600</h4>
+      <p>#00ACC1</p>
+    </div>
+  </div>
+  <div className="color-swatch">
+    <div className="color-preview" style={{ background: '#0097A7' }}>700</div>
+    <div className="color-info">
+      <h4>Primary 700</h4>
+      <p>#0097A7</p>
+    </div>
+  </div>
+</div>
+
+---
+
+## Secondary - Azul
+
+Cor secundária para gradientes, backgrounds e elementos de apoio.
+
+<div className="color-palette">
+  <div className="color-swatch">
+    <div className="color-preview" style={{ background: '#1E3A8A' }}>500</div>
+    <div className="color-info">
+      <h4>Secondary 500</h4>
+      <p>#1E3A8A</p>
+    </div>
+  </div>
+  <div className="color-swatch">
+    <div className="color-preview" style={{ background: '#3B82F6' }}>400</div>
+    <div className="color-info">
+      <h4>Secondary 400</h4>
+      <p>#3B82F6</p>
+    </div>
+  </div>
+  <div className="color-swatch">
+    <div className="color-preview" style={{ background: '#60A5FA' }}>300</div>
+    <div className="color-info">
+      <h4>Secondary 300</h4>
+      <p>#60A5FA</p>
+    </div>
+  </div>
+</div>
+
+---
+
+## Neutrals - Grayscale
+
+Sistema de cores neutras para textos, bordas e backgrounds.
+
+<div className="color-palette">
+  <div className="color-swatch">
+    <div className="color-preview" style={{ background: '#000000' }}>Black</div>
+    <div className="color-info">
+      <h4>Black</h4>
+      <p>#000000</p>
+    </div>
+  </div>
+  <div className="color-swatch">
+    <div className="color-preview" style={{ background: '#111827' }}>900</div>
+    <div className="color-info">
+      <h4>Gray 900</h4>
+      <p>#111827</p>
+    </div>
+  </div>
+  <div className="color-swatch">
+    <div className="color-preview" style={{ background: '#1F2937' }}>800</div>
+    <div className="color-info">
+      <h4>Gray 800</h4>
+      <p>#1F2937</p>
+    </div>
+  </div>
+  <div className="color-swatch">
+    <div className="color-preview" style={{ background: '#374151' }}>700</div>
+    <div className="color-info">
+      <h4>Gray 700</h4>
+      <p>#374151</p>
+    </div>
+  </div>
+  <div className="color-swatch">
+    <div className="color-preview" style={{ background: '#6B7280', color: '#000' }}>500</div>
+    <div className="color-info">
+      <h4>Gray 500</h4>
+      <p>#6B7280</p>
+    </div>
+  </div>
+  <div className="color-swatch">
+    <div className="color-preview" style={{ background: '#D1D5DB', color: '#000' }}>300</div>
+    <div className="color-info">
+      <h4>Gray 300</h4>
+      <p>#D1D5DB</p>
+    </div>
+  </div>
+  <div className="color-swatch">
+    <div className="color-preview" style={{ background: '#F3F4F6', color: '#000' }}>100</div>
+    <div className="color-info">
+      <h4>Gray 100</h4>
+      <p>#F3F4F6</p>
+    </div>
+  </div>
+  <div className="color-swatch">
+    <div className="color-preview" style={{ background: '#FFFFFF', color: '#000', border: '2px solid #e5e7eb' }}>White</div>
+    <div className="color-info">
+      <h4>White</h4>
+      <p>#FFFFFF</p>
+    </div>
+  </div>
+</div>
+
+---
+
+## Functional Colors
+
+Cores para estados e feedback do sistema.
+
+### Success (Verde)
+<div className="color-palette">
+  <div className="color-swatch">
+    <div className="color-preview" style={{ background: '#10B981' }}>500</div>
+    <div className="color-info">
+      <h4>Success 500</h4>
+      <p>#10B981</p>
+    </div>
+  </div>
+  <div className="color-swatch">
+    <div className="color-preview" style={{ background: '#D1FAE5', color: '#000' }}>100</div>
+    <div className="color-info">
+      <h4>Success 100</h4>
+      <p>#D1FAE5</p>
+    </div>
+  </div>
+</div>
+
+### Error (Vermelho)
+<div className="color-palette">
+  <div className="color-swatch">
+    <div className="color-preview" style={{ background: '#EF4444' }}>500</div>
+    <div className="color-info">
+      <h4>Error 500</h4>
+      <p>#EF4444</p>
+    </div>
+  </div>
+  <div className="color-swatch">
+    <div className="color-preview" style={{ background: '#FEE2E2', color: '#000' }}>100</div>
+    <div className="color-info">
+      <h4>Error 100</h4>
+      <p>#FEE2E2</p>
+    </div>
+  </div>
+</div>
+
+### Warning (Laranja)
+<div className="color-palette">
+  <div className="color-swatch">
+    <div className="color-preview" style={{ background: '#F59E0B' }}>500</div>
+    <div className="color-info">
+      <h4>Warning 500</h4>
+      <p>#F59E0B</p>
+    </div>
+  </div>
+  <div className="color-swatch">
+    <div className="color-preview" style={{ background: '#FEF3C7', color: '#000' }}>100</div>
+    <div className="color-info">
+      <h4>Warning 100</h4>
+      <p>#FEF3C7</p>
+    </div>
+  </div>
+</div>
+
+### Info (Azul Claro)
+<div className="color-palette">
+  <div className="color-swatch">
+    <div className="color-preview" style={{ background: '#3B82F6' }}>500</div>
+    <div className="color-info">
+      <h4>Info 500</h4>
+      <p>#3B82F6</p>
+    </div>
+  </div>
+  <div className="color-swatch">
+    <div className="color-preview" style={{ background: '#DBEAFE', color: '#000' }}>100</div>
+    <div className="color-info">
+      <h4>Info 100</h4>
+      <p>#DBEAFE</p>
+    </div>
+  </div>
+</div>
+
+---
+
+## Gradients
+
+### Gradient Hero
+<div className="gradient-preview" style={{ background: 'linear-gradient(180deg, #000000 0%, #1E3A8A 50%, #00B8D4 100%)' }}>
+  Hero Section
+</div>
+
+```css
+background: linear-gradient(180deg, #000000 0%, #1E3A8A 50%, #00B8D4 100%);
+```
+
+### Gradient Header
+<div className="gradient-preview" style={{ background: 'linear-gradient(135deg, #1a365d 0%, #2d3748 100%)' }}>
+  Email Header
+</div>
+
+```css
+background: linear-gradient(135deg, #1a365d 0%, #2d3748 100%);
+```
+
+---
+
+## Uso e Aplicações
+
+<div className="usage-grid">
+  <div className="usage-card">
+    <h4>✅ FAZER</h4>
+    <ul>
+      <li>Usar Primary 500 para CTAs principais</li>
+      <li>Manter contraste mínimo 4.5:1 para texto</li>
+      <li>Usar gradientes em backgrounds grandes</li>
+      <li>Aplicar cores funcionais consistentemente</li>
+    </ul>
+  </div>
+
+  <div className="usage-card">
+    <h4>❌ EVITAR</h4>
+    <ul>
+      <li>Misturar Primary com Success (similar demais)</li>
+      <li>Mais de 2 cores vibrantes no mesmo componente</li>
+      <li>Gradientes em textos pequenos</li>
+      <li>Gray-400 ou mais claro para texto principal</li>
+    </ul>
+  </div>
+</div>
+
+---
+
+## CSS Variables
+
+```css
+:root {
+  /* Primary */
+  --color-primary-500: #00B8D4;
+  --color-primary-600: #00ACC1;
+
+  /* Secondary */
+  --color-secondary-500: #1E3A8A;
+
+  /* Neutrals */
+  --color-gray-900: #111827;
+  --color-gray-100: #F3F4F6;
+  --color-white: #FFFFFF;
+
+  /* Functional */
+  --color-success: #10B981;
+  --color-error: #EF4444;
+  --color-warning: #F59E0B;
+  --color-info: #3B82F6;
+}
+```
+
+## Tailwind Config
+
+```js
+colors: {
+  primary: {
+    DEFAULT: '#00B8D4',
+    500: '#00B8D4',
+    600: '#00ACC1',
+  },
+  secondary: {
+    DEFAULT: '#1E3A8A',
+    500: '#1E3A8A',
+  },
+  // ... resto das cores
+}
+```
+
