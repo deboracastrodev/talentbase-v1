@@ -1,0 +1,263 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>2.6</storyId>
+    <title>Role-Based Access Control (RBAC)</title>
+    <status>Draft</status>
+    <generatedAt>2025-10-09</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>/Users/debor/Documents/sistemas/talentbase-v1/docs/stories/story-2.6.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>um sistema</asA>
+    <iWant>impor permissões baseadas em roles em todos os endpoints da API</iWant>
+    <soThat>usuários possam acessar apenas recursos apropriados à sua role</soThat>
+    <tasks>
+      <task id="1" status="pending">
+        <title>Criar permission classes Django</title>
+        <ac_refs>1, 2, 3, 4, 5, 6</ac_refs>
+        <subtasks>
+          <subtask>Implementar IsAdmin permission</subtask>
+          <subtask>Implementar IsCandidate permission</subtask>
+          <subtask>Implementar IsCompany permission</subtask>
+          <subtask>Implementar IsOwner permission (own resources)</subtask>
+        </subtasks>
+      </task>
+      <task id="2" status="pending">
+        <title>Aplicar permissões aos endpoints</title>
+        <ac_refs>1, 6</ac_refs>
+        <subtasks>
+          <subtask>Decorar todas as views com permission_classes</subtask>
+          <subtask>Configurar IsAuthenticated como padrão</subtask>
+          <subtask>Mapear endpoints específicos por role</subtask>
+        </subtasks>
+      </task>
+      <task id="3" status="pending">
+        <title>Implementar proteção frontend</title>
+        <ac_refs>7, 8</ac_refs>
+        <subtasks>
+          <subtask>Criar requireAuth utility para loaders</subtask>
+          <subtask>Implementar verificação de role em componentes</subtask>
+          <subtask>Configurar redirects para login</subtask>
+        </subtasks>
+      </task>
+      <task id="4" status="pending">
+        <title>Configurar middleware de autenticação</title>
+        <ac_refs>1</ac_refs>
+        <subtasks>
+          <subtask>Configurar DRF authentication classes</subtask>
+          <subtask>Implementar token validation middleware</subtask>
+          <subtask>Configurar exception handling</subtask>
+        </subtasks>
+      </task>
+      <task id="5" status="pending">
+        <title>Criar sistema de autorização granular</title>
+        <ac_refs>3, 4</ac_refs>
+        <subtasks>
+          <subtask>Implementar object-level permissions</subtask>
+          <subtask>Validar ownership de recursos</subtask>
+          <subtask>Implementar business rules por role</subtask>
+        </subtasks>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">Todos os endpoints da API exigem autenticação (exceto rotas públicas)</criterion>
+    <criterion id="2">Role admin tem acesso a todos os endpoints</criterion>
+    <criterion id="3">
+      <title>Role candidate pode:</title>
+      <items>
+        <item>Ler/atualizar próprio perfil</item>
+        <item>Navegar vagas</item>
+        <item>Criar applications</item>
+        <item>Visualizar próprias applications</item>
+      </items>
+    </criterion>
+    <criterion id="4">
+      <title>Role company pode:</title>
+      <items>
+        <item>Ler/atualizar próprio perfil da empresa</item>
+        <item>CRUD próprias vagas</item>
+        <item>Buscar candidatos (somente leitura)</item>
+        <item>Favoritar candidatos</item>
+        <item>Visualizar applications para próprias vagas</item>
+      </items>
+    </criterion>
+    <criterion id="5">Acesso não autorizado retorna 403 Forbidden com mensagem clara</criterion>
+    <criterion id="6">Decorator de permissão aplicado a todas as views Django</criterion>
+    <criterion id="7">Rotas frontend protegidas (redirect para login se não autenticado)</criterion>
+    <criterion id="8">Frontend esconde elementos de UI não permitidos para a role</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics/tech-spec-epic-2.md</path>
+        <title>Technical Specification - Epic 2: Authentication &amp; User Management</title>
+        <section>Story 2.6: Role-Based Access Control (RBAC)</section>
+        <snippet>Django Permissions: IsAuthenticated, IsAdmin, IsOwner, IsCandidate, IsCompany. Enforcement: All API endpoints decorated with permission classes, frontend routes check role</snippet>
+      </doc>
+      <doc>
+        <path>docs/arquitetura/authentication.md</path>
+        <title>Authentication &amp; Authorization</title>
+        <section>Permission Classes (DRF)</section>
+        <snippet>Defines IsAdmin, IsCandidate, IsCompany, IsOwnerOrAdmin permission classes with implementation examples</snippet>
+      </doc>
+      <doc>
+        <path>docs/arquitetura/authentication.md</path>
+        <title>Authentication &amp; Authorization</title>
+        <section>Endpoint Permissions</section>
+        <snippet>Complete mapping of endpoints to required permissions (AllowAny, IsAuthenticated, IsAdmin, IsOwner, etc.)</snippet>
+      </doc>
+      <doc>
+        <path>docs/bestpraticies/BACKEND_BEST_PRACTICES.md</path>
+        <title>Backend Best Practices</title>
+        <section>Permission and Authorization Patterns</section>
+        <snippet>Examples of permission_classes usage, IsCandidateOwner custom permission, object-level permission checks</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>apps/api/core/permissions.py</path>
+        <kind>module</kind>
+        <symbol>IsAdmin, IsCandidate, IsCompany, IsOwner</symbol>
+        <lines>1-89</lines>
+        <reason>Existing permission classes that implement role-based access control - these are already implemented and should be applied to endpoints</reason>
+      </artifact>
+      <artifact>
+        <path>apps/api/user_management/views.py</path>
+        <kind>module</kind>
+        <symbol>AdminUserListView, AdminUserDetailView, AdminPendingCountView, AdminStatsView</symbol>
+        <lines>39-260</lines>
+        <reason>Example views already using IsAdmin permission class - demonstrates proper permission_classes usage pattern</reason>
+      </artifact>
+      <artifact>
+        <path>apps/api/authentication/views.py</path>
+        <kind>module</kind>
+        <symbol>register_candidate, register_company, login</symbol>
+        <lines>43-468</lines>
+        <reason>Public authentication endpoints using AllowAny permission - these are the exceptions to the authentication requirement</reason>
+      </artifact>
+      <artifact>
+        <path>apps/api/talentbase/settings/base.py</path>
+        <kind>settings</kind>
+        <symbol>REST_FRAMEWORK</symbol>
+        <lines>146-162</lines>
+        <reason>DRF configuration with DEFAULT_AUTHENTICATION_CLASSES and DEFAULT_PERMISSION_CLASSES already set to IsAuthenticated</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <python>
+        <package name="django" version="^5.0" />
+        <package name="djangorestframework" version="^3.14" />
+        <package name="django-cors-headers" version="^4.3.0" />
+      </python>
+      <node>
+        <package name="@remix-run/node" version="^2.14.0" />
+        <package name="@remix-run/react" version="^2.14.0" />
+        <package name="react" version="^18.2.0" />
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint id="arch1" category="architecture">Clean Architecture: Views as thin controllers, business logic in services</constraint>
+    <constraint id="api1" category="api">DRF DEFAULT_PERMISSION_CLASSES already set to IsAuthenticated - views inherit this unless overridden</constraint>
+    <constraint id="auth1" category="security">Token-based authentication (DRF Token Auth) stored in httpOnly cookies</constraint>
+    <constraint id="test1" category="testing">Pytest framework with django_db marker for database tests</constraint>
+    <constraint id="pattern1" category="pattern">Permission classes follow DRF BasePermission pattern with has_permission and has_object_permission methods</constraint>
+    <constraint id="frontend1" category="frontend">Remix loaders for route protection, requireAuth utility pattern from Dev Notes</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>IsAuthenticated</name>
+      <kind>permission_class</kind>
+      <signature>rest_framework.permissions.IsAuthenticated</signature>
+      <path>rest_framework.permissions</path>
+      <description>Built-in DRF permission - already configured as DEFAULT_PERMISSION_CLASSES in settings</description>
+    </interface>
+    <interface>
+      <name>IsAdmin</name>
+      <kind>permission_class</kind>
+      <signature>core.permissions.IsAdmin</signature>
+      <path>apps/api/core/permissions.py:10-34</path>
+      <description>Custom permission checking request.user.role == 'admin'</description>
+    </interface>
+    <interface>
+      <name>IsCandidate</name>
+      <kind>permission_class</kind>
+      <signature>core.permissions.IsCandidate</signature>
+      <path>apps/api/core/permissions.py:37-48</path>
+      <description>Custom permission checking request.user.role == 'candidate'</description>
+    </interface>
+    <interface>
+      <name>IsCompany</name>
+      <kind>permission_class</kind>
+      <signature>core.permissions.IsCompany</signature>
+      <path>apps/api/core/permissions.py:51-62</path>
+      <description>Custom permission checking request.user.role == 'company'</description>
+    </interface>
+    <interface>
+      <name>IsOwner</name>
+      <kind>permission_class</kind>
+      <signature>core.permissions.IsOwner</signature>
+      <path>apps/api/core/permissions.py:65-89</path>
+      <description>Object-level permission checking obj.user == request.user</description>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Framework: pytest with pytest-django plugin
+      Test Location Pattern: Each app has tests/ directory with test_*.py files
+      Naming: test_&lt;functionality&gt;.py (e.g., test_permissions.py, test_views.py)
+      Database: Use @pytest.mark.django_db decorator for tests requiring database
+      Fixtures: Define reusable fixtures for users (admin_user, candidate_user, company_user)
+      DRF Testing: Use APIRequestFactory for request mocking and APIClient for integration tests
+      Assertions: Use pytest assertions (assert x is True, assert response.status_code == 200)
+    </standards>
+    <locations>
+      <location>apps/api/*/tests/test_*.py</location>
+      <location>apps/api/core/tests/test_permissions.py - existing permission tests</location>
+      <location>packages/web/app/**/*.test.ts - frontend unit tests</location>
+      <location>packages/web/tests/e2e/**/*.spec.ts - Playwright e2e tests</location>
+    </locations>
+    <ideas>
+      <test_idea ac_ref="1">
+        <title>Test all API endpoints require authentication</title>
+        <approach>Iterate through all registered endpoints, attempt access without token, expect 401 or 403 (except AllowAny endpoints)</approach>
+      </test_idea>
+      <test_idea ac_ref="2">
+        <title>Test admin has access to all endpoints</title>
+        <approach>Use admin user token to access endpoints across all apps, verify 200 responses</approach>
+      </test_idea>
+      <test_idea ac_ref="3">
+        <title>Test candidate permissions</title>
+        <approach>Verify candidate can read/update own profile, browse jobs, create applications, but cannot access admin or company-only endpoints</approach>
+      </test_idea>
+      <test_idea ac_ref="4">
+        <title>Test company permissions</title>
+        <approach>Verify company can CRUD own jobs, search candidates (read-only), favorite candidates, but cannot access admin endpoints or other companies' resources</approach>
+      </test_idea>
+      <test_idea ac_ref="5">
+        <title>Test 403 error responses</title>
+        <approach>Attempt unauthorized access and verify error response format matches: {"error": "...", "code": "PERMISSION_DENIED", "detail": "..."}</approach>
+      </test_idea>
+      <test_idea ac_ref="6">
+        <title>Test permission_classes decorators applied</title>
+        <approach>Code review / linter check that all Django views have explicit permission_classes defined</approach>
+      </test_idea>
+      <test_idea ac_ref="7">
+        <title>Test frontend route protection</title>
+        <approach>E2E test: Navigate to protected routes without auth cookie, verify redirect to /auth/login</approach>
+      </test_idea>
+      <test_idea ac_ref="8">
+        <title>Test UI element visibility by role</title>
+        <approach>E2E test: Login as different roles, verify admin-only buttons hidden for candidate/company users</approach>
+      </test_idea>
+    </ideas>
+  </tests>
+</story-context>
