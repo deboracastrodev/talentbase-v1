@@ -220,6 +220,13 @@ class CandidateProfileSerializer(serializers.ModelSerializer):
             pitch_video_url = data.get('pitch_video_url')
             pitch_video_type = data.get('pitch_video_type')
 
+            # For partial updates, check if instance already has video
+            if self.instance and self.partial:
+                if not pitch_video_url:
+                    pitch_video_url = self.instance.pitch_video_url
+                if not pitch_video_type:
+                    pitch_video_type = self.instance.pitch_video_type
+
             if not pitch_video_url:
                 raise serializers.ValidationError({
                     'pitch_video_url': 'Vídeo pitch é obrigatório. Escolha upload de arquivo ou URL do YouTube'
@@ -304,11 +311,11 @@ class CandidateProfileDraftSerializer(CandidateProfileSerializer):
 
     def __init__(self, *args, **kwargs):
         """Initialize with is_draft context."""
+        # Set is_draft in kwargs context before calling super
+        if 'context' not in kwargs:
+            kwargs['context'] = {}
+        kwargs['context']['is_draft'] = True
         super().__init__(*args, **kwargs)
-        # Set is_draft context to skip pitch_video validation
-        if not self.context:
-            self.context = {}
-        self.context['is_draft'] = True
 
     def validate(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Skip required field validation for drafts."""

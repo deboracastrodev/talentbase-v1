@@ -12,11 +12,10 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from '@remix-run/react';
-import { MultiStepWizard } from '~/components/candidate/MultiStepWizard';
+import { MultiStepWizard } from '@talentbase/design-system';
 import { PhotoUpload } from '~/components/candidate/PhotoUpload';
 import { VideoUpload } from '~/components/candidate/VideoUpload';
 import { createCandidateProfile } from '~/lib/api/candidates';
-import type { CandidateProfile } from '~/lib/types/candidate';
 
 interface Experience {
   company_name: string;
@@ -50,7 +49,7 @@ interface FormData {
   // Step 5: Work History, Bio & Video
   bio: string;
   pitch_video_url: string;
-  pitch_video_type: 's3' | 'youtube';
+  pitch_video_type: 'S3' | 'youtube';
   experiences: Experience[];
 }
 
@@ -68,7 +67,7 @@ const INITIAL_FORM_DATA: FormData = {
   departments_sold_to: [],
   bio: '',
   pitch_video_url: '',
-  pitch_video_type: 's3',
+  pitch_video_type: 'S3',
   experiences: [],
 };
 
@@ -76,6 +75,7 @@ const DRAFT_STORAGE_KEY = 'candidate_profile_draft';
 
 export default function CandidateProfileCreate() {
   const navigate = useNavigate();
+  const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<FormData>(INITIAL_FORM_DATA);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -108,16 +108,27 @@ export default function CandidateProfileCreate() {
 
   const handleSaveDraft = () => {
     localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(formData));
-    // TODO: Also save to backend API when implemented
     console.log('Draft saved to localStorage');
   };
 
-  const handleComplete = async () => {
+  const handleNext = () => {
+    if (currentStep < steps.length - 1) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const handleSubmit = async () => {
     setIsSubmitting(true);
     setError(null);
 
     try {
-      const profile = await createCandidateProfile(formData);
+      await createCandidateProfile(formData);
 
       // Clear draft after successful creation
       localStorage.removeItem(DRAFT_STORAGE_KEY);
@@ -133,279 +144,292 @@ export default function CandidateProfileCreate() {
   };
 
   const steps = [
-    // Step 1: Basic Info
     {
-      id: 1,
-      title: 'Informações Básicas',
+      id: '1',
+      label: 'Informações Básicas',
       description: 'Comece com suas informações de contato e foto de perfil',
-      content: (
-        <div className="space-y-6">
-          <div>
-            <label htmlFor="full_name" className="block text-sm font-medium text-gray-700 mb-2">
-              Nome Completo *
-            </label>
-            <input
-              id="full_name"
-              type="text"
-              required
-              value={formData.full_name}
-              onChange={(e) => updateFormData({ full_name: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Ex: João Silva"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
-              Telefone *
-            </label>
-            <input
-              id="phone"
-              type="tel"
-              required
-              value={formData.phone}
-              onChange={(e) => updateFormData({ phone: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-              placeholder="(11) 98765-4321"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-2">
-              Cidade *
-            </label>
-            <input
-              id="city"
-              type="text"
-              required
-              value={formData.city}
-              onChange={(e) => updateFormData({ city: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Ex: São Paulo"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Foto de Perfil
-            </label>
-            <PhotoUpload
-              onUploadComplete={(url) => updateFormData({ profile_photo_url: url })}
-              currentPhotoUrl={formData.profile_photo_url}
-            />
-          </div>
-        </div>
-      ),
     },
-
-    // Step 2: Position & Experience
     {
-      id: 2,
-      title: 'Posição & Experiência',
+      id: '2',
+      label: 'Posição & Experiência',
       description: 'Conte-nos sobre sua experiência em vendas',
-      content: (
-        <div className="space-y-6">
-          <div>
-            <label htmlFor="current_position" className="block text-sm font-medium text-gray-700 mb-2">
-              Posição Atual *
-            </label>
-            <select
-              id="current_position"
-              required
-              value={formData.current_position}
-              onChange={(e) => updateFormData({ current_position: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">Selecione...</option>
-              <option value="SDR/BDR">SDR/BDR</option>
-              <option value="AE/Closer">Account Executive/Closer</option>
-              <option value="CSM">Customer Success Manager</option>
-            </select>
-          </div>
-
-          <div>
-            <label htmlFor="years_of_experience" className="block text-sm font-medium text-gray-700 mb-2">
-              Anos de Experiência *
-            </label>
-            <input
-              id="years_of_experience"
-              type="number"
-              required
-              min="0"
-              value={formData.years_of_experience}
-              onChange={(e) => updateFormData({ years_of_experience: parseInt(e.target.value) })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="sales_type" className="block text-sm font-medium text-gray-700 mb-2">
-              Tipo de Vendas *
-            </label>
-            <select
-              id="sales_type"
-              required
-              value={formData.sales_type}
-              onChange={(e) => updateFormData({ sales_type: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">Selecione...</option>
-              <option value="Inbound">Inbound</option>
-              <option value="Outbound">Outbound</option>
-              <option value="Both">Ambos</option>
-            </select>
-          </div>
-
-          <div>
-            <label htmlFor="sales_cycle" className="block text-sm font-medium text-gray-700 mb-2">
-              Ciclo de Vendas Típico
-            </label>
-            <input
-              id="sales_cycle"
-              type="text"
-              value={formData.sales_cycle}
-              onChange={(e) => updateFormData({ sales_cycle: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Ex: 30-60 dias"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="avg_ticket" className="block text-sm font-medium text-gray-700 mb-2">
-              Ticket Médio
-            </label>
-            <input
-              id="avg_ticket"
-              type="text"
-              value={formData.avg_ticket}
-              onChange={(e) => updateFormData({ avg_ticket: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Ex: R$ 10k-50k MRR"
-            />
-          </div>
-        </div>
-      ),
     },
-
-    // Step 3: Tools & Software
     {
-      id: 3,
-      title: 'Ferramentas & Software',
+      id: '3',
+      label: 'Ferramentas & Software',
       description: 'Quais ferramentas você domina?',
-      content: (
-        <div className="space-y-4">
-          <p className="text-sm text-gray-600">
-            Selecione todas as ferramentas que você tem experiência:
-          </p>
-          <ToolsSelector
-            selected={formData.tools_software}
-            onChange={(tools) => updateFormData({ tools_software: tools })}
-          />
-        </div>
-      ),
     },
-
-    // Step 4: Solutions & Departments
     {
-      id: 4,
-      title: 'Soluções & Departamentos',
+      id: '4',
+      label: 'Soluções & Departamentos',
       description: 'Experiência por segmento e buyer persona',
-      content: (
-        <div className="space-y-8">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">
-              Soluções Vendidas
-            </label>
-            <SolutionsSelector
-              selected={formData.solutions_sold}
-              onChange={(solutions) => updateFormData({ solutions_sold: solutions })}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">
-              Departamentos para quem vendeu
-            </label>
-            <DepartmentsSelector
-              selected={formData.departments_sold_to}
-              onChange={(departments) => updateFormData({ departments_sold_to: departments })}
-            />
-          </div>
-        </div>
-      ),
     },
-
-    // Step 5: Work History, Bio & Video
     {
-      id: 5,
-      title: 'Histórico de Trabalho, Bio & Vídeo',
+      id: '5',
+      label: 'Histórico de Trabalho, Bio & Vídeo',
       description: 'Finalize seu perfil com suas experiências e vídeo pitch',
-      content: (
-        <div className="space-y-8">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">
-              Experiências Profissionais
-            </label>
-            <ExperienceEditor
-              experiences={formData.experiences}
-              onChange={(experiences) => updateFormData({ experiences })}
-            />
-          </div>
-
-          <div>
-            <label htmlFor="bio" className="block text-sm font-medium text-gray-700 mb-2">
-              Bio Profissional
-            </label>
-            <textarea
-              id="bio"
-              rows={6}
-              value={formData.bio}
-              onChange={(e) => updateFormData({ bio: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Escreva um resumo sobre sua trajetória em vendas..."
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Vídeo Pitch * (Obrigatório)
-            </label>
-            <p className="text-sm text-gray-600 mb-3">
-              Grave um vídeo de até 2 minutos se apresentando. Você pode fazer upload direto ou usar um vídeo do YouTube.
-            </p>
-            <VideoUpload
-              onUploadComplete={(url, type) =>
-                updateFormData({
-                  pitch_video_url: url,
-                  pitch_video_type: type
-                })
-              }
-              currentVideoUrl={formData.pitch_video_url}
-              currentVideoType={formData.pitch_video_type}
-            />
-          </div>
-        </div>
-      ),
     },
   ];
 
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 0:
+        return (
+          <div className="space-y-6">
+            <div>
+              <label htmlFor="full_name" className="block text-sm font-medium text-gray-700 mb-2">
+                Nome Completo *
+              </label>
+              <input
+                id="full_name"
+                type="text"
+                required
+                value={formData.full_name}
+                onChange={(e) => updateFormData({ full_name: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Ex: João Silva"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+                Telefone *
+              </label>
+              <input
+                id="phone"
+                type="tel"
+                required
+                value={formData.phone}
+                onChange={(e) => updateFormData({ phone: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                placeholder="(11) 98765-4321"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-2">
+                Cidade *
+              </label>
+              <input
+                id="city"
+                type="text"
+                required
+                value={formData.city}
+                onChange={(e) => updateFormData({ city: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Ex: São Paulo"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Foto de Perfil
+              </label>
+              <PhotoUpload
+                onUploadComplete={(url) => updateFormData({ profile_photo_url: url })}
+                currentPhotoUrl={formData.profile_photo_url}
+              />
+            </div>
+          </div>
+        );
+
+      case 1:
+        return (
+          <div className="space-y-6">
+            <div>
+              <label htmlFor="current_position" className="block text-sm font-medium text-gray-700 mb-2">
+                Posição Atual *
+              </label>
+              <select
+                id="current_position"
+                required
+                value={formData.current_position}
+                onChange={(e) => updateFormData({ current_position: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">Selecione...</option>
+                <option value="SDR/BDR">SDR/BDR</option>
+                <option value="AE/Closer">Account Executive/Closer</option>
+                <option value="CSM">Customer Success Manager</option>
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="years_of_experience" className="block text-sm font-medium text-gray-700 mb-2">
+                Anos de Experiência *
+              </label>
+              <input
+                id="years_of_experience"
+                type="number"
+                required
+                min="0"
+                value={formData.years_of_experience}
+                onChange={(e) => updateFormData({ years_of_experience: parseInt(e.target.value) })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="sales_type" className="block text-sm font-medium text-gray-700 mb-2">
+                Tipo de Vendas *
+              </label>
+              <select
+                id="sales_type"
+                required
+                value={formData.sales_type}
+                onChange={(e) => updateFormData({ sales_type: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">Selecione...</option>
+                <option value="Inbound">Inbound</option>
+                <option value="Outbound">Outbound</option>
+                <option value="Both">Ambos</option>
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="sales_cycle" className="block text-sm font-medium text-gray-700 mb-2">
+                Ciclo de Vendas Típico
+              </label>
+              <input
+                id="sales_cycle"
+                type="text"
+                value={formData.sales_cycle}
+                onChange={(e) => updateFormData({ sales_cycle: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Ex: 30-60 dias"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="avg_ticket" className="block text-sm font-medium text-gray-700 mb-2">
+                Ticket Médio
+              </label>
+              <input
+                id="avg_ticket"
+                type="text"
+                value={formData.avg_ticket}
+                onChange={(e) => updateFormData({ avg_ticket: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Ex: R$ 10k-50k MRR"
+              />
+            </div>
+          </div>
+        );
+
+      case 2:
+        return (
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600">
+              Selecione todas as ferramentas que você tem experiência:
+            </p>
+            <ToolsSelector
+              selected={formData.tools_software}
+              onChange={(tools) => updateFormData({ tools_software: tools })}
+            />
+          </div>
+        );
+
+      case 3:
+        return (
+          <div className="space-y-8">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                Soluções Vendidas
+              </label>
+              <SolutionsSelector
+                selected={formData.solutions_sold}
+                onChange={(solutions) => updateFormData({ solutions_sold: solutions })}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                Departamentos para quem vendeu
+              </label>
+              <DepartmentsSelector
+                selected={formData.departments_sold_to}
+                onChange={(departments) => updateFormData({ departments_sold_to: departments })}
+              />
+            </div>
+          </div>
+        );
+
+      case 4:
+        return (
+          <div className="space-y-8">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                Experiências Profissionais
+              </label>
+              <ExperienceEditor
+                experiences={formData.experiences}
+                onChange={(experiences) => updateFormData({ experiences })}
+              />
+            </div>
+
+            <div>
+              <label htmlFor="bio" className="block text-sm font-medium text-gray-700 mb-2">
+                Bio Profissional
+              </label>
+              <textarea
+                id="bio"
+                rows={6}
+                value={formData.bio}
+                onChange={(e) => updateFormData({ bio: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Escreva um resumo sobre sua trajetória em vendas..."
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Vídeo Pitch * (Obrigatório)
+              </label>
+              <p className="text-sm text-gray-600 mb-3">
+                Grave um vídeo de até 2 minutos se apresentando. Você pode fazer upload direto ou usar um vídeo do YouTube.
+              </p>
+              <VideoUpload
+                onUploadComplete={(url, type) =>
+                  updateFormData({
+                    pitch_video_url: url,
+                    pitch_video_type: type === 's3' ? 'S3' : 'youtube'
+                  })
+                }
+                currentVideoUrl={formData.pitch_video_url}
+                currentVideoType={formData.pitch_video_type === 'S3' ? 's3' : 'youtube'}
+              />
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-white rounded-lg shadow">
-          {error && (
-            <div className="p-4 bg-red-50 border-l-4 border-red-400">
-              <p className="text-red-700">{error}</p>
-            </div>
-          )}
+      <div className="max-w-4xl mx-auto px-4">
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-400 rounded">
+            <p className="text-red-700">{error}</p>
+          </div>
+        )}
 
-          <MultiStepWizard
-            steps={steps}
-            onComplete={handleComplete}
-            onSaveDraft={handleSaveDraft}
-            showDraftButton={!isSubmitting}
-          />
-        </div>
+        <MultiStepWizard
+          steps={steps}
+          currentStep={currentStep}
+          onNext={handleNext}
+          onPrevious={handlePrevious}
+          onSaveDraft={handleSaveDraft}
+          onSubmit={handleSubmit}
+          isLoading={isSubmitting}
+          showSaveDraft={!isSubmitting}
+          submitLabel="Finalizar Cadastro"
+        >
+          {renderStepContent()}
+        </MultiStepWizard>
       </div>
     </div>
   );
