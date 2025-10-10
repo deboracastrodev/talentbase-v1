@@ -40,24 +40,24 @@ Epic 2 establishes secure multi-role access control for TalentBase. This epic en
 ### Story 2.1: User Registration (Candidate)
 - Route: `/auth/register/candidate`
 - API: `POST /api/v1/auth/register/candidate`
-- Flow: Form submission ’ User + CandidateProfile created ’ Token generated ’ Email sent ’ Redirect to `/candidate/onboarding`
+- Flow: Form submission ï¿½ User + CandidateProfile created ï¿½ Token generated ï¿½ Email sent ï¿½ Redirect to `/candidate/onboarding`
 - Security: PBKDF2 password hashing, email uniqueness, rate limiting (10 registrations/hour per IP)
 
 ### Story 2.2: User Registration (Company)
 - Route: `/auth/register/company`
 - API: `POST /api/v1/auth/register/company`
 - CNPJ Validation: Format check + digit validation using pycpfcnpj library
-- Flow: Form submission ’ User (is_active=False) + CompanyProfile created ’ Emails sent (company + admin) ’ Cannot login until approved
+- Flow: Form submission ï¿½ User (is_active=False) + CompanyProfile created ï¿½ Emails sent (company + admin) ï¿½ Cannot login until approved
 
 ### Story 2.3: Login & Token Authentication
 - Route: `/auth/login`
 - API: `POST /api/v1/auth/login`
 - Token Storage: httpOnly cookie (7 days expiry)
 - Role-Based Redirect:
-  - admin ’ `/admin`
-  - candidate ’ `/candidate`
-  - company (active) ’ `/company`
-  - company (pending) ’ `/auth/registration-pending`
+  - admin ï¿½ `/admin`
+  - candidate ï¿½ `/candidate`
+  - company (active) ï¿½ `/company`
+  - company (pending) ï¿½ `/auth/registration-pending`
 
 ### Story 2.4: Admin User Management Dashboard
 - Route: `/admin/users`
@@ -69,8 +69,8 @@ Epic 2 establishes secure multi-role access control for TalentBase. This epic en
 - API:
   - `POST /api/v1/admin/users/:id/approve`
   - `POST /api/v1/admin/users/:id/reject`
-- Approval Flow: Admin clicks Approve ’ User.is_active=True ’ Email sent ’ Company can login
-- Rejection Flow: Admin clicks Reject (with reason) ’ User.is_active=False ’ Email sent with reason
+- Approval Flow: Admin clicks Approve ï¿½ User.is_active=True ï¿½ Email sent ï¿½ Company can login
+- Rejection Flow: Admin clicks Reject (with reason) ï¿½ User.is_active=False ï¿½ Email sent with reason
 - Audit: Log admin ID, timestamp, action, reason
 
 ### Story 2.6: Role-Based Access Control (RBAC)
@@ -178,9 +178,9 @@ class CompanyProfile(BaseModel):
 
 ### E2E Tests (Playwright)
 - `candidate-registration.spec.ts`: Full registration flow, redirect to onboarding
-- `company-registration.spec.ts`: Registration ’ pending page
+- `company-registration.spec.ts`: Registration ï¿½ pending page
 - `login-redirect.spec.ts`: Login redirects based on role
-- `admin-approval.spec.ts`: Admin approves company ’ company can login
+- `admin-approval.spec.ts`: Admin approves company ï¿½ company can login
 
 ### Manual Testing Checklist
 - [ ] Candidate can register and login immediately
@@ -200,13 +200,13 @@ class CompanyProfile(BaseModel):
 **Subject:** Bem-vindo ao TalentBase!
 **Body:**
 ```
-Olá [CANDIDATE_NAME],
+Olï¿½ [CANDIDATE_NAME],
 
 Sua conta foi criada com sucesso no TalentBase!
 
-Próximos passos:
+Prï¿½ximos passos:
 1. Complete seu perfil profissional
-2. Adicione suas experiências e habilidades
+2. Adicione suas experiï¿½ncias e habilidades
 3. Comece a buscar oportunidades
 
 Acesse sua conta: https://www.salesdog.click/candidate
@@ -216,14 +216,14 @@ Equipe TalentBase
 ```
 
 ### Company Registration Submitted
-**Subject:** Cadastro Recebido - Aguardando Aprovação
+**Subject:** Cadastro Recebido - Aguardando Aprovaï¿½ï¿½o
 **Body:**
 ```
-Olá [CONTACT_NAME],
+Olï¿½ [CONTACT_NAME],
 
-Seu cadastro da empresa [COMPANY_NAME] foi recebido com sucesso e está aguardando aprovação do nosso time.
+Seu cadastro da empresa [COMPANY_NAME] foi recebido com sucesso e estï¿½ aguardando aprovaï¿½ï¿½o do nosso time.
 
-Você receberá um email de confirmação em até 24 horas.
+Vocï¿½ receberï¿½ um email de confirmaï¿½ï¿½o em atï¿½ 24 horas.
 
 Atenciosamente,
 Equipe TalentBase
@@ -233,11 +233,11 @@ Equipe TalentBase
 **Subject:** Empresa Aprovada - Acesse Sua Conta
 **Body:**
 ```
-Olá [CONTACT_NAME],
+Olï¿½ [CONTACT_NAME],
 
 Sua empresa [COMPANY_NAME] foi aprovada no TalentBase!
 
-Agora você pode:
+Agora vocï¿½ pode:
 - Publicar vagas de vendas
 - Buscar candidatos qualificados
 - Gerenciar processos seletivos
@@ -249,16 +249,16 @@ Equipe TalentBase
 ```
 
 ### Company Registration Rejected
-**Subject:** Cadastro Não Aprovado
+**Subject:** Cadastro Nï¿½o Aprovado
 **Body:**
 ```
-Olá [CONTACT_NAME],
+Olï¿½ [CONTACT_NAME],
 
-Infelizmente, não pudemos aprovar o cadastro da empresa [COMPANY_NAME] no TalentBase.
+Infelizmente, nï¿½o pudemos aprovar o cadastro da empresa [COMPANY_NAME] no TalentBase.
 
 Motivo: [REJECTION_REASON]
 
-Se você acredita que houve um erro, entre em contato conosco: contato@salesdog.click
+Se vocï¿½ acredita que houve um erro, entre em contato conosco: contato@salesdog.click
 
 Atenciosamente,
 Equipe TalentBase
@@ -340,17 +340,35 @@ from core.tasks import send_email_task
 # In register_candidate view
 send_email_task.delay(
     subject='Bem-vindo ao TalentBase!',
-    message=f'Olá {user.candidate_profile.full_name}, sua conta foi criada.',
+    message=f'Olï¿½ {user.candidate_profile.full_name}, sua conta foi criada.',
     recipient_list=[user.email]
 )
 ```
 
 ---
 
+## Post-Review Follow-ups
+
+**Story 2.1 Review Action Items (2025-10-03):**
+
+**High Priority:**
+- Implement httpOnly cookie-based token storage (MED-1) - Backend sets Set-Cookie header, frontend removes localStorage. May require auth middleware setup for Story 2.3.
+
+**Medium Priority:**
+- Use RegistrationResponseSerializer in view (MED-2) - Replace manual dict construction for type-safe response serialization.
+
+**Low Priority:**
+- Create HTML email templates (LOW-4) - Implement HTML+text versions per Epic 2 spec
+- Centralize API URL configuration (LOW-2) - Create api-client.ts module
+- Add TypeScript return type annotations (LOW-1) - Component function return types
+- Implement production error tracking (LOW-3) - Integrate Sentry for frontend
+- Add Celery integration test (Testing) - Validate full email flow end-to-end
+- Extract validation logic to testable utility (Testing) - Add Vitest tests for validateForm
+
 ## Epic Completion Checklist
 
 **Epic 2 Definition of Done:**
-- [ ] Story 2.1: Candidate registration working, email sent
+- [x] Story 2.1: Candidate registration working, email sent âœ… APPROVED (2025-10-03)
 - [ ] Story 2.2: Company registration working, pending approval, emails sent
 - [ ] Story 2.3: Login functional, role-based redirect working
 - [ ] Story 2.4: Admin dashboard shows all users with filters

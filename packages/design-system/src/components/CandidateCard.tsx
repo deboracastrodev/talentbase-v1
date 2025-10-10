@@ -132,7 +132,7 @@ export const CandidateCard = React.forwardRef<HTMLDivElement, CandidateCardProps
 
         {/* Skills */}
         <div className="mb-4">
-          <p className="text-xs font-medium text-gray-500 mb-2">Vetted skills:</p>
+          <p className="text-xs font-medium text-gray-500 mb-2">Principais habilidades:</p>
           <div className="flex flex-wrap gap-2">
             {displaySkills.map((skill, index) => (
               <span

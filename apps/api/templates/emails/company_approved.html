@@ -1,0 +1,37 @@
+{% extends 'emails/base.html' %}
+
+{% block content %}
+<h2>Parabéns! Sua Empresa Foi Aprovada!</h2>
+
+<p>Olá <strong>{{ contact_name }}</strong>,</p>
+
+<p>Temos uma excelente notícia! A <strong>{{ company_name }}</strong> foi aprovada e agora você tem acesso total à plataforma TalentBase.</p>
+
+<div class="success-box">
+    <p><strong>Sua conta está ativa</strong><br>
+    Você já pode começar a publicar vagas e buscar os melhores talentos.</p>
+</div>
+
+<p><strong>O que você pode fazer agora:</strong></p>
+<ul>
+    <li>Publicar suas primeiras vagas</li>
+    <li>Configurar o perfil da sua empresa</li>
+    <li>Buscar candidatos qualificados</li>
+    <li>Gerenciar todo o processo seletivo em um só lugar</li>
+</ul>
+
+<center>
+    <a href="{{ dashboard_url }}" class="button">Acessar Meu Dashboard</a>
+</center>
+
+<div class="divider"></div>
+
+<div class="info-box">
+    <p><strong>Primeiros passos:</strong><br>
+    Complete o perfil da sua empresa com logo, descrição e cultura organizacional para atrair os melhores talentos!</p>
+</div>
+
+<p>Nossa equipe está aqui para ajudar você a ter sucesso na busca pelos melhores profissionais.</p>
+
+<p>Bem-vindo ao TalentBase!</p>
+{% endblock %}

@@ -1,0 +1,28 @@
+{
+  "name": "@talentbase/infrastructure",
+  "version": "1.0.0",
+  "description": "TalentBase AWS Infrastructure as Code with CDK",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "cdk": "cdk",
+    "diff": "cdk diff",
+    "deploy": "cdk deploy --all --require-approval never",
+    "deploy:dev": "cdk deploy TalentbaseDevNetworking TalentbaseDevDatabase TalentbaseDevApplication --require-approval never",
+    "deploy:prod": "cdk deploy TalentbaseProdNetworking TalentbaseProdDatabase TalentbaseProdApplication --require-approval never",
+    "destroy": "cdk destroy --all",
+    "synth": "cdk synth",
+    "bootstrap": "cdk bootstrap"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "aws-cdk": "^2.120.0",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "^2.120.0",
+    "constructs": "^10.3.0",
+    "source-map-support": "^0.5.21"
+  }
+}

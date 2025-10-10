@@ -1,0 +1,217 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>2.1</storyId>
+    <title>User Registration (Candidate)</title>
+    <status>ContextReadyDraft</status>
+    <generatedAt>2025-10-03</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/story-2.1.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>profissional de vendas</asA>
+    <iWant>me registrar para uma conta no TalentBase</iWant>
+    <soThat>eu possa criar meu perfil e me candidatar a vagas</soThat>
+    <tasks>
+      <task id="task1">Criar modelo User estendido (AC: 4, 5, 6)</task>
+      <task id="task2">Implementar API de registro (AC: 4, 5, 6, 9)</task>
+      <task id="task3">Criar página de registro frontend (AC: 1, 2, 3, 10)</task>
+      <task id="task4">Configurar sistema de email (AC: 7)</task>
+      <task id="task5">Implementar redirect pós-registro (AC: 8)</task>
+      <task id="task6">Implementar testes automatizados</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC1">Página de registro em `/auth/register/candidate`</criterion>
+    <criterion id="AC2">Formulário com campos: nome, email, senha, confirmar senha, telefone</criterion>
+    <criterion id="AC3">Validação client-side (formato email, força da senha, senhas iguais)</criterion>
+    <criterion id="AC4">Endpoint API `POST /api/v1/auth/register/candidate`</criterion>
+    <criterion id="AC5">Senha criptografada usando algoritmo padrão do Django</criterion>
+    <criterion id="AC6">Usuário criado com role="candidate", status="active"</criterion>
+    <criterion id="AC7">Email de confirmação enviado com detalhes da conta</criterion>
+    <criterion id="AC8">Mensagem de sucesso exibida, redirect para `/candidate/profile` (onboarding)</criterion>
+    <criterion id="AC9">Tratamento de erro para email duplicado</criterion>
+    <criterion id="AC10">Formulário acessível e compatível com WCAG 2.1 AA</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc id="doc1">
+        <path>docs/epics/tech-spec-epic-2.md</path>
+        <title>Technical Specification - Epic 2: Authentication &amp; User Management</title>
+        <section>Story 2.1: User Registration (Candidate)</section>
+        <snippet>Route: `/auth/register/candidate`, API: `POST /api/v1/auth/register/candidate`, Flow: Form submission → User + CandidateProfile created → Token generated → Email sent → Redirect to `/candidate/onboarding`, Security: PBKDF2 password hashing, email uniqueness, rate limiting (10 registrations/hour per IP)</snippet>
+      </doc>
+      <doc id="doc2">
+        <path>docs/epics/tech-spec-epic-2.md</path>
+        <title>Database Schema Changes</title>
+        <section>User Model &amp; CandidateProfile</section>
+        <snippet>User model with role field (admin/candidate/company), CandidateProfile with minimal fields: user (OneToOne), full_name, phone. User: id (UUID), email (unique, indexed), role, is_active, created_at, updated_at</snippet>
+      </doc>
+      <doc id="doc3">
+        <path>docs/arquitetura/authentication.md</path>
+        <title>Authentication &amp; Authorization</title>
+        <section>Candidate Registration Flow</section>
+        <snippet>1. POST /api/auth/register/candidate → 2. Create User (role='candidate') → 3. Create Candidate profile (status='incomplete') → 4. Generate auth token → 5. Send welcome email → 6. Return token + user data. Token-based auth using DRF Token Authentication, stored in httpOnly cookie</snippet>
+      </doc>
+      <doc id="doc4">
+        <path>docs/arquitetura/database-schema.md</path>
+        <title>Database Schema</title>
+        <section>User &amp; Candidate Models</section>
+        <snippet>User: AbstractBaseUser with UUID id, email (unique, USERNAME_FIELD), role (admin/candidate/company), is_active. Candidate: OneToOne with User, phone, location, linkedin, title, seniority, bio, salary range, status (incomplete/available/no_contract/inactive), verified, ranking_score</snippet>
+      </doc>
+      <doc id="doc5">
+        <path>docs/arquitetura/api-endpoints.md</path>
+        <title>API Endpoints</title>
+        <section>Register Candidate</section>
+        <snippet>POST /auth/register/candidate. Request: email, password, first_name, last_name, phone, location. Response 201: user object (id, email, name, role), token. Uses DRF Token Auth format: `Authorization: Token &lt;token&gt;`</snippet>
+      </doc>
+      <doc id="doc6">
+        <path>docs/bestpraticies/BACKEND_BEST_PRACTICES.md</path>
+        <title>Backend Best Practices</title>
+        <section>Clean Architecture &amp; Services Pattern</section>
+        <snippet>MANDATORY layered architecture: Presentation (views, serializers) → Application (services) → Domain (models, validators) → Infrastructure. Services handle business logic, Views are thin controllers, Models are data structures only. Always use @transaction.atomic for multi-object operations</snippet>
+      </doc>
+      <doc id="doc7">
+        <path>docs/design-system/components/forms.md</path>
+        <title>Forms Components</title>
+        <section>Input, Validation &amp; Accessibility</section>
+        <snippet>Form components: Input (variants: default/error/success, sizes: sm/md/lg), FormField wrapper with label/error/helper. Validation states: error (red), success (green). Always include accessible labels (htmlFor), provide clear visual feedback, use aria-invalid and aria-describedby for errors</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact id="code1">
+        <path>apps/api/authentication/models.py</path>
+        <kind>model</kind>
+        <symbol>User</symbol>
+        <lines>62-110</lines>
+        <reason>Existing User model with role field (admin/candidate/company), email-based authentication. Must be reused for candidate registration (role='candidate').</reason>
+      </artifact>
+      <artifact id="code2">
+        <path>apps/api/authentication/models.py</path>
+        <kind>manager</kind>
+        <symbol>UserManager.create_user</symbol>
+        <lines>20-42</lines>
+        <reason>User creation method that normalizes email, sets password with hashing. Should be used in registration service.</reason>
+      </artifact>
+      <artifact id="code3">
+        <path>apps/api/candidates/models.py</path>
+        <kind>model</kind>
+        <symbol>CandidateProfile</symbol>
+        <lines>31-142</lines>
+        <reason>Existing CandidateProfile model with comprehensive fields. Registration should create minimal profile (user, full_name, phone) - additional fields filled later in onboarding.</reason>
+      </artifact>
+      <artifact id="code4">
+        <path>apps/api/core/models.py</path>
+        <kind>base_model</kind>
+        <symbol>BaseModel</symbol>
+        <lines>11-47</lines>
+        <reason>Abstract base model providing UUID id, timestamps, soft delete. CandidateProfile already inherits from this.</reason>
+      </artifact>
+      <artifact id="code5">
+        <path>apps/api/candidates/models.py</path>
+        <kind>validator</kind>
+        <symbol>validate_youtube_url</symbol>
+        <lines>15-28</lines>
+        <reason>Example of custom validator pattern. Registration may need similar validators for phone, email format.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <python>
+        <package name="django" version="^5.0">Web framework</package>
+        <package name="djangorestframework" version="^3.14">REST API framework</package>
+        <package name="django-cors-headers" version="^4.3.0">CORS handling</package>
+        <package name="psycopg2-binary" version="^2.9.9">PostgreSQL adapter</package>
+        <package name="python-decouple" version="^3.8">Environment config</package>
+        <package name="celery" version="^5.3.0">Async task queue (for emails)</package>
+        <package name="redis" version="^5.0.0">Celery broker &amp; cache</package>
+        <package name="pytest" version="^7.4.0">Testing framework</package>
+        <package name="pytest-django" version="^4.5.2">Django test integration</package>
+      </python>
+      <node>
+        <package name="@remix-run/react" version="^2.14.0">React framework</package>
+        <package name="react" version="^18.2.0">UI library</package>
+        <package name="@talentbase/design-system" version="workspace:*">Internal design system</package>
+        <package name="lucide-react" version="^0.544.0">Icon library</package>
+        <package name="tailwindcss" version="^3.4.18">CSS framework</package>
+        <package name="vitest" version="^1.0.0">Unit testing</package>
+        <package name="@playwright/test" version="^1.55.1">E2E testing</package>
+        <package name="typescript" version="^5.1.6">Type safety</package>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint id="arch1">Clean Architecture mandatory: Create CandidateRegistrationService in apps/api/authentication/services/ for business logic. Views must be thin controllers only.</constraint>
+    <constraint id="arch2">Use @transaction.atomic for registration (creates User + CandidateProfile atomically).</constraint>
+    <constraint id="arch3">Models are data structures only - no business logic in User or CandidateProfile models.</constraint>
+    <constraint id="dev1">Backend structure: apps/api/authentication/ contains User model, views, serializers, services for authentication.</constraint>
+    <constraint id="dev2">Candidate profile minimal on registration: only user, full_name, phone. Extended fields (CPF, LinkedIn, video, skills) filled in Epic 3 onboarding.</constraint>
+    <constraint id="security1">Password hashing: Django default PBKDF2. Never log or return passwords in responses.</constraint>
+    <constraint id="security2">Rate limiting: 10 registrations/hour per IP using django-ratelimit or DRF throttling.</constraint>
+    <constraint id="validation1">Email uniqueness enforced at database level (User.email unique=True, db_index=True).</constraint>
+    <constraint id="validation2">Client-side validation for UX, server-side validation for security. Never trust client input.</constraint>
+    <constraint id="email1">Development uses MailHog (localhost:1025 SMTP, :8025 Web UI). ZERO real emails sent in DEV. View all emails at http://localhost:8025</constraint>
+    <constraint id="email2">Production uses SendGrid/AWS SES. Only production sends real emails.</constraint>
+    <constraint id="email3">Self-service registration (candidate/company) triggers automatic welcome email. Admin-created users do NOT auto-send emails (manual trigger in Django admin if needed).</constraint>
+  </constraints>
+  <interfaces>
+    <interface id="api1">
+      <name>POST /api/v1/auth/register/candidate</name>
+      <kind>rest_endpoint</kind>
+      <signature>Request: {email, password, first_name, last_name, phone} → Response 201: {user: {id, email, role}, token}</signature>
+      <path>apps/api/authentication/views.py</path>
+    </interface>
+    <interface id="model1">
+      <name>User.objects.create_user()</name>
+      <kind>orm_method</kind>
+      <signature>create_user(email: str, password: str, role: str = 'candidate', **extra_fields) → User</signature>
+      <path>apps/api/authentication/models.py:20-42</path>
+    </interface>
+    <interface id="model2">
+      <name>CandidateProfile.objects.create()</name>
+      <kind>orm_method</kind>
+      <signature>create(user: User, full_name: str, phone: str) → CandidateProfile</signature>
+      <path>apps/api/candidates/models.py:31-142</path>
+    </interface>
+    <interface id="email1">
+      <name>send_email_task.delay()</name>
+      <kind>celery_task</kind>
+      <signature>delay(subject: str, message: str, recipient_list: list[str]) → AsyncResult</signature>
+      <path>To be created in apps/api/core/tasks.py</path>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>
+      Testing framework: pytest with pytest-django for backend, vitest for frontend unit tests, Playwright for E2E.
+      Backend: Test structure follows apps/api/{app}/tests/test_*.py pattern. Use @pytest.mark.django_db for database tests.
+      Use pytest fixtures for setup. AAA pattern (Arrange-Act-Assert). Type hints mandatory.
+      Frontend: Tests in packages/web/app/**/*.test.tsx for unit, tests/e2e/ for Playwright E2E.
+      Target: >=80% backend coverage, all happy paths + error cases.
+    </standards>
+    <locations>
+      <backend>
+        <location>apps/api/authentication/tests/test_models.py</location>
+        <location>apps/api/authentication/tests/test_services.py (create)</location>
+        <location>apps/api/authentication/tests/test_views.py (create)</location>
+        <location>apps/api/candidates/tests/test_models.py</location>
+      </backend>
+      <frontend>
+        <location>packages/web/app/routes/__tests__/auth.register.candidate.test.tsx (create)</location>
+        <location>tests/e2e/candidate-registration.spec.ts (create)</location>
+      </frontend>
+    </locations>
+    <ideas>
+      <test id="test1" maps_to="AC4,AC5,AC6">Unit test: test_candidate_registration_creates_user_and_profile - validates User + CandidateProfile created with correct fields, password hashed</test>
+      <test id="test2" maps_to="AC9">Unit test: test_candidate_registration_duplicate_email - validates 400 error when email already exists</test>
+      <test id="test3" maps_to="AC4">Unit test: test_candidate_registration_invalid_data - validates 400 errors for missing/invalid fields (email format, password strength)</test>
+      <test id="test4" maps_to="AC7">Unit test: test_candidate_registration_sends_welcome_email - validates email task queued with correct params</test>
+      <test id="test5" maps_to="AC1,AC2,AC3">E2E test: candidate-registration.spec.ts - fills form, submits, validates redirect to /candidate/profile</test>
+      <test id="test6" maps_to="AC3">E2E test: validates client-side validation (email format, password strength, passwords match) before submit</test>
+      <test id="test7" maps_to="AC10">E2E test: validates form accessibility (labels, aria attributes, keyboard navigation)</test>
+      <test id="test8" maps_to="AC9">E2E test: validates duplicate email error displays in UI</test>
+    </ideas>
+  </tests>
+</story-context>

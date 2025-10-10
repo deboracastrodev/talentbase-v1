@@ -1,0 +1,16 @@
+{
+  "CORSRules": [
+    {
+      "AllowedOrigins": [
+        "http://localhost:3000",
+        "http://localhost:8000",
+        "https://dev.salesdog.click",
+        "https://www.salesdog.click"
+      ],
+      "AllowedMethods": ["GET", "POST", "PUT"],
+      "AllowedHeaders": ["*"],
+      "ExposeHeaders": ["ETag", "Location", "Content-Length"],
+      "MaxAgeSeconds": 3000
+    }
+  ]
+}

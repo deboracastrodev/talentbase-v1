@@ -1,0 +1,237 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>2.3</storyId>
+    <title>Login & Token Authentication</title>
+    <status>Approved</status>
+    <generatedAt>2025-10-03</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>/Users/debor/Documents/sistemas/talentbase-v1/docs/stories/story-2.3.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>um usuário registrado</asA>
+    <iWant>fazer login com meu email e senha</iWant>
+    <soThat>eu possa acessar meu dashboard</soThat>
+    <tasks>
+      <task id="1" status="pending">
+        <title>Implementar API de login</title>
+        <subtasks>
+          <subtask>Criar LoginSerializer com validação</subtask>
+          <subtask>Criar LoginView com token generation</subtask>
+          <subtask>Implementar verificação de status da conta</subtask>
+        </subtasks>
+        <relatedAC>AC-3, AC-4, AC-7, AC-8</relatedAC>
+      </task>
+      <task id="2" status="pending">
+        <title>Configurar armazenamento de token</title>
+        <subtasks>
+          <subtask>Configurar httpOnly cookie settings</subtask>
+          <subtask>Implementar secure, sameSite flags</subtask>
+          <subtask>Configurar tempo de expiração (7 dias)</subtask>
+        </subtasks>
+        <relatedAC>AC-5</relatedAC>
+      </task>
+      <task id="3" status="pending">
+        <title>Implementar sistema de redirecionamento</title>
+        <subtasks>
+          <subtask>Criar utility function para role-based redirect</subtask>
+          <subtask>Implementar diferentes dashboards por role</subtask>
+          <subtask>Criar página pending approval</subtask>
+        </subtasks>
+        <relatedAC>AC-6</relatedAC>
+      </task>
+      <task id="4" status="pending">
+        <title>Criar página de login frontend</title>
+        <subtasks>
+          <subtask>Criar route /auth/login</subtask>
+          <subtask>Implementar formulário com validação</subtask>
+          <subtask>Integrar com design system</subtask>
+        </subtasks>
+        <relatedAC>AC-1, AC-2, AC-9</relatedAC>
+      </task>
+      <task id="5" status="pending">
+        <title>Implementar rate limiting (Segurança)</title>
+        <subtasks>
+          <subtask>Configurar rate limiting (5 tentativas/minuto)</subtask>
+          <subtask>Implementar lockout temporário</subtask>
+          <subtask>Logs de tentativas de login</subtask>
+        </subtasks>
+        <relatedAC>Security</relatedAC>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC-1">Página de login em /auth/login</criterion>
+    <criterion id="AC-2">Formulário com campos: email, senha</criterion>
+    <criterion id="AC-3">Endpoint API POST /api/v1/auth/login</criterion>
+    <criterion id="AC-4">Token gerado na autenticação bem-sucedida (DRF Token Auth)</criterion>
+    <criterion id="AC-5">Token armazenado de forma segura em httpOnly cookie</criterion>
+    <criterion id="AC-6">Usuário redirecionado baseado na role: admin → /admin, candidate → /candidate, company (active) → /company, company (pending) → /auth/registration-pending</criterion>
+    <criterion id="AC-7">Mensagem de erro para credenciais inválidas</criterion>
+    <criterion id="AC-8">Mensagem de erro para contas inativas/pendentes</criterion>
+    <criterion id="AC-9">Link "Esqueci minha senha" (placeholder para story futura)</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>/Users/debor/Documents/sistemas/talentbase-v1/docs/arquitetura/authentication.md</path>
+        <title>Authentication & Authorization</title>
+        <section>Login Flow</section>
+        <snippet>Login flow: POST /api/auth/login → Validate credentials → Check user.is_active → If company check company.approved → Generate/retrieve auth token → Return token + user data</snippet>
+      </doc>
+      <doc>
+        <path>/Users/debor/Documents/sistemas/talentbase-v1/docs/arquitetura/authentication.md</path>
+        <title>Authentication & Authorization</title>
+        <section>Token Storage (Frontend)</section>
+        <snippet>Cookie-based (Recommended for Remix): auth_token stored in httpOnly cookie with secure, sameSite=strict flags</snippet>
+      </doc>
+      <doc>
+        <path>/Users/debor/Documents/sistemas/talentbase-v1/docs/arquitetura/authentication.md</path>
+        <title>Authentication & Authorization</title>
+        <section>Session Management</section>
+        <snippet>Token lifetime: 7 days. Auto-refresh not implemented initially (manual re-login). Future: JWT with refresh tokens</snippet>
+      </doc>
+      <doc>
+        <path>/Users/debor/Documents/sistemas/talentbase-v1/docs/arquitetura/authentication.md</path>
+        <title>Authentication & Authorization</title>
+        <section>Security Best Practices</section>
+        <snippet>CSRF_COOKIE_SECURE, CSRF_COOKIE_HTTPONLY, CSRF_COOKIE_SAMESITE='Strict'. SESSION_COOKIE_SECURE, SESSION_COOKIE_HTTPONLY, SESSION_COOKIE_SAMESITE='Strict'. Rate limiting: anon 100/hour, user 1000/hour</snippet>
+      </doc>
+      <doc>
+        <path>/Users/debor/Documents/sistemas/talentbase-v1/docs/epics/tech-spec-epic-2.md</path>
+        <title>Technical Specification - Epic 2</title>
+        <section>Story 2.3: Login & Token Authentication</section>
+        <snippet>Route: /auth/login, API: POST /api/v1/auth/login, Token Storage: httpOnly cookie (7 days expiry), Role-Based Redirect: admin→/admin, candidate→/candidate, company(active)→/company, company(pending)→/auth/registration-pending</snippet>
+      </doc>
+      <doc>
+        <path>/Users/debor/Documents/sistemas/talentbase-v1/docs/epics/tech-spec-epic-2.md</path>
+        <title>Technical Specification - Epic 2</title>
+        <section>Post-Review Follow-ups</section>
+        <snippet>HIGH PRIORITY: Implement httpOnly cookie-based token storage (MED-1) - Backend sets Set-Cookie header, frontend removes localStorage. May require auth middleware setup for Story 2.3</snippet>
+      </doc>
+      <doc>
+        <path>/Users/debor/Documents/sistemas/talentbase-v1/docs/arquitetura/api-endpoints.md</path>
+        <title>API Endpoints</title>
+        <section>Login</section>
+        <snippet>POST /auth/login - Request: {email, password}. Response 200: {token, user: {id, email, first_name, last_name, role}}</snippet>
+      </doc>
+      <doc>
+        <path>/Users/debor/Documents/sistemas/talentbase-v1/docs/bestpraticies/BACKEND_BEST_PRACTICES.md</path>
+        <title>Backend Best Practices</title>
+        <section>Clean Architecture</section>
+        <snippet>Views = thin controllers (coordenação apenas). Services = lógica de negócio. Models = estrutura de dados. Serializers = validação de entrada/saída. NUNCA lógica de negócio em models ou views</snippet>
+      </doc>
+      <doc>
+        <path>/Users/debor/Documents/sistemas/talentbase-v1/docs/bestpraticies/BACKEND_BEST_PRACTICES.md</path>
+        <title>Backend Best Practices</title>
+        <section>Segurança</section>
+        <snippet>Nunca expor dados sensíveis em serializers. Validar permissões com permission classes. Django ORM previne SQL injection automaticamente</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>/Users/debor/Documents/sistemas/talentbase-v1/apps/api/authentication/models.py</path>
+        <kind>model</kind>
+        <symbol>User</symbol>
+        <lines>62-110</lines>
+        <reason>User model with role-based authentication, supports admin/candidate/company roles. Uses email as USERNAME_FIELD. Essential for login validation and role-based redirects.</reason>
+      </artifact>
+      <artifact>
+        <path>/Users/debor/Documents/sistemas/talentbase-v1/apps/api/authentication/views.py</path>
+        <kind>view</kind>
+        <symbol>register_candidate, register_company</symbol>
+        <lines>32-281</lines>
+        <reason>Existing registration views that implement httpOnly cookie pattern (lines 114-122, 244-253). Shows how token is set in cookies with secure flags. This is the EXACT pattern to follow for login endpoint.</reason>
+      </artifact>
+      <artifact>
+        <path>/Users/debor/Documents/sistemas/talentbase-v1/apps/api/authentication/serializers.py</path>
+        <kind>serializer</kind>
+        <symbol>UserSerializer, RegistrationResponseSerializer</symbol>
+        <lines>77-94</lines>
+        <reason>Serializers for user data and registration responses. Will need similar LoginSerializer and LoginResponseSerializer for story 2.3.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <python>
+        <package name="django" version="^5.0"/>
+        <package name="djangorestframework" version="^3.14"/>
+        <package name="django-cors-headers" version="^4.3.0"/>
+        <package name="celery" version="^5.3.0"/>
+        <package name="redis" version="^5.0.0"/>
+      </python>
+      <node>
+        <package name="@remix-run/node" version="^2.14.0"/>
+        <package name="@remix-run/react" version="^2.14.0"/>
+        <package name="react" version="^18.2.0"/>
+        <package name="cpf-cnpj-validator" version="^1.0.3"/>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint id="arch1" type="architecture">Clean Architecture OBRIGATÓRIA - Views são thin controllers (apenas coordenação), Services contém lógica de negócio, Models são estrutura de dados apenas</constraint>
+    <constraint id="security1" type="security">httpOnly cookie para token storage (XSS protection). secure=True em produção, sameSite='Strict', max_age=604800 (7 dias)</constraint>
+    <constraint id="security2" type="security">Rate limiting obrigatório - 5 tentativas de login por minuto por IP, lockout temporário após múltiplas falhas</constraint>
+    <constraint id="api1" type="api">Endpoint POST /api/v1/auth/login retorna {token, user: {id, email, role}, redirect_url}. Token também vai em Set-Cookie header</constraint>
+    <constraint id="redirect1" type="behavior">Role-based redirect OBRIGATÓRIO: admin→/admin, candidate→/candidate, company(active)→/company, company(pending)→/auth/registration-pending</constraint>
+    <constraint id="validation1" type="validation">Validação em camadas: Serializer (formato), Service (negócio), Model validators (dados)</constraint>
+    <constraint id="error1" type="error">Invalid credentials: mensagem genérica (prevenir user enumeration). Pending approval: mensagem específica com instruções</constraint>
+    <constraint id="test1" type="testing">Unit tests obrigatórios em apps/api/authentication/tests/ seguindo padrão pytest-django existente</constraint>
+  </constraints>
+  <interfaces>
+    <interface>
+      <name>User.objects.get(email=...)</name>
+      <kind>model_query</kind>
+      <signature>User.objects.get(email: str) -> User</signature>
+      <path>/Users/debor/Documents/sistemas/talentbase-v1/apps/api/authentication/models.py</path>
+      <notes>Query user by email for login. Check user.is_active and if company, check company.approved</notes>
+    </interface>
+    <interface>
+      <name>User.check_password(raw_password)</name>
+      <kind>method</kind>
+      <signature>User.check_password(raw_password: str) -> bool</signature>
+      <path>Django AbstractBaseUser</path>
+      <notes>Validate password against hashed version. Returns True if match.</notes>
+    </interface>
+    <interface>
+      <name>Token.objects.get_or_create(user=...)</name>
+      <kind>model_query</kind>
+      <signature>Token.objects.get_or_create(user: User) -> Tuple[Token, bool]</signature>
+      <path>rest_framework.authtoken.models</path>
+      <notes>DRF Token Auth - get existing or create new token for user. Returns (token, created) tuple.</notes>
+    </interface>
+    <interface>
+      <name>response.set_cookie(...)</name>
+      <kind>method</kind>
+      <signature>response.set_cookie(key: str, value: str, max_age: int, httponly: bool, secure: bool, samesite: str, path: str)</signature>
+      <path>Django Response</path>
+      <notes>Set httpOnly cookie. MUST use same pattern as register_candidate view (lines 114-122)</notes>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>Backend: pytest-django with APIClient for endpoint testing. Structure: apps/api/authentication/tests/test_*.py. Frontend: Vitest for unit tests, Playwright for E2E. Coverage target: &gt;80% for services and views. Follow existing test patterns in test_views.py and test_services.py.</standards>
+    <locations>
+      <location>apps/api/authentication/tests/test_views.py</location>
+      <location>apps/api/authentication/tests/test_services.py</location>
+      <location>packages/web/app/routes/__tests__/</location>
+      <location>packages/web/e2e/</location>
+    </locations>
+    <ideas>
+      <idea ac="AC-3">test_login_success: Valid credentials return 200, token, user data, and redirect_url</idea>
+      <idea ac="AC-4">test_login_token_generation: Token is generated using DRF Token Auth and returned in response</idea>
+      <idea ac="AC-5">test_login_sets_httponly_cookie: Response contains Set-Cookie header with httponly, secure, samesite flags</idea>
+      <idea ac="AC-6">test_login_redirect_admin: Admin user receives redirect_url='/admin'</idea>
+      <idea ac="AC-6">test_login_redirect_candidate: Candidate user receives redirect_url='/candidate'</idea>
+      <idea ac="AC-6">test_login_redirect_company_active: Active company receives redirect_url='/company'</idea>
+      <idea ac="AC-6">test_login_redirect_company_pending: Pending company receives redirect_url='/auth/registration-pending'</idea>
+      <idea ac="AC-7">test_login_invalid_credentials: Invalid email or password returns 401 with generic error message</idea>
+      <idea ac="AC-8">test_login_inactive_user: Inactive user (is_active=False) returns 403 with appropriate error</idea>
+      <idea ac="AC-8">test_login_pending_company: Company with approved=False returns 403 with pending approval message</idea>
+      <idea ac="security">test_login_rate_limiting: More than 5 requests per minute from same IP returns 429</idea>
+      <idea ac="security">test_login_no_user_enumeration: Same error message whether user exists or password wrong</idea>
+    </ideas>
+  </tests>
+</story-context>

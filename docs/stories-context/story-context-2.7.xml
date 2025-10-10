@@ -1,0 +1,232 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>2.7</storyId>
+    <title>Email Notification System (Basic)</title>
+    <status>Draft</status>
+    <generatedAt>2025-10-09</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>/Users/debor/Documents/sistemas/talentbase-v1/docs/stories/story-2.7.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>um usuário</asA>
+    <iWant>receber notificações por email para eventos importantes</iWant>
+    <soThat>eu fique informado sobre minha conta e atividade</soThat>
+    <tasks>
+      <task id="1" status="pending">
+        <title>Configurar serviço de email</title>
+        <ac_refs>1</ac_refs>
+        <subtasks>
+          <subtask>Configurar SendGrid ou AWS SES</subtask>
+          <subtask>Configurar credenciais e settings Django</subtask>
+          <subtask>Testar envio básico de email</subtask>
+        </subtasks>
+      </task>
+      <task id="2" status="pending">
+        <title>Criar templates de email</title>
+        <ac_refs>2, 3</ac_refs>
+        <subtasks>
+          <subtask>Template confirmação candidato (HTML + texto)</subtask>
+          <subtask>Template registro empresa enviado</subtask>
+          <subtask>Template empresa aprovada</subtask>
+          <subtask>Template empresa rejeitada</subtask>
+        </subtasks>
+      </task>
+      <task id="3" status="pending">
+        <title>Configurar Celery para envio assíncrono</title>
+        <ac_refs>4</ac_refs>
+        <subtasks>
+          <subtask>Configurar Celery com Redis</subtask>
+          <subtask>Criar task send_email_task</subtask>
+          <subtask>Integrar com views de registro/aprovação</subtask>
+        </subtasks>
+      </task>
+      <task id="4" status="pending">
+        <title>Implementar logging e monitoramento</title>
+        <ac_refs>5</ac_refs>
+        <subtasks>
+          <subtask>Configurar logging para falhas de email</subtask>
+          <subtask>Criar dashboard admin para logs de email</subtask>
+          <subtask>Implementar retry logic para falhas</subtask>
+        </subtasks>
+      </task>
+      <task id="5" status="pending">
+        <title>Criar sistema de templates personalizáveis</title>
+        <ac_refs>3</ac_refs>
+        <subtasks>
+          <subtask>Criar base template com branding</subtask>
+          <subtask>Implementar variáveis dinâmicas</subtask>
+          <subtask>Adicionar preview de templates</subtask>
+        </subtasks>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">Serviço de email configurado com templates com marca TalentBase</criterion>
+    <criterion id="2">
+      <title>Emails enviados para:</title>
+      <items>
+        <item>Confirmação de registro de candidato</item>
+        <item>Registro de empresa enviado</item>
+        <item>Aprovação de empresa concedida</item>
+        <item>Registro de empresa rejeitado</item>
+      </items>
+    </criterion>
+    <criterion id="3">
+      <title>Todos os emails incluem:</title>
+      <items>
+        <item>Logo TalentBase</item>
+        <item>Linha de assunto clara</item>
+        <item>Saudação personalizada (nome do usuário)</item>
+        <item>Link de ação (ex: "Faça login no seu dashboard")</item>
+        <item>Rodapé com informações de contato</item>
+      </items>
+    </criterion>
+    <criterion id="4">Emails enviados de forma assíncrona (Celery + Redis queue)</criterion>
+    <criterion id="5">Falhas no envio de email logadas para revisão do admin</criterion>
+    <criterion id="6">Link de unsubscribe (placeholder para futuro)</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics/tech-spec-epic-2.md</path>
+        <title>Technical Specification - Epic 2: Authentication &amp; User Management</title>
+        <section>Story 2.7: Email Notification System</section>
+        <snippet>Service: AWS SES or SendGrid. Templates: HTML + plain text for all events. Async Sending: Celery tasks via Redis queue</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics/tech-spec-epic-2.md</path>
+        <title>Technical Specification - Epic 2</title>
+        <section>Email Templates</section>
+        <snippet>Complete Portuguese email templates for: candidate registration, company registration submitted, company approval, company rejection</snippet>
+      </doc>
+      <doc>
+        <path>docs/development/EMAIL_TESTING.md</path>
+        <title>Email Testing com MailHog</title>
+        <section>Complete guide</section>
+        <snippet>Development uses MailHog (localhost:1025 SMTP, :8025 Web UI) - ZERO real emails in DEV. Production uses SendGrid/AWS SES</snippet>
+      </doc>
+      <doc>
+        <path>docs/bestpraticies/BACKEND_BEST_PRACTICES.md</path>
+        <title>Backend Best Practices</title>
+        <section>Async Tasks and Email Patterns</section>
+        <snippet>Celery task patterns, error handling, retry logic for async operations</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>apps/api/core/tasks.py</path>
+        <kind>module</kind>
+        <symbol>send_email_task</symbol>
+        <lines>1-55</lines>
+        <reason>Existing Celery task for sending emails asynchronously - already implemented with basic text email support, needs HTML template enhancement</reason>
+      </artifact>
+      <artifact>
+        <path>apps/api/talentbase/celery.py</path>
+        <kind>module</kind>
+        <symbol>Celery app configuration</symbol>
+        <lines>1-26</lines>
+        <reason>Celery app initialization and configuration - already set up to autodiscover tasks from all apps</reason>
+      </artifact>
+      <artifact>
+        <path>apps/api/authentication/services/registration.py</path>
+        <kind>module</kind>
+        <symbol>CandidateRegistrationService, CompanyRegistrationService</symbol>
+        <lines>93-99, 210-243</lines>
+        <reason>Already uses send_email_task.delay() for candidate and company registration emails - demonstrates integration pattern</reason>
+      </artifact>
+      <artifact>
+        <path>apps/api/talentbase/settings/development.py</path>
+        <kind>settings</kind>
+        <symbol>EMAIL_BACKEND, EMAIL_HOST, CELERY_TASK_ALWAYS_EAGER</symbol>
+        <lines>44-59</lines>
+        <reason>Development email configuration using MailHog for testing without sending real emails</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <python>
+        <package name="celery" version="^5.3.0" />
+        <package name="redis" version="^5.0.0" />
+        <package name="django" version="^5.0" />
+      </python>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint id="email1" category="development">Development uses MailHog - ZERO real emails sent in DEV (localhost:1025 SMTP, :8025 Web UI)</constraint>
+    <constraint id="email2" category="production">Production uses SendGrid or AWS SES - Only production sends real emails</constraint>
+    <constraint id="async1" category="architecture">All emails must be sent asynchronously via Celery tasks to avoid blocking web requests</constraint>
+    <constraint id="template1" category="branding">All email templates must include TalentBase branding: logo, colors (#1a365d header, #3182ce buttons), contact info</constraint>
+    <constraint id="celery1" category="configuration">Celery already configured with Redis broker, autodiscover tasks enabled, eager mode in dev/test</constraint>
+    <constraint id="retry1" category="reliability">Email tasks should implement retry logic with exponential backoff (max 3 retries, 60s * 2^retries countdown)</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>send_email_task</name>
+      <kind>celery_task</kind>
+      <signature>send_email_task(subject: str, message: str, recipient_list: list[str]) -> str</signature>
+      <path>apps/api/core/tasks.py:14-54</path>
+      <description>Existing Celery shared task for async email sending - currently supports plain text only, needs HTML template enhancement</description>
+    </interface>
+    <interface>
+      <name>EmailMultiAlternatives</name>
+      <kind>django_email_class</kind>
+      <signature>django.core.mail.EmailMultiAlternatives(subject, body, from_email, to, ...)</signature>
+      <path>django.core.mail</path>
+      <description>Django class for sending multipart emails (text + HTML) - use this instead of send_mail for templated emails</description>
+    </interface>
+    <interface>
+      <name>render_to_string</name>
+      <kind>template_function</kind>
+      <signature>render_to_string(template_name, context)</signature>
+      <path>django.template.loader</path>
+      <description>Render Django template to string for email HTML/text generation</description>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Framework: pytest with pytest-django plugin
+      Test Location Pattern: Each app has tests/ directory with test_*.py files
+      Email Testing: Use django.core.mail.outbox in tests (EMAIL_BACKEND = console in test settings)
+      Celery Testing: CELERY_TASK_ALWAYS_EAGER = True in test settings (tasks run synchronously)
+      Template Testing: Verify template rendering with context, check for required elements (logo, links, personalization)
+      Integration Testing: Test full email flow from trigger (registration) to email sent
+    </standards>
+    <locations>
+      <location>apps/api/core/tests/test_tasks.py - Celery email task tests</location>
+      <location>apps/api/authentication/tests/test_services.py - existing email integration tests</location>
+      <location>apps/api/templates/emails/ - email template files (to be created)</location>
+    </locations>
+    <ideas>
+      <test_idea ac_ref="1">
+        <title>Test email service configuration</title>
+        <approach>Verify EMAIL_BACKEND settings for dev/test/prod, test basic send_mail() works in each environment</approach>
+      </test_idea>
+      <test_idea ac_ref="2">
+        <title>Test all 4 email types sent correctly</title>
+        <approach>Trigger each registration/approval event, verify correct template used, correct recipient, correct subject</approach>
+      </test_idea>
+      <test_idea ac_ref="3">
+        <title>Test email template elements</title>
+        <approach>Render each template, verify logo present, subject clear, personalization (user name), action link, footer with contact</approach>
+      </test_idea>
+      <test_idea ac_ref="4">
+        <title>Test async email sending via Celery</title>
+        <approach>Trigger email, verify task queued (not sent synchronously), verify task executes and email sent</approach>
+      </test_idea>
+      <test_idea ac_ref="5">
+        <title>Test email failure logging</title>
+        <approach>Mock email send failure, verify error logged with recipient and reason, verify admin can review logs</approach>
+      </test_idea>
+      <test_idea ac_ref="6">
+        <title>Test unsubscribe link present</title>
+        <approach>Render templates, verify unsubscribe link in footer (placeholder URL acceptable for now)</approach>
+      </test_idea>
+    </ideas>
+  </tests>
+</story-context>

@@ -1,0 +1,28 @@
+Bem-vindo ao TalentBase!
+
+Olá {{ candidate_name }},
+
+É um prazer recebê-lo em nossa plataforma! Sua conta foi criada com sucesso e você já pode começar a explorar as melhores oportunidades de carreira.
+
+✓ Sua conta está ativa!
+Email: {{ email }}
+
+Próximos passos para você:
+- Complete seu perfil profissional com suas experiências
+- Adicione suas habilidades e competências
+- Configure suas preferências de vagas
+- Comece a buscar oportunidades que combinam com você
+
+Acesse seu perfil: {{ dashboard_url }}
+
+💡 Dica: Quanto mais completo for seu perfil, maiores são as chances de você ser encontrado pelas empresas certas!
+
+Se você tiver alguma dúvida, nossa equipe está sempre disponível para ajudar.
+
+Atenciosamente,
+Equipe TalentBase
+
+📧 contato@salesdog.click
+🌐 www.salesdog.click
+
+Para cancelar a inscrição: {{ unsubscribe_url|default:'https://www.salesdog.click/unsubscribe' }}

@@ -12,6 +12,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config("DJANGO_SECRET_KEY", default="django-insecure-change-me-in-production")
 
+# Field encryption key for django-encrypted-model-fields
+# In production, this should be a different key from SECRET_KEY and stored securely
+# Must be a 32 url-safe base64-encoded bytes (Fernet key format)
+FIELD_ENCRYPTION_KEY = config(
+    "FIELD_ENCRYPTION_KEY",
+    default="P5RnBWl-QNpNMl067ajWPeGYvOqcDKMxGb4OoJRHDK4=",  # Development only - change in production
+)
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config("DEBUG", default=False, cast=bool)
 
@@ -32,6 +40,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # Third-party
     "rest_framework",
+    "rest_framework.authtoken",  # For token authentication
     "corsheaders",
     # Local apps (dependency order: core → auth → domain apps → apps using domain)
     "core",
@@ -41,6 +50,7 @@ INSTALLED_APPS = [
     "jobs",
     "applications",
     "matching",
+    "user_management",  # Story 2.4: Admin user management
 ]
 
 MIDDLEWARE = [
@@ -59,7 +69,7 @@ ROOT_URLCONF = "talentbase.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "templates"],  # Story 2.7: Email templates directory
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -140,6 +150,15 @@ REST_FRAMEWORK = {
     "DEFAULT_PARSER_CLASSES": [
         "rest_framework.parsers.JSONParser",
     ],
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+    ],
+    # Desabilita CSRF para views públicas (@api_view com AllowAny)
+    # CSRF ainda é aplicado para views com SessionAuthentication
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
 }
 
 # Redis Cache
@@ -156,3 +175,46 @@ CELERY_RESULT_BACKEND = config("REDIS_URL", default="redis://localhost:6379/0")
 
 # Custom User Model
 AUTH_USER_MODEL = "authentication.User"
+
+# CORS Configuration
+CORS_ALLOWED_ORIGINS = config(
+    "CORS_ALLOWED_ORIGINS",
+    default="http://localhost:3000,http://localhost:3001",
+    cast=lambda v: [s.strip() for s in v.split(",")],
+)
+CORS_ALLOW_CREDENTIALS = True  # Allow cookies to be sent
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+]
+
+# AWS S3 Configuration (Story 3.1 - Profile Photos Upload)
+AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID", default="")
+AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY", default="")
+AWS_STORAGE_BUCKET_NAME = config("AWS_STORAGE_BUCKET_NAME", default="")  # 'talentbase-dev-uploads' or 'talentbase-prod-uploads'
+AWS_S3_REGION_NAME = config("AWS_S3_REGION_NAME", default="us-east-1")
+AWS_S3_SIGNATURE_VERSION = "s3v4"
+AWS_S3_FILE_OVERWRITE = False  # Prevent accidental overwrites
+AWS_DEFAULT_ACL = None  # Use bucket ACL (private)
+AWS_S3_ENCRYPTION = "AES256"  # Server-side encryption
+
+# Presigned URL Configuration
+AWS_PRESIGNED_EXPIRY = 300  # 5 minutes (in seconds)
+
+# File Upload Constraints - Photos
+MAX_UPLOAD_SIZE = 2 * 1024 * 1024  # 2MB in bytes
+ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png"]
+ALLOWED_IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png"]
+
+# File Upload Constraints - Videos (Story 3.1)
+MAX_VIDEO_SIZE = 50 * 1024 * 1024  # 50MB in bytes
+ALLOWED_VIDEO_TYPES = ["video/mp4", "video/quicktime", "video/x-msvideo"]
+ALLOWED_VIDEO_EXTENSIONS = [".mp4", ".mov", ".avi"]
+VIDEO_PRESIGNED_EXPIRY = 600  # 10 minutes (in seconds) - videos take longer to upload

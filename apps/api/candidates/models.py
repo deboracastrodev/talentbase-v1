@@ -77,22 +77,44 @@ class CandidateProfile(BaseModel):
     )
     full_name = models.CharField(max_length=200, help_text="Nome completo do candidato")
     phone = models.CharField(max_length=20, help_text="Telefone de contato")
+    # Fields below are optional on registration - filled during onboarding (Epic 3)
     cpf = models.CharField(
-        max_length=255, help_text="CPF (será encriptado)"
+        max_length=255, blank=True, default="", help_text="CPF (será encriptado)"
     )  # TODO: Add encryption via django-encrypted-model-fields
-    linkedin = models.URLField(help_text="URL do perfil LinkedIn")
+    linkedin = models.URLField(blank=True, default="", help_text="URL do perfil LinkedIn")
+    city = models.CharField(max_length=100, blank=True, default="", help_text="Cidade do candidato")
+    profile_photo_url = models.URLField(
+        blank=True, null=True, help_text="URL da foto de perfil (S3)"
+    )
+    # Pitch video (MANDATORY for profile completion - Story 3.1)
+    pitch_video_url = models.URLField(
+        blank=True,
+        help_text="URL do vídeo pitch (S3 ou YouTube)",
+    )
+    pitch_video_type = models.CharField(
+        max_length=10,
+        choices=[("s3", "S3 Upload"), ("youtube", "YouTube")],
+        blank=True,
+        default="",
+        help_text="Tipo de vídeo: upload direto (S3) ou YouTube",
+    )
+    # DEPRECATED: Use pitch_video_url instead
     video_url = models.URLField(
         blank=True,
         validators=[validate_youtube_url],
-        help_text="URL do vídeo de apresentação no YouTube",
+        help_text="URL do vídeo de apresentação no YouTube (DEPRECATED - use pitch_video_url)",
     )
     current_position = models.CharField(
         max_length=50,
         choices=POSITION_CHOICES,
         db_index=True,
+        blank=True,
+        default="",
         help_text="Posição atual na carreira de vendas",
     )
-    years_of_experience = models.PositiveIntegerField(help_text="Anos de experiência em vendas")
+    years_of_experience = models.PositiveIntegerField(
+        null=True, blank=True, help_text="Anos de experiência em vendas"
+    )
     sales_type = models.CharField(
         max_length=50, blank=True, help_text="Tipo de vendas: Inbound, Outbound, Both"
     )

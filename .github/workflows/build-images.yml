@@ -1,0 +1,81 @@
+name: Build and Push Docker Images
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to build for'
+        required: true
+        type: choice
+        options:
+          - dev
+          - prod
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and Push API Docker Image
+        run: |
+          cd apps/api
+          docker build \
+            --target production \
+            --cache-from ${{ env.ECR_REGISTRY }}/talentbase-api:latest \
+            --build-arg BUILDKIT_INLINE_CACHE=1 \
+            -t ${{ env.ECR_REGISTRY }}/talentbase-api:${{ github.sha }} \
+            -t ${{ env.ECR_REGISTRY }}/talentbase-api:latest \
+            -t ${{ env.ECR_REGISTRY }}/talentbase-api:initial-${{ inputs.environment }} \
+            .
+          docker push ${{ env.ECR_REGISTRY }}/talentbase-api:${{ github.sha }}
+          docker push ${{ env.ECR_REGISTRY }}/talentbase-api:latest
+          docker push ${{ env.ECR_REGISTRY }}/talentbase-api:initial-${{ inputs.environment }}
+
+      - name: Build and Push Web Docker Image
+        run: |
+          docker build \
+            -f packages/web/Dockerfile \
+            --target production \
+            --cache-from ${{ env.ECR_REGISTRY }}/talentbase-web:latest \
+            --build-arg BUILDKIT_INLINE_CACHE=1 \
+            -t ${{ env.ECR_REGISTRY }}/talentbase-web:${{ github.sha }} \
+            -t ${{ env.ECR_REGISTRY }}/talentbase-web:latest \
+            -t ${{ env.ECR_REGISTRY }}/talentbase-web:initial-${{ inputs.environment }} \
+            .
+          docker push ${{ env.ECR_REGISTRY }}/talentbase-web:${{ github.sha }}
+          docker push ${{ env.ECR_REGISTRY }}/talentbase-web:latest
+          docker push ${{ env.ECR_REGISTRY }}/talentbase-web:initial-${{ inputs.environment }}
+
+      - name: Build Success
+        run: |
+          echo "✅ Docker images built and pushed successfully!"
+          echo "Environment: ${{ inputs.environment }}"
+          echo "Commit: ${{ github.sha }}"
+          echo ""
+          echo "Images pushed:"
+          echo "- ${{ env.ECR_REGISTRY }}/talentbase-api:latest"
+          echo "- ${{ env.ECR_REGISTRY }}/talentbase-api:${{ github.sha }}"
+          echo "- ${{ env.ECR_REGISTRY }}/talentbase-web:latest"
+          echo "- ${{ env.ECR_REGISTRY }}/talentbase-web:${{ github.sha }}"
+          echo ""
+          echo "Next step: Deploy CDK infrastructure"
+          echo "cd infrastructure && npm run deploy:${{ inputs.environment }}"

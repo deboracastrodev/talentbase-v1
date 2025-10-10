@@ -1,0 +1,173 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>2.2</storyId>
+    <title>User Registration (Company)</title>
+    <status>Draft</status>
+    <generatedAt>2025-10-03</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>/Users/debor/Documents/sistemas/talentbase-v1/docs/stories/story-2.2.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>gerente de contratação</asA>
+    <iWant>registrar minha empresa no TalentBase</iWant>
+    <soThat>eu possa publicar vagas e buscar candidatos (após aprovação do admin)</soThat>
+    <tasks>
+- Task 1: Criar CompanyProfile model (AC: 5, 6)
+  - Criar model CompanyProfile com campos necessários
+  - Configurar OneToOne relationship com User
+  - Executar migrações Django
+- Task 2: Implementar validação CNPJ (AC: 3)
+  - Instalar biblioteca pycpfcnpj
+  - Criar serializer com validação CNPJ
+  - Implementar verificação de formato e dígito
+- Task 3: Implementar API de registro company (AC: 4, 5, 6)
+  - Criar view de registro company
+  - Configurar criação de User + CompanyProfile
+  - Configurar status pending_approval
+- Task 4: Criar página de registro frontend (AC: 1, 2)
+  - Criar route `/auth/register/company`
+  - Implementar formulário com campos específicos
+  - Integrar validação CNPJ client-side
+- Task 5: Configurar notificações email (AC: 7, 8, 10)
+  - Criar template email para empresa (registro recebido)
+  - Criar template email para admin (nova empresa)
+  - Implementar envio via Celery
+- Task 6: Implementar encriptação de CNPJ
+  - Configurar Django Encrypted Fields
+  - Implementar encriptação para campo CNPJ
+  - Garantir decriptação apenas quando necessário
+</tasks>
+  </story>
+
+  <acceptanceCriteria>
+1. Página de registro em `/auth/register/company`
+2. Formulário com campos: nome da empresa, CNPJ, email, senha, nome do contato, telefone, website
+3. Validação de CNPJ (formato brasileiro de ID fiscal)
+4. Endpoint API `POST /api/v1/auth/register/company`
+5. Usuário criado com role="company", status="pending_approval"
+6. Perfil da empresa criado linkado ao usuário
+7. Email enviado ao usuário: "Registro recebido, aguardando aprovação do admin"
+8. Email enviado ao admin: "Novo registro de empresa requer aprovação"
+9. Usuário não pode fazer login até status="active"
+10. Mensagem de sucesso: "Registro enviado, você receberá aprovação em 24 horas"
+</acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/epics/tech-spec-epic-2.md" section="Story 2.2: User Registration (Company)">
+        Technical specification for company registration flow including CNPJ validation, approval workflow, and email notifications.
+        Key details: Route /auth/register/company, API POST /api/v1/auth/register/company, pycpfcnpj library for CNPJ validation.
+      </doc>
+      <doc path="docs/bestpraticies/BACKEND_BEST_PRACTICES.md" section="Arquitetura em Camadas">
+        Mandatory Clean Architecture pattern: Services for business logic, thin controllers in views, models for data structure only.
+        BaseModel inheritance required for all models (UUID PK, timestamps, soft delete).
+      </doc>
+      <doc path="docs/bestpraticies/BACKEND_BEST_PRACTICES.md" section="Security">
+        Security requirements for PII protection, password hashing (PBKDF2), and encrypted fields.
+      </doc>
+      <doc path="docs/bestpraticies/CODE_QUALITY.md">
+        Code quality standards including type hints, docstrings, error handling patterns, and testing requirements.
+      </doc>
+    </docs>
+    <code>
+      <artifact path="apps/api/authentication/models.py" kind="model" symbol="User" lines="62-110" reason="Base User model with role-based access (admin/candidate/company), is_active flag for approval workflow"/>
+      <artifact path="apps/api/companies/models.py" kind="model" symbol="CompanyProfile" lines="12-74" reason="Existing CompanyProfile model already implements required fields: company_name, cnpj, website, contact_person_*, created_by_admin. OneToOne with User."/>
+      <artifact path="apps/api/core/models.py" kind="model" symbol="BaseModel" lines="11-47" reason="Abstract base model providing UUID PK, timestamps (created_at, updated_at), and soft delete (is_active). MUST be inherited by CompanyProfile."/>
+      <artifact path="apps/api/authentication/services/registration.py" kind="service" symbol="CandidateRegistrationService" lines="15-104" reason="Reference implementation for registration service pattern: transaction.atomic, User creation, Profile creation, Token generation, async email via Celery"/>
+      <artifact path="apps/api/authentication/views.py" kind="view" symbol="register_candidate" lines="31-150" reason="Reference implementation for thin controller pattern: serializer validation, service delegation, cookie-based token storage (httpOnly), rate limiting (RegistrationRateThrottle)"/>
+    </code>
+    <dependencies>
+      <python>
+        <package name="django" version="^5.0"/>
+        <package name="djangorestframework" version="^3.14"/>
+        <package name="celery" version="^5.3.0" reason="Async email sending"/>
+        <package name="redis" version="^5.0.0" reason="Celery broker"/>
+        <package name="psycopg2-binary" version="^2.9.9" reason="PostgreSQL driver"/>
+        <package name="pycpfcnpj" version="TBD" reason="CNPJ validation library (to be installed for Task 2)"/>
+      </python>
+      <node>
+        <package name="@remix-run/react" version="^2.14.0" reason="Frontend framework"/>
+        <package name="react" version="^18.2.0"/>
+        <package name="@talentbase/design-system" version="workspace:*" reason="Shared UI components"/>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint id="arch1" category="architecture">Clean Architecture MANDATORY: Services contain business logic, Views are thin controllers, Models are data structures only. NO business logic in models or views.</constraint>
+    <constraint id="model1" category="database">CompanyProfile MUST inherit from BaseModel (provides UUID PK, created_at, updated_at, is_active for soft delete)</constraint>
+    <constraint id="security1" category="security">CNPJ field MUST be encrypted using django-encrypted-model-fields (Task 6). Store as CharField(max_length=255).</constraint>
+    <constraint id="security2" category="security">Password MUST be hashed using Django's default PBKDF2 algorithm (handled by User.set_password)</constraint>
+    <constraint id="approval1" category="workflow">User.is_active MUST be False until admin approves. Company cannot login while pending.</constraint>
+    <constraint id="approval2" category="workflow">User.role MUST be 'company' with status logic tracked via is_active flag</constraint>
+    <constraint id="email1" category="notification">Two emails required: (1) Company notification - registration received, (2) Admin notification - new company requires approval</constraint>
+    <constraint id="email2" category="notification">Emails MUST be sent asynchronously via Celery to avoid blocking request</constraint>
+    <constraint id="validation1" category="validation">CNPJ validation: format check (XX.XXX.XXX/XXXX-XX) + digit validation using pycpfcnpj library</constraint>
+    <constraint id="api1" category="api">Endpoint MUST be POST /api/v1/auth/register/company with AllowAny permission and RegistrationRateThrottle (10/hour per IP)</constraint>
+    <constraint id="frontend1" category="frontend">Route MUST be /auth/register/company in Remix (packages/web/app/routes/)</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface name="User.objects.create_user" kind="method" signature="create_user(email: str, password: Optional[str] = None, **extra_fields) -> User" path="apps/api/authentication/models.py:20-42">
+      Creates User with hashed password. Pass role='company', is_active=False for pending approval workflow.
+    </interface>
+    <interface name="Token.objects.get_or_create" kind="method" signature="get_or_create(user: User) -> Tuple[Token, bool]" path="rest_framework.authtoken.models">
+      Generate DRF auth token for user. Return (token, created) tuple. Use token.key for response.
+    </interface>
+    <interface name="send_email_task.delay" kind="celery_task" signature="send_email_task.delay(subject: str, message: str, recipient_list: List[str])" path="apps/api/core/tasks.py">
+      Queue async email via Celery. Used for company registration notification and admin notification.
+    </interface>
+    <interface name="BaseModel" kind="abstract_model" signature="class BaseModel(models.Model)" path="apps/api/core/models.py:11-47">
+      Abstract base providing id (UUID), created_at, updated_at, is_active. All models MUST inherit from this.
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Testing framework: pytest + pytest-django
+      Location pattern: apps/api/{app_name}/tests/test_*.py
+      Coverage requirement: All API endpoints, services, and models must have tests
+      Test structure: Arrange-Act-Assert pattern with descriptive docstrings
+      Mocking: Use unittest.mock.patch for external services (email, Celery tasks)
+      Database: Use @pytest.mark.django_db decorator for tests requiring database access
+      API testing: Use rest_framework.test.APIClient for endpoint testing
+      Reference: apps/api/authentication/tests/test_views.py for registration endpoint testing pattern
+    </standards>
+    <locations>
+      - apps/api/authentication/tests/test_views.py (API endpoint tests)
+      - apps/api/authentication/tests/test_services.py (Service layer tests)
+      - apps/api/companies/tests/ (to be created for CompanyProfile tests)
+    </locations>
+    <ideas>
+      <test id="test_1" ac="1,2,4" type="integration">
+        Test POST /api/v1/auth/register/company with valid data: company_name, cnpj, email, password, contact_person_name, contact_person_phone, website.
+        Assert: 201 response, User created with role='company' and is_active=False, CompanyProfile created with OneToOne link, token returned.
+      </test>
+      <test id="test_2" ac="3" type="unit">
+        Test CNPJ validation in serializer: valid format (14 digits + formatting), invalid format (wrong length, invalid check digits).
+        Assert: ValidationError raised for invalid CNPJs, valid CNPJs pass through.
+      </test>
+      <test id="test_3" ac="5,6" type="integration">
+        Test user and profile creation: verify User.role='company', User.is_active=False, CompanyProfile.user OneToOne relationship established.
+        Assert: Database state matches expected schema.
+      </test>
+      <test id="test_4" ac="7,8" type="unit">
+        Test email notification service: mock Celery task, verify two emails queued (company + admin) with correct subjects and recipients.
+        Assert: send_email_task.delay called twice with expected parameters.
+      </test>
+      <test id="test_5" ac="9" type="integration">
+        Test login attempt with pending approval: User with is_active=False attempts login.
+        Assert: Login endpoint returns 401/403 with message "Account pending approval".
+      </test>
+      <test id="test_6" ac="10" type="integration">
+        Test success message: verify API response contains expected message "Registro enviado, você receberá aprovação em 24 horas".
+      </test>
+      <test id="test_7" ac="3" type="unit">
+        Test CNPJ encryption (Task 6): verify CNPJ is stored encrypted in database, decrypted when accessed via model attribute.
+        Assert: Raw database query shows encrypted value, model.cnpj returns decrypted value.
+      </test>
+    </ideas>
+  </tests>
+</story-context>

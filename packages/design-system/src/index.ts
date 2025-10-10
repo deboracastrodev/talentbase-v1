@@ -43,5 +43,49 @@ export type { RadioProps } from './components/Radio';
 export { VideoPlayer } from './components/VideoPlayer';
 export type { VideoPlayerProps } from './components/VideoPlayer';
 
+export { Alert } from './components/Alert';
+export type { AlertProps, AlertVariant } from './components/Alert';
+
+export { AuthLayout } from './components/AuthLayout';
+export type { AuthLayoutProps } from './components/AuthLayout';
+
+export { AuthCard } from './components/AuthCard';
+export type { AuthCardProps } from './components/AuthCard';
+
+export { AuthFormField } from './components/AuthFormField';
+export type { AuthFormFieldProps } from './components/AuthFormField';
+
+export {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from './components/Table';
+
+export { Modal, ModalFooter } from './components/Modal';
+
+export { Sidebar, sidebarVariants, menuItemVariants } from './components/Sidebar';
+export type { SidebarProps, MenuItem } from './components/Sidebar';
+
+export { Logo, logoVariants } from './components/Logo';
+export type { LogoProps } from './components/Logo';
+
+export { Navbar, navbarVariants } from './components/Navbar';
+export type { NavbarProps, User } from './components/Navbar';
+
+export { DashboardLayout } from './components/DashboardLayout';
+export type { DashboardLayoutProps, SidebarConfig } from './components/DashboardLayout';
+
+export { MultiStepWizard } from './components/MultiStepWizard';
+export type { MultiStepWizardProps, WizardStep } from './components/MultiStepWizard';
+
+export { Timeline } from './components/Timeline';
+export type { TimelineProps, TimelineItem } from './components/Timeline';
+
+export { PublicProfileHero } from './components/PublicProfileHero';
+export type { PublicProfileHeroProps, HeroBadge } from './components/PublicProfileHero';
+
 // Utils
 export { cn } from './lib/utils';

@@ -4,6 +4,7 @@ Provides CompanyProfile model for hiring companies.
 """
 
 from django.db import models
+from encrypted_model_fields.fields import EncryptedCharField
 
 from authentication.models import User
 from core.models import BaseModel
@@ -45,9 +46,7 @@ class CompanyProfile(BaseModel):
         help_text="Usuário associado (null se criado por admin)",
     )
     company_name = models.CharField(max_length=200, help_text="Razão social ou nome fantasia")
-    cnpj = models.CharField(
-        max_length=255, help_text="CNPJ (será encriptado)"
-    )  # TODO: Add encryption via django-encrypted-model-fields
+    cnpj = EncryptedCharField(max_length=255, help_text="CNPJ encriptado (PII protection)")
     website = models.URLField(help_text="Site da empresa")
     industry = models.CharField(max_length=100, help_text="Setor/indústria (ex: SaaS, Fintech)")
     size = models.CharField(max_length=20, choices=SIZE_CHOICES, help_text="Tamanho da empresa")

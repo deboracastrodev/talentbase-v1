@@ -11,9 +11,20 @@ from rest_framework.response import Response
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
+def ping(request):
+    """
+    Simple ping endpoint for load balancer health checks.
+    Returns 200 OK without checking dependencies.
+    Used by ALB to verify container is running.
+    """
+    return Response({"status": "ok"}, status=200)
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
 def health_check(request):
     """
-    Health check endpoint that validates database and cache connections.
+    Comprehensive health check endpoint that validates database and cache connections.
     Returns 200 if all services are healthy, 503 otherwise.
     """
     health = {"status": "healthy", "database": "unknown", "cache": "unknown"}

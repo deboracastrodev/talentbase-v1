@@ -29,9 +29,15 @@ Epic 3 delivers the core value proposition of TalentBase: replacing Notion with 
 - Duplicate detection by email, skip or update
 
 **File Storage (AWS S3):**
-- Profile photos: Direct browser upload via presigned URLs
-- Max 2MB JPG/PNG, stored in `s3://talentbase-uploads/profiles/{candidate_id}/photo.jpg`
-- CloudFront CDN for fast delivery
+- **Profile photos**: Direct browser upload via presigned URLs
+  - Max 2MB JPG/PNG
+  - Stored in `s3://talentbase-media/candidate-photos/{candidate_id}/profile_{timestamp}.jpg`
+- **Pitch videos** (OBRIGATÓRIO): Duas opções
+  - **Opção A - S3 Upload**: Direct browser upload via presigned URLs
+    - Max 50MB MP4/MOV/AVI
+    - Stored in `s3://talentbase-media/pitch-videos/{candidate_id}/pitch_{timestamp}.mp4`
+  - **Opção B - YouTube**: URL do YouTube validada e salva no banco
+- CloudFront CDN for fast delivery (S3 files)
 
 **Public Profile Strategy:**
 - UUID token per candidate (shareable link)
@@ -61,6 +67,8 @@ Epic 3 delivers the core value proposition of TalentBase: replacing Notion with 
 
 **1. Complete CandidateProfile Model:**
 
+> **UPDATED 2025-10-09**: Model expanded to support all 36 Notion CSV fields for complete candidate data migration and admin matching capabilities.
+
 `apps/api/candidates/models.py`:
 ```python
 import uuid
@@ -76,7 +84,7 @@ class CandidateProfile(BaseModel):
     ]
 
     STATUS_CHOICES = [
-        ('available', 'Dispon�vel'),
+        ('available', 'Disponível'),
         ('inactive', 'Inativo'),
         ('no_contract', 'Sem Contrato'),
     ]
@@ -87,14 +95,17 @@ class CandidateProfile(BaseModel):
     # Basic Info
     full_name = models.CharField(max_length=200)
     phone = models.CharField(max_length=20)
-    location = models.CharField(max_length=100)
+    cpf = models.CharField(max_length=255, blank=True, default="")  # TODO: Add encryption
+    linkedin = models.URLField(blank=True, default="")
+    location = models.CharField(max_length=100, blank=True)  # DEPRECATED - use 'city' instead
     photo_url = models.URLField(blank=True)  # S3 URL
+    video_url = models.URLField(blank=True)  # YouTube URL
 
     # Position & Experience
-    current_position = models.CharField(max_length=50, choices=POSITION_CHOICES)
-    years_of_experience = models.PositiveIntegerField()
+    current_position = models.CharField(max_length=50, choices=POSITION_CHOICES, blank=True)
+    years_of_experience = models.PositiveIntegerField(null=True, blank=True)
     sales_type = models.CharField(max_length=50, blank=True)  # "Inbound", "Outbound", "Both"
-    inside_outside = models.CharField(max_length=50, blank=True)  # "Inside Sales", "Field Sales"
+    inside_outside = models.CharField(max_length=50, blank=True)  # DEPRECATED - use experience fields
     sales_cycle = models.CharField(max_length=100, blank=True)  # "30-60 dias"
     avg_ticket = models.CharField(max_length=100, blank=True)  # "R$ 10k-50k MRR"
 
@@ -106,9 +117,16 @@ class CandidateProfile(BaseModel):
     solutions_sold = models.JSONField(default=list)  # ["SaaS B2B", "Fintech"]
     departments_sold_to = models.JSONField(default=list)  # ["C-Level", "Marketing"]
 
-    # Bio & Video
+    # Bio
     bio = models.TextField(blank=True)
-    video_url = models.URLField(blank=True)  # YouTube URL
+
+    # **PITCH VIDEO (OBRIGATÓRIO)**
+    pitch_video_url = models.URLField(help_text="URL do vídeo pitch (S3 ou YouTube)")
+    pitch_video_type = models.CharField(
+        max_length=10,
+        choices=[('s3', 'S3 Upload'), ('youtube', 'YouTube')],
+        help_text="Tipo de vídeo: upload direto (S3) ou YouTube"
+    )
 
     # Shareable Profile
     public_token = models.UUIDField(default=uuid.uuid4, unique=True, db_index=True)
@@ -117,6 +135,45 @@ class CandidateProfile(BaseModel):
     # Admin Curation
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='available')
     is_verified = models.BooleanField(default=False)
+
+    # ============ NOTION CSV FIELDS (Added 2025-10-09) ============
+
+    # Personal & Legal Info
+    accepts_pj = models.BooleanField(default=False, help_text="Aceita trabalhar como PJ?")
+    zip_code = models.CharField(max_length=10, blank=True, help_text="CEP")
+    city = models.CharField(max_length=100, blank=True, help_text="Cidade")
+    is_pcd = models.BooleanField(default=False, help_text="Pessoa com Deficiência?")
+
+    # Contract & Interview Info
+    contract_signed = models.BooleanField(default=False, help_text="Contrato assinado?")
+    interview_date = models.DateField(null=True, blank=True, help_text="Data da entrevista")
+
+    # Mobility & Availability
+    relocation_availability = models.CharField(max_length=50, blank=True, help_text="Disponibilidade para mudança")
+    travel_availability = models.CharField(max_length=100, blank=True, help_text="Disponibilidade para viagem")
+    has_drivers_license = models.BooleanField(default=False, help_text="Possui CNH?")
+    has_vehicle = models.BooleanField(default=False, help_text="Possui veículo próprio?")
+
+    # Education & Languages
+    academic_degree = models.CharField(max_length=200, blank=True, help_text="Formação acadêmica")
+    languages = models.JSONField(default=list, help_text="Idiomas (ex: ['Português (Nativo)', 'Inglês (Fluente)'])")
+
+    # Work Preferences & Compensation
+    work_model = models.CharField(max_length=100, blank=True, help_text="Modelo de trabalho (Home-office, Híbrido, Presencial)")
+    positions_of_interest = models.JSONField(default=list, help_text="Posições de interesse")
+    minimum_salary = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="Remuneração mínima mensal")
+    salary_notes = models.TextField(blank=True, help_text="Observações sobre remuneração")
+
+    # Sales Experience Details (CharField for ranges like "Entre 3 e 5 anos", "Mais de 10 anos", "Nula")
+    active_prospecting_experience = models.CharField(max_length=100, blank=True, help_text="Experiência em Prospecção Ativa")
+    inbound_qualification_experience = models.CharField(max_length=100, blank=True, help_text="Experiência em Qualificação de Leads Inbound")
+    portfolio_retention_experience = models.CharField(max_length=100, blank=True, help_text="Experiência em Retenção de Carteira")
+    portfolio_expansion_experience = models.CharField(max_length=100, blank=True, help_text="Experiência em Expansão/Venda para Carteira")
+    portfolio_size = models.CharField(max_length=100, blank=True, help_text="Tamanho da carteira gerida")
+    inbound_sales_experience = models.CharField(max_length=100, blank=True, help_text="Experiência em Venda para Leads Inbound")
+    outbound_sales_experience = models.CharField(max_length=100, blank=True, help_text="Experiência em Venda para Leads Outbound")
+    field_sales_experience = models.CharField(max_length=100, blank=True, help_text="Experiência em Vendas Field Sales")
+    inside_sales_experience = models.CharField(max_length=100, blank=True, help_text="Experiência em Vendas Inside Sales")
 
     def __str__(self):
         return f"{self.full_name} ({self.current_position})"
@@ -220,37 +277,37 @@ export default function CandidateOnboarding() {
         <Form method="post" className="bg-white p-8 rounded-lg shadow">
           {currentStep === 1 && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-semibold">Informa��es B�sicas</h2>
+              <h2 className="text-2xl font-semibold">Informa��es B�sicas</h2>
               <Input label="Nome Completo" name="full_name" required />
               <Input label="Telefone" name="phone" type="tel" required />
-              <Input label="Localiza��o" name="location" placeholder="S�o Paulo, SP" required />
+              <Input label="Localiza��o" name="location" placeholder="S�o Paulo, SP" required />
               <div>
                 <label className="block text-sm font-medium mb-2">Foto de Perfil</label>
                 <input type="file" accept="image/jpeg,image/png" className="border p-2 rounded" />
               </div>
-              <Button type="button" onClick={nextStep}>Pr�ximo</Button>
+              <Button type="button" onClick={nextStep}>Pr�ximo</Button>
             </div>
           )}
 
           {currentStep === 2 && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-semibold">Posi��o & Experi�ncia</h2>
-              <Select label="Posi��o Atual" name="current_position" options={[
+              <h2 className="text-2xl font-semibold">Posi��o & Experi�ncia</h2>
+              <Select label="Posi��o Atual" name="current_position" options={[
                 { value: 'SDR/BDR', label: 'SDR/BDR' },
                 { value: 'AE/Closer', label: 'Account Executive/Closer' },
                 { value: 'CSM', label: 'Customer Success Manager' },
               ]} required />
-              <Input label="Anos de Experi�ncia" name="years_of_experience" type="number" required />
+              <Input label="Anos de Experi�ncia" name="years_of_experience" type="number" required />
               <Select label="Tipo de Venda" name="sales_type" options={[
                 { value: 'Inbound', label: 'Inbound' },
                 { value: 'Outbound', label: 'Outbound' },
                 { value: 'Both', label: 'Inbound & Outbound' },
               ]} />
               <Input label="Ciclo de Vendas" name="sales_cycle" placeholder="30-60 dias" />
-              <Input label="Ticket M�dio" name="avg_ticket" placeholder="R$ 10k-50k MRR" />
+              <Input label="Ticket M�dio" name="avg_ticket" placeholder="R$ 10k-50k MRR" />
               <div className="flex gap-4">
                 <Button type="button" onClick={prevStep} variant="secondary">Voltar</Button>
-                <Button type="button" onClick={nextStep}>Pr�ximo</Button>
+                <Button type="button" onClick={nextStep}>Pr�ximo</Button>
               </div>
             </div>
           )}
@@ -259,9 +316,9 @@ export default function CandidateOnboarding() {
 
           {currentStep === 5 && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-semibold">Hist�rico & Bio</h2>
+              <h2 className="text-2xl font-semibold">Hist�rico & Bio</h2>
               <Textarea label="Bio / Resumo Profissional" name="bio" rows={6} required />
-              <Input label="V�deo de Apresenta��o (YouTube URL)" name="video_url" type="url" />
+              <Input label="V�deo de Apresenta��o (YouTube URL)" name="video_url" type="url" />
               <input type="hidden" name="step" value="complete" />
               <div className="flex gap-4">
                 <Button type="button" onClick={prevStep} variant="secondary">Voltar</Button>
@@ -320,15 +377,15 @@ test('candidate completes onboarding flow', async ({ page }) => {
   await page.goto('/candidate/onboarding');
 
   // Step 1
-  await page.getByLabel('Nome Completo').fill('Jo�o Silva');
+  await page.getByLabel('Nome Completo').fill('Jo�o Silva');
   await page.getByLabel('Telefone').fill('11999999999');
-  await page.getByLabel('Localiza��o').fill('S�o Paulo, SP');
-  await page.getByRole('button', { name: 'Pr�ximo' }).click();
+  await page.getByLabel('Localiza��o').fill('S�o Paulo, SP');
+  await page.getByRole('button', { name: 'Pr�ximo' }).click();
 
   // Step 2
-  await page.getByLabel('Posi��o Atual').selectOption('SDR/BDR');
-  await page.getByLabel('Anos de Experi�ncia').fill('3');
-  await page.getByRole('button', { name: 'Pr�ximo' }).click();
+  await page.getByLabel('Posi��o Atual').selectOption('SDR/BDR');
+  await page.getByLabel('Anos de Experi�ncia').fill('3');
+  await page.getByRole('button', { name: 'Pr�ximo' }).click();
 
   // ... continue through all steps
 
@@ -415,7 +472,7 @@ export default function PublicCandidateProfile() {
               <h1 className="text-3xl font-bold">{candidate.full_name}</h1>
               <p className="text-xl text-gray-600">{candidate.current_position}</p>
               <p className="text-gray-500">{candidate.location}</p>
-              <p className="mt-2 text-gray-700">{candidate.years_of_experience} anos de experi�ncia</p>
+              <p className="mt-2 text-gray-700">{candidate.years_of_experience} anos de experi�ncia</p>
 
               {candidate.is_verified && (
                 <Badge variant="success" className="mt-2">Verificado</Badge>
@@ -448,7 +505,7 @@ export default function PublicCandidateProfile() {
 
           {candidate.video_url && (
             <div className="mt-8">
-              <h2 className="text-2xl font-semibold mb-4">V�deo de Apresenta��o</h2>
+              <h2 className="text-2xl font-semibold mb-4">V�deo de Apresenta��o</h2>
               <div className="aspect-video">
                 <iframe
                   src={candidate.video_url.replace('watch?v=', 'embed/')}
@@ -460,7 +517,7 @@ export default function PublicCandidateProfile() {
           )}
 
           <div className="mt-8">
-            <h2 className="text-2xl font-semibold mb-4">Experi�ncia Profissional</h2>
+            <h2 className="text-2xl font-semibold mb-4">Experi�ncia Profissional</h2>
             {candidate.experiences.map((exp: any) => (
               <div key={exp.id} className="mb-4">
                 <h3 className="font-semibold">{exp.position} - {exp.company_name}</h3>
@@ -488,6 +545,8 @@ export default function PublicCandidateProfile() {
 
 ## Story 3.3: CSV Import Tool (Notion Migration)
 
+> **UPDATED 2025-10-09**: CSV import expanded to support all 36 Notion fields with field parsers for boolean, currency, and list types.
+
 ### Implementation Steps
 
 **1. Create CSV Import View:**
@@ -495,9 +554,48 @@ export default function PublicCandidateProfile() {
 `apps/api/candidates/views.py`:
 ```python
 import pandas as pd
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAdminUser
+from rest_framework.response import Response
 from .tasks import import_candidates_csv
+
+# Default column mapping (Notion CSV → TalentBase fields)
+DEFAULT_COLUMN_MAPPING = {
+    'Nome': 'full_name',
+    'Aceita ser PJ?': 'accepts_pj',
+    'CEP': 'zip_code',
+    'CPF': 'cpf',
+    'Cidade': 'city',
+    'Contrato Assinado?': 'contract_signed',
+    'Data da Entrevista': 'interview_date',
+    'Departamentos que já vendeu': 'departments_sold_to',
+    'Disp. p/ Mudança?': 'relocation_availability',
+    'Disponibilidade para viagem?': 'travel_availability',
+    'Expansão/Venda pra carteira de clientes': 'portfolio_expansion_experience',
+    'Formação Acadêmica': 'academic_degree',
+    'Idiomas': 'languages',
+    'LinkedIn': 'linkedin',
+    'Modelo de Trabalho': 'work_model',
+    'Mín Mensal Remuneração Total': 'minimum_salary',
+    'Obs. Remuneração': 'salary_notes',
+    'PCD?': 'is_pcd',
+    'Posições de Interesse': 'positions_of_interest',
+    'Possui CNH?': 'has_drivers_license',
+    'Possui veículo próprio?': 'has_vehicle',
+    'Prospecção Ativa': 'active_prospecting_experience',
+    'Qualificação de Leads Inbound': 'inbound_qualification_experience',
+    'Retenção de Carteira de Clientes': 'portfolio_retention_experience',
+    'Softwares de Vendas': 'tools_software',
+    'Soluções que já vendeu': 'solutions_sold',
+    'Status/Contrato': 'status',
+    'Tamanho da carteira gerida': 'portfolio_size',
+    'Venda p/ Leads Inbound': 'inbound_sales_experience',
+    'Venda p/ Leads Outbound': 'outbound_sales_experience',
+    'Vendas em Field Sales': 'field_sales_experience',
+    'Vendas em Inside Sales': 'inside_sales_experience',
+    '[Vendas/Closer] Ciclo de vendas': 'sales_cycle',
+    '[Vendas/Closer] Ticket Médio': 'avg_ticket',
+}
 
 @api_view(['POST'])
 @permission_classes([IsAdminUser])
@@ -510,8 +608,8 @@ def import_candidates(request):
     # Read CSV
     df = pd.read_csv(csv_file)
 
-    # Map columns (from request or auto-detect)
-    column_mapping = request.data.get('column_mapping', {})
+    # Map columns (use default mapping or custom from request)
+    column_mapping = request.data.get('column_mapping', DEFAULT_COLUMN_MAPPING)
 
     # Start async import task
     task = import_candidates_csv.delay(df.to_dict('records'), column_mapping)
@@ -522,11 +620,12 @@ def import_candidates(request):
     })
 ```
 
-**2. Celery Import Task:**
+**2. Celery Import Task with Field Parsers:**
 
 `apps/api/candidates/tasks.py`:
 ```python
 from celery import shared_task
+from decimal import Decimal
 from .models import CandidateProfile
 from authentication.models import User
 
@@ -536,37 +635,111 @@ def import_candidates_csv(records, column_mapping):
     error_count = 0
     errors = []
 
+    # Field parsers
+    def parse_bool(value):
+        """Parse Sim/Não to True/False"""
+        if not value or pd.isna(value):
+            return False
+        return str(value).strip().lower() in ['sim', 'yes', 'true']
+
+    def parse_currency(value):
+        """Parse R$ 7.500,00 to Decimal(7500.00)"""
+        if not value or pd.isna(value):
+            return None
+        try:
+            cleaned = str(value).replace('R$', '').replace('.', '').replace(',', '.').strip()
+            return Decimal(cleaned)
+        except:
+            return None
+
+    def parse_list(value):
+        """Parse comma-separated string to list"""
+        if not value or pd.isna(value):
+            return []
+        return [item.strip() for item in str(value).split(',') if item.strip()]
+
+    def parse_date(value):
+        """Parse date string"""
+        if not value or pd.isna(value):
+            return None
+        try:
+            return pd.to_datetime(value).date()
+        except:
+            return None
+
     for record in records:
         try:
-            email = record.get(column_mapping.get('email', 'Email'))
-            full_name = record.get(column_mapping.get('full_name', 'Nome'))
+            email = record.get('Email', '')
+            if not email:
+                error_count += 1
+                errors.append({'record': record, 'error': 'Email missing'})
+                continue
+
+            full_name = record.get('Nome', '')
 
             # Create or get user
             user, created = User.objects.get_or_create(
                 email=email,
-                defaults={'role': 'candidate', 'password': 'temp123'}
+                defaults={'role': 'candidate'}
             )
 
-            # Create candidate profile
+            # Create candidate profile with ALL 36 fields
             candidate, created = CandidateProfile.objects.update_or_create(
                 user=user,
                 defaults={
+                    # Basic fields
                     'full_name': full_name,
-                    'phone': record.get(column_mapping.get('phone', 'Telefone'), ''),
-                    'current_position': record.get(column_mapping.get('position', 'Posi��o'), 'SDR/BDR'),
-                    # ... map other fields
+                    'cpf': record.get('CPF', ''),
+                    'linkedin': record.get('LinkedIn', ''),
+
+                    # New fields from Notion CSV
+                    'accepts_pj': parse_bool(record.get('Aceita ser PJ?')),
+                    'zip_code': record.get('CEP', ''),
+                    'city': record.get('Cidade', ''),
+                    'contract_signed': parse_bool(record.get('Contrato Assinado?')),
+                    'interview_date': parse_date(record.get('Data da Entrevista')),
+                    'relocation_availability': record.get('Disp. p/ Mudança?', ''),
+                    'travel_availability': record.get('Disponibilidade para viagem?', ''),
+                    'academic_degree': record.get('Formação Acadêmica', ''),
+                    'languages': parse_list(record.get('Idiomas', '')),
+                    'work_model': record.get('Modelo de Trabalho', ''),
+                    'minimum_salary': parse_currency(record.get('Mín Mensal Remuneração Total')),
+                    'salary_notes': record.get('Obs. Remuneração', ''),
+                    'is_pcd': parse_bool(record.get('PCD?')),
+                    'positions_of_interest': parse_list(record.get('Posições de Interesse', '')),
+                    'has_drivers_license': parse_bool(record.get('Possui CNH?')),
+                    'has_vehicle': parse_bool(record.get('Possui veículo próprio?')),
+
+                    # Experience fields
+                    'active_prospecting_experience': record.get('Prospecção Ativa', ''),
+                    'inbound_qualification_experience': record.get('Qualificação de Leads Inbound', ''),
+                    'portfolio_retention_experience': record.get('Retenção de Carteira de Clientes', ''),
+                    'portfolio_expansion_experience': record.get('Expansão/Venda pra carteira de clientes', ''),
+                    'portfolio_size': record.get('Tamanho da carteira gerida', ''),
+                    'inbound_sales_experience': record.get('Venda p/ Leads Inbound', ''),
+                    'outbound_sales_experience': record.get('Venda p/ Leads Outbound', ''),
+                    'field_sales_experience': record.get('Vendas em Field Sales', ''),
+                    'inside_sales_experience': record.get('Vendas em Inside Sales', ''),
+
+                    # Existing fields
+                    'tools_software': parse_list(record.get('Softwares de Vendas', '')),
+                    'solutions_sold': parse_list(record.get('Soluções que já vendeu', '')),
+                    'departments_sold_to': parse_list(record.get('Departamentos que já vendeu', '')),
+                    'sales_cycle': record.get('[Vendas/Closer] Ciclo de vendas', ''),
+                    'avg_ticket': record.get('[Vendas/Closer] Ticket Médio', ''),
+                    'status': record.get('Status/Contrato', 'available'),
                 }
             )
 
             success_count += 1
         except Exception as e:
             error_count += 1
-            errors.append({'record': record, 'error': str(e)})
+            errors.append({'record': record.get('Nome', 'Unknown'), 'error': str(e)})
 
     return {
         'success_count': success_count,
         'error_count': error_count,
-        'errors': errors
+        'errors': errors[:10]  # Limit errors to first 10
     }
 ```
 
@@ -575,10 +748,46 @@ def import_candidates_csv(records, column_mapping):
 ## Remaining Stories Summary
 
 ### Story 3.4: Admin Candidate Curation & Editing
+
+> **UPDATED 2025-10-09**: Admin table expanded with filters and columns for new Notion fields (city, salary, work_model, mobility, etc.)
+
 - Route: `/admin/candidates`
-- Features: Table list, filters (position, status), search, edit form
+- Features: Table list with advanced filters, search, detailed view with tabs, edit form
 - Admin can set: status, verified flag, category
 - API: `PATCH /api/v1/admin/candidates/:id`
+
+**Enhanced Filters:**
+- Position (select)
+- Status (select)
+- City (text search)
+- Work Model (multi-select: Home-office, Híbrido, Presencial)
+- Minimum Salary (range slider)
+- Accepts PJ (boolean)
+- PCD (boolean)
+- Has Driver's License (boolean)
+- Travel Availability (select)
+
+**Table Columns (default visible):**
+- Nome
+- Posição
+- Cidade
+- Salário Mínimo
+- Modelo de Trabalho
+- Status
+
+**Additional Toggleable Columns:**
+- Aceita PJ
+- PCD
+- CNH
+- Disponibilidade Viagem
+- Tamanho Carteira
+- Idiomas
+
+**Detail View Tabs:**
+1. **Informações Básicas**: Nome, telefone, LinkedIn, formação, idiomas
+2. **Experiência Detalhada**: Prospecção ativa, qualificação inbound, retenção, expansão, carteira, field/inside sales
+3. **Mobilidade & Preferências**: Modelo trabalho, disponibilidade viagem/mudança, CNH, veículo
+4. **Remuneração**: Salário mínimo, observações, aceita PJ
 
 ### Story 3.5: Candidate Ranking System
 - Route: `/admin/rankings`

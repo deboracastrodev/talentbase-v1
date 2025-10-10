@@ -1,6 +1,6 @@
 # Story 1.4: Build Public Landing Page
 
-Status: Ready for Review
+Status: Done
 
 **⚠️ IMPORTANTE: Antes de iniciar esta story, leia:**
 - [Code Quality Standards](../bestpraticies/CODE_QUALITY.md)

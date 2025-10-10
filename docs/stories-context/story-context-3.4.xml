@@ -1,0 +1,237 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>3.4</storyId>
+    <title>Admin Candidate Curation &amp; Editing</title>
+    <status>Not Started</status>
+    <generatedAt>2025-10-09</generatedAt>
+    <lastUpdated>2025-10-09</lastUpdated>
+    <updateNote>Admin table expanded with 9 advanced filters and 6 toggleable columns for new Notion fields. Detail view organized in 4 tabs to display 25+ new fields.</updateNote>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>/Users/debor/Documents/sistemas/talentbase-v1/docs/stories/story-3.4.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>um admin</asA>
+    <iWant>editar qualquer perfil de candidato e definir status</iWant>
+    <soThat>eu possa manter qualidade dos dados e marcar disponibilidade</soThat>
+    <tasks>
+      <task id="1" status="pending">
+        <title>Criar página de listagem de candidatos</title>
+        <ac_refs>1, 2, 3, 4</ac_refs>
+        <subtasks>
+          <subtask>Criar route /admin/candidates</subtask>
+          <subtask>Endpoint GET /api/v1/admin/candidates com filtros</subtask>
+          <subtask>Implementar tabela com colunas</subtask>
+          <subtask>Implementar filtros (posição, status, verificado)</subtask>
+          <subtask>Implementar busca por nome/email</subtask>
+        </subtasks>
+      </task>
+      <task id="2" status="pending">
+        <title>Adicionar campos admin ao modelo</title>
+        <ac_refs>7, 9</ac_refs>
+        <subtasks>
+          <subtask>Adicionar campo verified (BooleanField)</subtask>
+          <subtask>Adicionar campo category (CharField)</subtask>
+          <subtask>Adicionar campo admin_notes (TextField)</subtask>
+          <subtask>Executar migrações</subtask>
+        </subtasks>
+      </task>
+      <task id="3" status="pending">
+        <title>Implementar formulário de edição</title>
+        <ac_refs>5, 6, 7</ac_refs>
+        <subtasks>
+          <subtask>Modal/página de edição de candidato</subtask>
+          <subtask>Formulário pre-populado com dados atuais</subtask>
+          <subtask>Campos admin-only: status, verified, category, notes</subtask>
+          <subtask>Validação client-side</subtask>
+        </subtasks>
+      </task>
+      <task id="4" status="pending">
+        <title>Implementar API de edição</title>
+        <ac_refs>8, 9</ac_refs>
+        <subtasks>
+          <subtask>Endpoint PATCH /api/v1/admin/candidates/:id</subtask>
+          <subtask>Permissão admin-only</subtask>
+          <subtask>Criar CandidateAudit model</subtask>
+          <subtask>Salvar audit log em cada mudança</subtask>
+        </subtasks>
+      </task>
+      <task id="5" status="pending">
+        <title>Implementar notificações de mudança</title>
+        <ac_refs>10</ac_refs>
+        <subtasks>
+          <subtask>Email quando status muda</subtask>
+          <subtask>Email quando verified = true</subtask>
+          <subtask>Templates de email</subtask>
+        </subtasks>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">Página admin em /admin/candidates</criterion>
+    <criterion id="2">Tabela lista todos candidatos: nome, posição, status, ranking score, created_at</criterion>
+    <criterion id="3">Filtros: posição, status (available, inactive, under contract), verificado</criterion>
+    <criterion id="4">Busca por nome ou email</criterion>
+    <criterion id="5">Clicar linha do candidato → abre formulário de edição</criterion>
+    <criterion id="6">Admin pode editar todos os campos (mesmo formulário de perfil do candidato)</criterion>
+    <criterion id="7">
+      <title>Admin pode definir:</title>
+      <items>
+        <item>Status: Available, Inactive, Under Contract</item>
+        <item>Verified: Yes/No (badge no perfil público)</item>
+        <item>Category: SDR/BDR Specialist, AE/Closer, CSM Expert</item>
+      </items>
+    </criterion>
+    <criterion id="8">Endpoint API PATCH /api/v1/admin/candidates/:id</criterion>
+    <criterion id="9">Mudanças salvas com log de auditoria (admin user, timestamp)</criterion>
+    <criterion id="10">Candidato recebe notificação por email se status mudar</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics/tech-spec-epic-3.md</path>
+        <title>Technical Specification - Epic 3: Candidate Management System</title>
+        <section>Admin Curation</section>
+        <snippet>Admin can curate, edit, rank, and manage all candidates. Status management, verification badges, candidate categorization</snippet>
+      </doc>
+      <doc>
+        <path>docs/bestpraticies/BACKEND_BEST_PRACTICES.md</path>
+        <title>Backend Best Practices</title>
+        <section>Audit logging patterns</section>
+        <snippet>Track all admin changes with audit models, log who/when/what changed</snippet>
+      </doc>
+      <doc>
+        <path>docs/bestpraticies/FRONTEND_BEST_PRACTICES.md</path>
+        <title>Frontend Best Practices</title>
+        <section>Admin tables with filters and search</section>
+        <snippet>Table components, pagination, filtering, search patterns</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>apps/api/candidates/models.py</path>
+        <kind>module</kind>
+        <symbol>CandidateProfile.status</symbol>
+        <lines>123-142</lines>
+        <reason>CandidateProfile ALREADY HAS status field (available, inactive, no_contract). Need to verify field choices match story requirements and add verified, category, admin_notes fields</reason>
+      </artifact>
+      <artifact>
+        <path>apps/api/authentication/models.py</path>
+        <kind>module</kind>
+        <symbol>UserStatusAudit</symbol>
+        <lines>115-164</lines>
+        <reason>EXISTING audit model for User status changes - use as pattern to create CandidateAudit model with similar structure (changed_by, old_value, new_value, action_type, reason, timestamp)</reason>
+      </artifact>
+      <artifact>
+        <path>apps/api/core/tasks.py</path>
+        <kind>module</kind>
+        <symbol>send_email_task</symbol>
+        <lines>14-54</lines>
+        <reason>Use for sending status change notification emails to candidates</reason>
+      </artifact>
+      <artifact>
+        <path>apps/api/user_management/views.py</path>
+        <kind>module</kind>
+        <symbol>AdminUserListView</symbol>
+        <lines>39-100</lines>
+        <reason>Existing admin list view with filters - use as pattern for candidate list endpoint with similar filtering/search logic</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <python>
+        <package name="django" version="^5.0" />
+        <package name="djangorestframework" version="^3.14" />
+        <package name="celery" version="^5.3.0" />
+      </python>
+      <node>
+        <package name="@remix-run/react" version="^2.14.0" />
+        <package name="react" version="^18.2.0" />
+        <package name="@talentbase/design-system" version="workspace:*" note="Admin table and form components" />
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint id="model1" category="database">CandidateProfile ALREADY HAS status field - verify choices match (available, inactive, under_contract). Add: verified (BooleanField), category (CharField), admin_notes (TextField)</constraint>
+    <constraint id="audit1" category="audit">Create CandidateAudit model following UserStatusAudit pattern - track admin_user, field_changed, old_value, new_value, action, timestamp</constraint>
+    <constraint id="permission1" category="security">Only admin role can access candidate list and edit endpoints - use IsAdmin permission</constraint>
+    <constraint id="permission2" category="security">Admin-only fields (status, verified, category, admin_notes) cannot be edited by candidates - enforce in serializer</constraint>
+    <constraint id="email1" category="notification">Send email to candidate when status changes or verified=True - use existing send_email_task async</constraint>
+    <constraint id="filter1" category="performance">List endpoint must support filtering by position, status, verified - use Django QuerySet filters efficiently</constraint>
+    <constraint id="search1" category="performance">Search by name/email should use database indexes - consider adding db_index=True to searchable fields</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>CandidateProfile.status</name>
+      <kind>model_field</kind>
+      <signature>CharField(max_length=20, choices=STATUS_CHOICES, default='available')</signature>
+      <path>apps/api/candidates/models.py:123-128</path>
+      <description>Existing status field - verify choices: available, inactive, no_contract. Story requires: available, inactive, under_contract (different!)</description>
+    </interface>
+    <interface>
+      <name>UserStatusAudit</name>
+      <kind>django_model</kind>
+      <signature>UserStatusAudit(models.Model)</signature>
+      <path>apps/api/authentication/models.py:115-164</path>
+      <description>Existing audit pattern - use as template for CandidateAudit model</description>
+    </interface>
+    <interface>
+      <name>send_email_task</name>
+      <kind>celery_task</kind>
+      <signature>send_email_task(subject: str, message: str, recipient_list: list[str])</signature>
+      <path>apps/api/core/tasks.py:14-54</path>
+      <description>Async email task for status change notifications</description>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Framework: pytest with pytest-django for backend, Vitest for frontend, Playwright for E2E
+      Test Location Pattern: apps/api/*/tests/test_*.py for backend
+      Database: Use @pytest.mark.django_db decorator for database tests
+      Audit Testing: Verify audit log created on every field change with correct old/new values
+      Permission Testing: Verify admin-only access, verify candidates cannot edit admin-only fields
+      Email Testing: Mock send_email_task, verify called with correct recipient and template
+    </standards>
+    <locations>
+      <location>apps/api/candidates/tests/test_admin_views.py - admin candidate CRUD tests (to be created)</location>
+      <location>apps/api/candidates/tests/test_audit.py - audit log tests (to be created)</location>
+      <location>packages/web/app/routes/admin.candidates.tsx - admin list page (to be created)</location>
+      <location>packages/web/tests/e2e/admin-candidate-editing.spec.ts - E2E admin editing flow</location>
+    </locations>
+    <ideas>
+      <test_idea ac_ref="1,2,3,4">
+        <title>Test candidate list with filters and search</title>
+        <approach>GET /api/v1/admin/candidates with filters (position=AE, status=available, verified=true). Verify filtered results. Test search by name and email</approach>
+      </test_idea>
+      <test_idea ac_ref="5,6,8">
+        <title>Test admin can edit any candidate field</title>
+        <approach>PATCH /api/v1/admin/candidates/:id with all fields (name, position, status, verified). Verify all fields updated successfully</approach>
+      </test_idea>
+      <test_idea ac_ref="7">
+        <title>Test admin-only field updates</title>
+        <approach>PATCH with status='under_contract', verified=true, category='ae_closer', admin_notes='text'. Verify all admin fields updated</approach>
+      </test_idea>
+      <test_idea ac_ref="9">
+        <title>Test audit log created on changes</title>
+        <approach>Edit candidate, change status from 'available' to 'inactive'. Verify CandidateAudit record created with admin_user, field_changed='status', old_value='available', new_value='inactive'</approach>
+      </test_idea>
+      <test_idea ac_ref="10">
+        <title>Test email notification on status change</title>
+        <approach>Change status, mock send_email_task, verify called with candidate email and status change message</approach>
+      </test_idea>
+      <test_idea ac_ref="all">
+        <title>Test permission enforcement</title>
+        <approach>Candidate user tries to PATCH admin-only fields, verify 403 or fields ignored. Only admin can access /api/v1/admin/candidates endpoint</approach>
+      </test_idea>
+      <test_idea ac_ref="9">
+        <title>Test audit history retrieval</title>
+        <approach>Make 3 edits to candidate. GET /api/v1/admin/candidates/:id/audit-log, verify 3 audit records returned in chronological order</approach>
+      </test_idea>
+    </ideas>
+  </tests>
+</story-context>

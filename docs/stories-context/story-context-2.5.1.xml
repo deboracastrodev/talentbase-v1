@@ -1,0 +1,392 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>2.5.1</storyId>
+    <title>Dashboard Layout Components & Admin Implementation</title>
+    <status>Ready for Implementation</status>
+    <generatedAt>2025-10-08</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>/Users/debor/Documents/sistemas/talentbase-v1/docs/stories/story-2.5.1.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>um desenvolvedor do TalentBase</asA>
+    <iWant>componentes de layout dashboard reutilizáveis no design system e implementação do admin dashboard</iWant>
+    <soThat>todos os dashboards (admin, candidate, company) usem a mesma estrutura visual e o admin tenha navegação e widgets funcionais</soThat>
+    <tasks>
+      <task id="1" title="Create Sidebar Component (Design System)">
+        <ac>1, 4, 5</ac>
+        <subtasks>
+          <subtask>Create packages/design-system/src/components/Sidebar.tsx with TypeScript types</subtask>
+          <subtask>Implement desktop layout (240px fixed width), active item highlighting</subtask>
+          <subtask>Add Lucide React icons support and mobile collapsible behavior</subtask>
+          <subtask>Create Sidebar.stories.tsx with default, mobile, and active states</subtask>
+          <subtask>Export Sidebar in packages/design-system/src/index.ts</subtask>
+        </subtasks>
+      </task>
+      <task id="2" title="Create Navbar Component (Design System)">
+        <ac>2, 4, 5</ac>
+        <subtasks>
+          <subtask>Create packages/design-system/src/components/Navbar.tsx with sticky header</subtask>
+          <subtask>Implement user dropdown menu and hamburger for mobile</subtask>
+          <subtask>Create Navbar.stories.tsx with user menu and mobile variants</subtask>
+          <subtask>Export Navbar in packages/design-system/src/index.ts</subtask>
+        </subtasks>
+      </task>
+      <task id="3" title="Create DashboardLayout Component (Design System)">
+        <ac>3, 4, 5, 6</ac>
+        <subtasks>
+          <subtask>Create packages/design-system/src/components/DashboardLayout.tsx composing Sidebar + Navbar + main area</subtask>
+          <subtask>Handle mobile/desktop responsive behavior with TypeScript generics</subtask>
+          <subtask>Create DashboardLayout.stories.tsx with desktop and mobile layouts</subtask>
+          <subtask>Export DashboardLayout and update dependencies (lucide-react)</subtask>
+        </subtasks>
+      </task>
+      <task id="4" title="Create AdminLayout Wrapper">
+        <ac>12</ac>
+        <subtasks>
+          <subtask>Create packages/web/app/components/layouts/AdminLayout.tsx</subtask>
+          <subtask>Define admin menu items (Dashboard, Users, Companies disabled, etc.)</subtask>
+          <subtask>Fetch current user from loader and implement logout handler</subtask>
+          <subtask>Pass configuration to DashboardLayout from design system</subtask>
+        </subtasks>
+      </task>
+      <task id="5" title="Create Admin Stats API">
+        <ac>16, 17</ac>
+        <subtasks>
+          <subtask>Create AdminStatsView in apps/api/user_management/views.py with IsAdmin permission</subtask>
+          <subtask>Calculate stats: total_users, total_candidates, total_companies, total_admins, pending_approvals, active_jobs, recent_activity</subtask>
+          <subtask>Create AdminStatsSerializer in apps/api/user_management/serializers.py</subtask>
+          <subtask>Add route to apps/api/user_management/urls.py and tests</subtask>
+        </subtasks>
+      </task>
+      <task id="6" title="Create Admin Dashboard Homepage">
+        <ac>7, 8, 9, 10, 11, 13</ac>
+        <subtasks>
+          <subtask>Create route packages/web/app/routes/admin._index.tsx with loader checking admin auth</subtask>
+          <subtask>Fetch stats from GET /api/v1/admin/stats</subtask>
+          <subtask>Create StatCard.tsx and dashboard widgets (Total Users, Pending Approvals, Active Jobs, Total Candidates, Recent Activity)</subtask>
+          <subtask>Implement responsive grid layout and wrap with AdminLayout</subtask>
+          <subtask>Add error boundary for stats fetch failures</subtask>
+        </subtasks>
+      </task>
+      <task id="7" title="Update Admin Users Page">
+        <ac>14, 15</ac>
+        <subtasks>
+          <subtask>Update packages/web/app/routes/admin.users.tsx to use AdminLayout wrapper</subtask>
+          <subtask>Remove custom header/nav if present</subtask>
+          <subtask>Test navigation and active menu highlighting</subtask>
+        </subtasks>
+      </task>
+      <task id="8" title="Create API Client Helper">
+        <ac>16</ac>
+        <subtasks>
+          <subtask>Add getAdminStats() function to packages/web/app/lib/api/admin.ts</subtask>
+          <subtask>Add TypeScript types for stats response and error handling</subtask>
+        </subtasks>
+      </task>
+      <task id="9" title="Add Tests">
+        <ac>All</ac>
+        <subtasks>
+          <subtask>Design System: Sidebar.test.tsx, Navbar.test.tsx, DashboardLayout.test.tsx</subtask>
+          <subtask>Backend: test_admin_stats_view, test_admin_stats_permission, test_admin_stats_structure</subtask>
+          <subtask>Frontend: AdminLayout renders, Dashboard widgets display, navigation works</subtask>
+          <subtask>E2E: Admin login → dashboard → stats widgets → navigation → logout</subtask>
+        </subtasks>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <ac id="1">Sidebar component criado em packages/design-system/src/components/Sidebar.tsx com props menuItems[], activeItem, logo, onItemClick; menu items com ícone, label, href, badge opcional; active item destacado; mobile collapsible com overlay; desktop always visible (240px)</ac>
+    <ac id="2">Navbar component criado em packages/design-system/src/components/Navbar.tsx com props pageTitle, user, onLogout, logo; header sticky (position: sticky, top: 0); user menu dropdown (nome, email, profile link, logout); mobile hamburger button para toggle sidebar</ac>
+    <ac id="3">DashboardLayout component criado em packages/design-system/src/components/DashboardLayout.tsx com props sidebarConfig, user, pageTitle, children; combina Sidebar + Navbar + main content area; mobile e desktop responsive; exportado em packages/design-system/src/index.ts</ac>
+    <ac id="4">Componentes usam Lucide React icons</ac>
+    <ac id="5">Componentes têm variants e são totalmente tipados (TypeScript)</ac>
+    <ac id="6">Storybook stories criadas para Sidebar, Navbar, DashboardLayout</ac>
+    <ac id="7">Admin homepage route at /admin (dashboard landing page)</ac>
+    <ac id="8">Dashboard exibe widgets overview: Total Users com breakdown (X candidates, Y companies, Z admins); Pending Approvals com contagem de empresas pendentes (clicável → /admin/users?status=pending&role=company); Active Jobs com número de vagas ativas; Total Candidates com número de candidatos disponíveis; Recent Activity com últimas 5 ações</ac>
+    <ac id="9">Widgets usam Card component do design system</ac>
+    <ac id="10">Widgets são clicáveis e navegam para páginas relevantes</ac>
+    <ac id="11">Dashboard carrega em menos de 2 segundos</ac>
+    <ac id="12">AdminLayout wrapper criado em packages/web/app/components/layouts/AdminLayout.tsx usando DashboardLayout do design system; configura menu items específicos do admin (Dashboard, Users, Companies, Candidates, Jobs, Applications, Matches); passa user info e handleLogout</ac>
+    <ac id="13">Rota /admin protegida com requireAuth(request, 'admin')</ac>
+    <ac id="14">Página /admin/users atualizada para usar AdminLayout</ac>
+    <ac id="15">Navegação entre páginas admin funcional (sidebar active highlighting)</ac>
+    <ac id="16">Endpoint GET /api/v1/admin/stats criado retornando: total_users, total_candidates, total_companies, total_admins, pending_approvals, active_jobs, recent_activity[] (últimas 5 ações)</ac>
+    <ac id="17">Permissions: IsAdmin required para stats endpoint</ac>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>packages/design-system/README.md</path>
+        <title>Design System Overview</title>
+        <section>Quick Start, Componentes Disponíveis, Design Tokens</section>
+        <snippet>
+          - Stack: React 18, TypeScript, Tailwind CSS 3, Storybook 8, class-variance-authority
+          - Componentes disponíveis: Button (variantes: default, secondary, outline, ghost, destructive, link; tamanhos: sm, default, lg, icon)
+          - Cores Primary: --color-primary-500: #00B8D4, --color-primary-600: #00ACC1
+          - Cores Secondary: --color-secondary-500: #1E3A8A, --color-secondary-600: #1E40AF
+          - Tipografia: 'Inter', system-ui, sans-serif
+          - Espaçamentos Base-4: 4px, 8px, 12px, 16px, 24px, 32px, 48px, 64px
+          - Border Radius: sm: 4px, md: 8px, lg: 12px, xl: 16px, full: 9999px
+          - Roadmap: Card, Input, Badge, Modal, Form components, Navigation components planejados
+        </snippet>
+      </doc>
+      <doc>
+        <path>docs/epics/gap-analysis-epic-2-admin-layout.md</path>
+        <title>Gap Analysis - Admin Dashboard Layout</title>
+        <section>Problema Identificado, Solução Story 2.5.1</section>
+        <snippet>
+          Gap crítico identificado: Stories 2.4 e 2.5 referenciavam dashboard, sidebar, navbar e widgets que nunca foram especificados
+          Solução: Story 2.5.1 cobre layout admin completo com sidebar navigation (Dashboard, Users, Companies, Candidates, Jobs, Applications, Matches), navbar com user dropdown e logout, dashboard homepage com widgets (Total Users, Pending Approvals, Active Jobs, Total Candidates, Recent Activity), AdminLayout component reutilizável
+          Componentes devem ser mobile responsive com sidebar collapsible
+        </snippet>
+      </doc>
+      <doc>
+        <path>docs/bestpraticies/FRONTEND_BEST_PRACTICES.md</path>
+        <title>Frontend Best Practices</title>
+        <section>Componentização, Design System, Tipagem TypeScript</section>
+        <snippet>
+          Princípio da Responsabilidade Única: cada componente uma única responsabilidade
+          Hierarquia: app/routes (páginas Remix), app/components (componentes de negócio), packages/design-system (componentes reutilizáveis)
+          Stack: TypeScript + React + Remix + Tailwind CSS
+          Sempre usar TypeScript estrito, props interface obrigatória
+          Preferir componentes do design system antes de criar novos
+        </snippet>
+      </doc>
+      <doc>
+        <path>docs/bestpraticies/CODE_QUALITY.md</path>
+        <title>Code Quality Standards</title>
+        <section>Ferramentas, Comandos, Padrões Gerais</section>
+        <snippet>
+          Backend: Black (formatação), Ruff (linter), mypy (tipos), pytest + pytest-cov (testes)
+          Frontend: ESLint, Prettier, TypeScript, Vitest
+          Documentação: JSDoc em funções públicas obrigatório
+          Testes: cobertura mínima obrigatória antes de merge
+        </snippet>
+      </doc>
+      <doc>
+        <path>docs/epics/tech-spec-epic-2.md</path>
+        <title>Technical Specification Epic 2</title>
+        <section>Story 2.3 Login, Story 2.4 Admin User Management, Story 2.6 RBAC</section>
+        <snippet>
+          Story 2.3: Token-based auth, httpOnly cookie storage, role-based redirect (admin → /admin, candidate → /candidate, company → /company)
+          Story 2.4: Route /admin/users, API GET /api/v1/admin/users com filtros role/status/search, pagination 20 users/page, Admin only
+          Story 2.6: Django Permissions (IsAuthenticated, IsAdmin, IsOwner, IsCandidate, IsCompany), Remix route protection requireAuth(request, 'admin') in loader
+          User Model: id (UUID), email (unique), role (admin/candidate/company), is_active, is_staff, created_at, updated_at
+        </snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>packages/design-system/src/components/Card.tsx</path>
+        <kind>component</kind>
+        <symbol>Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter</symbol>
+        <lines>1-117</lines>
+        <reason>Card component já existe no design system e será usado pelos widgets do dashboard (AC9). Possui variantes (default, elevated, outlined, ghost) e padding (none, sm, md, lg)</reason>
+      </artifact>
+      <artifact>
+        <path>packages/design-system/src/components/Button.tsx</path>
+        <kind>component</kind>
+        <symbol>Button, buttonVariants</symbol>
+        <lines>1-50</lines>
+        <reason>Button component existente com variantes (default, destructive, outline, secondary, ghost, link) e tamanhos (default, sm, lg, icon). Usado em sidebar, navbar e widgets</reason>
+      </artifact>
+      <artifact>
+        <path>packages/design-system/src/components/Badge.tsx</path>
+        <kind>component</kind>
+        <symbol>Badge, badgeVariants</symbol>
+        <lines>1-42</lines>
+        <reason>Badge component existente com variantes (default, secondary, success, error, warning, outline, ghost). Usado para exibir contadores e status nos widgets e menu items</reason>
+      </artifact>
+      <artifact>
+        <path>packages/design-system/src/index.ts</path>
+        <kind>module</kind>
+        <symbol>exports</symbol>
+        <lines>1-71</lines>
+        <reason>Export central do design system. Novos componentes Sidebar, Navbar, DashboardLayout devem ser adicionados aqui (AC3)</reason>
+      </artifact>
+      <artifact>
+        <path>packages/web/app/routes/admin.users.tsx</path>
+        <kind>route</kind>
+        <symbol>loader, AdminUsersPage</symbol>
+        <lines>1-80</lines>
+        <reason>Rota admin existente que precisa ser atualizada para usar AdminLayout (AC14, Task 7). Atualmente faz autenticação manual via token cookie</reason>
+      </artifact>
+      <artifact>
+        <path>packages/web/app/lib/api/admin.ts</path>
+        <kind>module</kind>
+        <symbol>fetchUsers, fetchUserDetail, updateUserStatus, fetchPendingApprovalsCount</symbol>
+        <lines>1-190</lines>
+        <reason>API client existente para admin. Precisa adicionar getAdminStats() function (AC16, Task 8). Já tem tipos User, UserDetail, UsersFilters</reason>
+      </artifact>
+      <artifact>
+        <path>apps/api/user_management/views.py</path>
+        <kind>view</kind>
+        <symbol>AdminUserListView, AdminUserDetailView</symbol>
+        <lines>1-100</lines>
+        <reason>Views existentes com padrão APIView e IsAdmin permission. AdminStatsView deve seguir mesmo padrão (AC17, Task 5)</reason>
+      </artifact>
+      <artifact>
+        <path>apps/api/core/permissions.py</path>
+        <kind>permission</kind>
+        <symbol>IsAdmin, IsCandidate, IsCompany, IsOwner</symbol>
+        <lines>1-89</lines>
+        <reason>Permission classes existentes. IsAdmin será usado no AdminStatsView (AC17). Implementa RBAC verificando request.user.role</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <frontend>
+        <package name="react" version="^18.2.0" ecosystem="node">UI library base</package>
+        <package name="react-dom" version="^18.2.0" ecosystem="node">React DOM renderer</package>
+        <package name="@remix-run/react" version="^2.14.0" ecosystem="node">Framework para routing, data loading, SSR</package>
+        <package name="lucide-react" version="^0.544.0" ecosystem="node">Icon library (AC4) - JÁ INSTALADO no web e design-system</package>
+        <package name="tailwindcss" version="^3.4.18" ecosystem="node">Utility-first CSS framework</package>
+        <package name="@talentbase/design-system" version="workspace:*" ecosystem="node">Design system local com Card, Button, Badge existentes</package>
+        <package name="class-variance-authority" version="^0.7.1" ecosystem="node">Variant management - usado pelos componentes do design system</package>
+        <package name="clsx" version="^2.1.1" ecosystem="node">ClassName utilities</package>
+        <package name="tailwind-merge" version="^3.3.1" ecosystem="node">Merge Tailwind classes</package>
+        <package name="typescript" version="^5.1.6" ecosystem="node">Type safety</package>
+      </frontend>
+      <backend>
+        <package name="django" version="^5.0" ecosystem="python">Web framework</package>
+        <package name="djangorestframework" version="^3.14" ecosystem="python">REST API framework</package>
+        <package name="django-cors-headers" version="^4.3.0" ecosystem="python">CORS handling</package>
+        <package name="psycopg2-binary" version="^2.9.9" ecosystem="python">PostgreSQL adapter</package>
+        <package name="pytest" version="^7.4.0" ecosystem="python">Testing framework</package>
+        <package name="pytest-django" version="^4.5.2" ecosystem="python">Django testing utilities</package>
+        <package name="pytest-cov" version="^4.1.0" ecosystem="python">Coverage reporting</package>
+      </backend>
+      <testing>
+        <package name="vitest" version="^1.0.0" ecosystem="node">Frontend unit tests</package>
+        <package name="@testing-library/react" version="^16.3.0" ecosystem="node">React component testing</package>
+        <package name="@playwright/test" version="^1.55.1" ecosystem="node">E2E testing</package>
+      </testing>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Design System First: SEMPRE criar componentes genéricos no design system ANTES de implementar componentes específicos no app</constraint>
+    <constraint>TypeScript Strict: Todos os componentes React devem ter interfaces explícitas para props, sem 'any' types</constraint>
+    <constraint>Responsabilidade Única: Cada componente deve ter uma única responsabilidade clara</constraint>
+    <constraint>Mobile First: Sidebar deve ser collapsible em mobile (overlay), always visible em desktop (240px fixed width)</constraint>
+    <constraint>Remix Patterns: Usar loader functions para data fetching, não useEffect. Token authentication via httpOnly cookie</constraint>
+    <constraint>Clean Architecture: Views são thin controllers, business logic em services, permissions no view level</constraint>
+    <constraint>Component Hierarchy: app/routes (páginas) → app/components (negócio) → packages/design-system (reutilizáveis)</constraint>
+    <constraint>Storybook Required: Todos os componentes do design system devem ter .stories.tsx (AC6)</constraint>
+    <constraint>Lucide Icons: Usar lucide-react para todos os ícones (AC4)</constraint>
+    <constraint>Tailwind Only: Não usar CSS modules ou styled-components, apenas Tailwind CSS classes</constraint>
+    <constraint>CVA Pattern: Usar class-variance-authority para variants como nos componentes existentes (Button, Card, Badge)</constraint>
+  </constraints>
+  <interfaces>
+    <interface>
+      <name>GET /api/v1/admin/stats</name>
+      <kind>REST API</kind>
+      <signature>GET /api/v1/admin/stats → {total_users, total_candidates, total_companies, total_admins, pending_approvals, active_jobs, recent_activity[]}</signature>
+      <path>apps/api/user_management/urls.py</path>
+      <reason>Novo endpoint a ser criado (AC16, Task 5). Deve retornar stats para widgets do dashboard. Requer IsAdmin permission (AC17)</reason>
+    </interface>
+    <interface>
+      <name>GET /api/v1/admin/users</name>
+      <kind>REST API</kind>
+      <signature>GET /api/v1/admin/users?role=&amp;status=&amp;search=&amp;page= → {count, next, previous, results[]}</signature>
+      <path>apps/api/user_management/views.py:AdminUserListView</path>
+      <reason>Endpoint existente usado pelo admin users page. Implementa filtros, search e paginação (20/page)</reason>
+    </interface>
+    <interface>
+      <name>POST /api/v1/auth/logout</name>
+      <kind>REST API</kind>
+      <signature>POST /api/v1/auth/logout → {success: true}</signature>
+      <path>apps/api/authentication/views.py</path>
+      <reason>Endpoint existente para logout. Usado pelo user menu dropdown no Navbar (AC2, Task 4)</reason>
+    </interface>
+    <interface>
+      <name>DashboardLayout Props</name>
+      <kind>Component Interface</kind>
+      <signature>interface DashboardLayoutProps { sidebarConfig: {menuItems[], activeItemId, logo}, user: {name, email, avatar?}, pageTitle: string, onLogout: () =&gt; void, children: ReactNode }</signature>
+      <path>packages/design-system/src/components/DashboardLayout.tsx</path>
+      <reason>Interface do componente genérico DashboardLayout a ser criado (AC3). Compõe Sidebar + Navbar + main content area</reason>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>
+      Backend Testing:
+      - Framework: pytest + pytest-django + pytest-cov
+      - Padrão de arquivo: test_*.py em cada módulo/tests/
+      - Estrutura: test_&lt;feature&gt;_&lt;scenario&gt; (ex: test_admin_stats_view, test_admin_stats_permission)
+      - Coverage: Mínimo obrigatório antes de merge
+      - Comando: DJANGO_SETTINGS_MODULE=talentbase.settings.test poetry run pytest --cov=. --cov-report=xml
+
+      Frontend Testing:
+      - Unit: Vitest + @testing-library/react para componentes
+      - E2E: Playwright para fluxos completos
+      - Padrão: *.test.tsx para unit tests
+      - Storybook: *.stories.tsx para documentação visual (OBRIGATÓRIO para design system - AC6)
+      - Comando unit: pnpm test
+      - Comando e2e: pnpm test:e2e
+
+      Design System:
+      - TODOS os componentes devem ter .stories.tsx com múltiplos states (default, variants, mobile)
+      - Exemplo: Sidebar.stories.tsx deve ter: Default, Mobile Collapsed, Active Item Highlighted
+    </standards>
+    <locations>
+      <backend>
+        - apps/api/user_management/tests/test_views.py (AdminStatsView tests)
+        - apps/api/user_management/tests/test_services.py (se houver service logic)
+        - apps/api/core/tests/test_permissions.py (IsAdmin permission tests existentes)
+      </backend>
+      <frontend>
+        - packages/design-system/src/components/*.test.tsx (Sidebar, Navbar, DashboardLayout unit tests)
+        - packages/design-system/src/components/*.stories.tsx (Storybook stories - OBRIGATÓRIO)
+        - packages/web/app/components/layouts/*.test.tsx (AdminLayout tests)
+        - packages/web/app/routes/__tests__/ (admin routes tests)
+        - tests/e2e/admin-dashboard.spec.ts (E2E flows)
+      </frontend>
+    </locations>
+    <ideas>
+      <design-system-tests ac="1,2,3,6">
+        <test id="sidebar-1">Sidebar renders menu items with icons, labels, hrefs</test>
+        <test id="sidebar-2">Sidebar highlights active item correctly (bg-blue-100, border-left)</test>
+        <test id="sidebar-3">Sidebar collapses on mobile with overlay</test>
+        <test id="sidebar-4">Sidebar menu item with badge displays badge correctly</test>
+        <test id="navbar-1">Navbar renders sticky header with page title</test>
+        <test id="navbar-2">Navbar user menu toggles dropdown on click</test>
+        <test id="navbar-3">Navbar hamburger button visible only on mobile</test>
+        <test id="dashboard-layout-1">DashboardLayout composes Sidebar + Navbar + children</test>
+        <test id="dashboard-layout-2">DashboardLayout passes props correctly to child components</test>
+        <test id="dashboard-layout-3">DashboardLayout responsive: mobile sidebar collapsed, desktop visible</test>
+      </design-system-tests>
+      <backend-tests ac="16,17">
+        <test id="backend-1">AdminStatsView returns correct counts for total_users, total_candidates, total_companies, total_admins</test>
+        <test id="backend-2">AdminStatsView returns correct pending_approvals count (companies with is_active=False)</test>
+        <test id="backend-3">AdminStatsView returns active_jobs=0 (placeholder Epic 4)</test>
+        <test id="backend-4">AdminStatsView returns recent_activity with last 5 user creations</test>
+        <test id="backend-5">AdminStatsView requires IsAdmin permission - non-admin gets 403</test>
+        <test id="backend-6">AdminStatsView response structure has all required fields</test>
+      </backend-tests>
+      <frontend-integration-tests ac="7,8,9,10,11,12,13,14,15">
+        <test id="frontend-1">AdminLayout renders with sidebar, navbar, and children</test>
+        <test id="frontend-2">AdminLayout sidebar shows active item highlighted based on current route</test>
+        <test id="frontend-3">AdminLayout user menu triggers logout handler on logout click</test>
+        <test id="frontend-4">Dashboard /admin loads stats from API and displays widgets</test>
+        <test id="frontend-5">Dashboard Total Users widget shows breakdown (X candidates, Y companies, Z admins)</test>
+        <test id="frontend-6">Dashboard Pending Approvals widget navigates to /admin/users?status=pending&amp;role=company on click</test>
+        <test id="frontend-7">Dashboard Recent Activity widget displays last 5 actions</test>
+        <test id="frontend-8">Dashboard loads in less than 2 seconds (performance test)</test>
+        <test id="frontend-9">Admin users page uses AdminLayout wrapper correctly</test>
+        <test id="frontend-10">getAdminStats() API client function handles errors and returns typed response</test>
+      </frontend-integration-tests>
+      <e2e-tests ac="All">
+        <test id="e2e-1">Admin login → redirects to /admin dashboard</test>
+        <test id="e2e-2">Dashboard displays all stats widgets with data</test>
+        <test id="e2e-3">Click Pending Approvals widget → navigates to /admin/users filtered</test>
+        <test id="e2e-4">Sidebar navigation to /admin/users works and highlights active item</test>
+        <test id="e2e-5">User menu dropdown opens and logout redirects to /auth/login</test>
+        <test id="e2e-6">Mobile: hamburger opens sidebar overlay</test>
+        <test id="e2e-7">Non-admin user cannot access /admin routes (403 or redirect)</test>
+      </e2e-tests>
+    </ideas>
+  </tests>
+</story-context>

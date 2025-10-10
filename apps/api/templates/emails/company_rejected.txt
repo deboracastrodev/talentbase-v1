@@ -1,0 +1,29 @@
+Atualização sobre seu cadastro
+
+Olá {{ contact_name }},
+
+Agradecemos seu interesse em fazer parte do TalentBase. Após análise do cadastro da {{ company_name }}, infelizmente não foi possível aprovar sua conta neste momento.
+
+{% if reason %}Motivo:
+{{ reason }}
+{% endif %}
+
+O que você pode fazer:
+- Revisar as informações fornecidas no cadastro
+- Entrar em contato conosco para esclarecimentos
+- Solicitar uma nova análise após correções necessárias
+
+📞 Entre em contato conosco:
+Nossa equipe está disponível para esclarecer dúvidas e ajudar você no processo de cadastro.
+
+Email de suporte: contato@salesdog.click
+
+Estamos à disposição para ajudar e queremos que você faça parte da nossa plataforma assim que possível.
+
+Atenciosamente,
+Equipe TalentBase
+
+📧 contato@salesdog.click
+🌐 www.salesdog.click
+
+Para cancelar a inscrição: {{ unsubscribe_url|default:'https://www.salesdog.click/unsubscribe' }}

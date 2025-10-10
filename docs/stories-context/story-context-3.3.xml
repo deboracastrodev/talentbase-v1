@@ -1,0 +1,254 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>3.3</storyId>
+    <title>CSV Import Tool (Admin - Notion Migration)</title>
+    <status>Not Started</status>
+    <generatedAt>2025-10-09</generatedAt>
+    <lastUpdated>2025-10-09</lastUpdated>
+    <updateNote>CSV import expanded to 36 Notion fields with specialized parsers (boolean, currency, date, list)</updateNote>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>/Users/debor/Documents/sistemas/talentbase-v1/docs/stories/story-3.3.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>um admin</asA>
+    <iWant>importar candidatos em massa via CSV</iWant>
+    <soThat>eu possa migrar dados existentes do Notion rapidamente</soThat>
+    <tasks>
+      <task id="1" status="pending">
+        <title>Criar página de upload</title>
+        <ac_refs>1, 2</ac_refs>
+        <subtasks>
+          <subtask>Criar route /admin/import/candidates</subtask>
+          <subtask>Implementar componente de upload de arquivo</subtask>
+          <subtask>Validar formato CSV e tamanho max 10MB</subtask>
+        </subtasks>
+      </task>
+      <task id="2" status="pending">
+        <title>Implementar parser e mapeamento de colunas</title>
+        <ac_refs>3, 4</ac_refs>
+        <subtasks>
+          <subtask>Endpoint POST /api/v1/admin/candidates/parse-csv (upload temporário)</subtask>
+          <subtask>Parser CSV com pandas</subtask>
+          <subtask>Auto-detecção de colunas (fuzzy matching)</subtask>
+          <subtask>Componente frontend de mapeamento</subtask>
+        </subtasks>
+      </task>
+      <task id="3" status="pending">
+        <title>Implementar importação em batch</title>
+        <ac_refs>5, 6, 7</ac_refs>
+        <subtasks>
+          <subtask>Endpoint POST /api/v1/admin/candidates/import</subtask>
+          <subtask>Celery task assíncrona para processamento</subtask>
+          <subtask>Criar User + CandidateProfile para cada linha</subtask>
+          <subtask>Validação de dados (email, required fields)</subtask>
+          <subtask>Tratamento de duplicatas</subtask>
+        </subtasks>
+      </task>
+      <task id="4" status="pending">
+        <title>Implementar feedback de progresso</title>
+        <ac_refs>7, 8, 9</ac_refs>
+        <subtasks>
+          <subtask>WebSocket ou polling para progresso</subtask>
+          <subtask>Resumo de importação (sucessos, erros)</subtask>
+          <subtask>Geração de log de erros CSV</subtask>
+          <subtask>Download de arquivo de erros</subtask>
+        </subtasks>
+      </task>
+      <task id="5" status="pending">
+        <title>Integração com lista de candidatos</title>
+        <ac_refs>10</ac_refs>
+        <subtasks>
+          <subtask>Candidatos importados aparecem em /admin/candidates</subtask>
+          <subtask>Filtrar por "importados" (flag ou source)</subtask>
+        </subtasks>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">Página admin em /admin/import/candidates</criterion>
+    <criterion id="2">Upload de arquivo aceita .csv files (max 10MB)</criterion>
+    <criterion id="3">
+      <title>Após upload, mostra interface de mapeamento de colunas:</title>
+      <items>
+        <item>Colunas do CSV listadas</item>
+        <item>Dropdown para mapear para campos do modelo Candidate</item>
+        <item>Auto-detecta nomes comuns de campos (ex: "Name" → name)</item>
+      </items>
+    </criterion>
+    <criterion id="4">Tabela de preview mostra primeiras 5 linhas com mapeamentos</criterion>
+    <criterion id="5">Admin clica "Importar" → API POST /api/v1/admin/candidates/import</criterion>
+    <criterion id="6">
+      <title>Backend processa CSV:</title>
+      <items>
+        <item>Cria registros Candidate</item>
+        <item>Vincula a User (cria usuário básico se email fornecido)</item>
+        <item>Trata duplicatas (pula ou atualiza baseado em email)</item>
+      </items>
+    </criterion>
+    <criterion id="7">Indicador de progresso da importação (X de Y candidatos processados)</criterion>
+    <criterion id="8">
+      <title>Importação completa: mostra resumo</title>
+      <items>
+        <item>Sucessos: 48 candidatos importados</item>
+        <item>Erros: 2 duplicatas puladas</item>
+      </items>
+    </criterion>
+    <criterion id="9">Download de log de erros CSV (linhas que falharam com motivo)</criterion>
+    <criterion id="10">Candidatos importados visíveis na lista admin de candidatos</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics/tech-spec-epic-3.md</path>
+        <title>Technical Specification - Epic 3: Candidate Management System</title>
+        <section>Data Migration Strategy</section>
+        <snippet>CSV import tool for bulk Notion data migration. Pandas for CSV parsing and validation. Celery async tasks for large imports (&gt;100 candidates). Duplicate detection by email, skip or update</snippet>
+      </doc>
+      <doc>
+        <path>docs/bestpraticies/BACKEND_BEST_PRACTICES.md</path>
+        <title>Backend Best Practices</title>
+        <section>Async tasks and batch processing patterns</section>
+        <snippet>Celery task patterns, batch processing, progress tracking, error handling for bulk operations</snippet>
+      </doc>
+      <doc>
+        <path>docs/bestpraticies/FRONTEND_BEST_PRACTICES.md</path>
+        <title>Frontend Best Practices</title>
+        <section>File upload and progress indicators</section>
+        <snippet>File upload components, progress bars, polling vs WebSocket for real-time updates</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>apps/api/candidates/models.py</path>
+        <kind>module</kind>
+        <symbol>CandidateProfile, Experience</symbol>
+        <lines>31-190</lines>
+        <reason>Target models for CSV import - CandidateProfile with all fields and related Experience model. Import will create these records from CSV data</reason>
+      </artifact>
+      <artifact>
+        <path>apps/api/authentication/models.py</path>
+        <kind>module</kind>
+        <symbol>User</symbol>
+        <lines>1-50</lines>
+        <reason>User model - CSV import must create User records (with candidate role) before creating CandidateProfile</reason>
+      </artifact>
+      <artifact>
+        <path>apps/api/core/tasks.py</path>
+        <kind>module</kind>
+        <symbol>send_email_task</symbol>
+        <lines>14-54</lines>
+        <reason>Existing Celery task infrastructure - demonstrates async task pattern to use for CSV import processing</reason>
+      </artifact>
+      <artifact>
+        <path>apps/api/talentbase/celery.py</path>
+        <kind>module</kind>
+        <symbol>Celery app configuration</symbol>
+        <lines>1-26</lines>
+        <reason>Celery app setup - CSV import will use same infrastructure for async processing</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <python>
+        <package name="django" version="^5.0" />
+        <package name="djangorestframework" version="^3.14" />
+        <package name="celery" version="^5.3.0" />
+        <package name="pandas" version="^2.0" note="NEW - needs to be added for CSV parsing" />
+      </python>
+      <node>
+        <package name="@remix-run/react" version="^2.14.0" />
+        <package name="react" version="^18.2.0" />
+        <package name="@talentbase/design-system" version="workspace:*" note="File upload and progress components" />
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint id="async1" category="performance">Use Celery async tasks for imports &gt;50 rows to prevent blocking web requests</constraint>
+    <constraint id="batch1" category="performance">Process CSV rows in batches of 100, commit every 100 rows to prevent memory issues</constraint>
+    <constraint id="duplicate1" category="business">Duplicate detection by email - default strategy: skip duplicates and log them</constraint>
+    <constraint id="validation1" category="data">Required fields: name, email, position. Optional fields can be null/empty</constraint>
+    <constraint id="encoding1" category="data">CSV must be UTF-8 encoded to handle special characters (Portuguese accents)</constraint>
+    <constraint id="security1" category="security">Only admin role can access CSV import endpoints - use IsAdmin permission</constraint>
+    <constraint id="progress1" category="ux">Update import progress every 10% (or every 10 rows, whichever is more frequent)</constraint>
+    <constraint id="timeout1" category="performance">Import task timeout: max 30 minutes for very large files</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>pandas.read_csv</name>
+      <kind>library_function</kind>
+      <signature>pd.read_csv(filepath, encoding='utf-8')</signature>
+      <path>pandas library</path>
+      <description>Parse CSV file into DataFrame - use for reading uploaded CSV files</description>
+    </interface>
+    <interface>
+      <name>CandidateProfile.objects.get_or_create</name>
+      <kind>django_orm_method</kind>
+      <signature>get_or_create(email=..., defaults={...})</signature>
+      <path>django.db.models</path>
+      <description>Get existing or create new CandidateProfile - use for duplicate handling</description>
+    </interface>
+    <interface>
+      <name>Celery shared_task</name>
+      <kind>decorator</kind>
+      <signature>@shared_task(bind=True, max_retries=3)</signature>
+      <path>celery</path>
+      <description>Decorator for async Celery tasks - use for CSV import processing task</description>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Framework: pytest with pytest-django for backend, Vitest for frontend, Playwright for E2E
+      Test Location Pattern: apps/api/*/tests/test_*.py for backend
+      Database: Use @pytest.mark.django_db decorator for database tests
+      CSV Testing: Create fixture CSV files with various scenarios (valid, invalid, duplicates, special chars)
+      Celery Testing: Use CELERY_TASK_ALWAYS_EAGER = True in test settings (tasks run synchronously)
+      File Upload Testing: Mock file upload with in-memory files
+    </standards>
+    <locations>
+      <location>apps/api/admin/tests/test_csv_import.py - CSV import tests (to be created)</location>
+      <location>apps/api/admin/tests/fixtures/sample_candidates.csv - test CSV files</location>
+      <location>packages/web/app/routes/admin.import.candidates.tsx - import page (to be created)</location>
+      <location>packages/web/tests/e2e/csv-import.spec.ts - E2E import flow</location>
+    </locations>
+    <ideas>
+      <test_idea ac_ref="1,2">
+        <title>Test CSV file upload validation</title>
+        <approach>Upload .csv file (valid), verify accepted. Upload .txt file, verify rejected. Upload 11MB file, verify rejected (max 10MB)</approach>
+      </test_idea>
+      <test_idea ac_ref="3,4">
+        <title>Test column mapping and auto-detection</title>
+        <approach>Upload CSV with columns "Name", "Email", "Position". Verify auto-mapped to name, email, position. Test fuzzy matching: "Nome" → name, "E-mail" → email</approach>
+      </test_idea>
+      <test_idea ac_ref="5,6">
+        <title>Test bulk import creates User + CandidateProfile</title>
+        <approach>Import CSV with 10 rows. Verify 10 User records created with role=candidate. Verify 10 CandidateProfile records linked to Users</approach>
+      </test_idea>
+      <test_idea ac_ref="6">
+        <title>Test duplicate handling strategies</title>
+        <approach>Import CSV with duplicate email (skip strategy). Verify first created, second skipped, logged as error. Test update strategy: verify existing profile updated</approach>
+      </test_idea>
+      <test_idea ac_ref="7">
+        <title>Test progress tracking</title>
+        <approach>Import 100 rows, poll progress endpoint. Verify progress updates: 10%, 20%, 30%... 100%</approach>
+      </test_idea>
+      <test_idea ac_ref="8,9">
+        <title>Test import summary and error log</title>
+        <approach>Import CSV with 10 valid + 2 invalid rows (missing email). Verify summary: 10 success, 2 errors. Download error log CSV, verify 2 rows with error messages</approach>
+      </test_idea>
+      <test_idea ac_ref="10">
+        <title>Test imported candidates appear in admin list</title>
+        <approach>Import 5 candidates, navigate to /admin/candidates, verify 5 new candidates visible in list</approach>
+      </test_idea>
+      <test_idea ac_ref="all">
+        <title>Test edge cases: empty CSV, special characters, large file</title>
+        <approach>Test empty CSV (0 rows) returns error. Test CSV with Portuguese accents (UTF-8). Test 1000+ rows performance (&lt;30min)</approach>
+      </test_idea>
+    </ideas>
+  </tests>
+</story-context>

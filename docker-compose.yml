@@ -33,6 +33,16 @@ services:
     networks:
       - talentbase_network
 
+  # MailHog - Email Testing (captures emails, doesn't send)
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: talentbase_mailhog
+    ports:
+      - "1025:1025"  # SMTP server
+      - "8025:8025"  # Web UI
+    networks:
+      - talentbase_network
+
   # Django Backend API
   api:
     build:
