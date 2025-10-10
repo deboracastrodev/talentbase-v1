@@ -30,7 +30,7 @@ export interface NavbarProps
     VariantProps<typeof navbarVariants> {
   pageTitle: string;
   user: User;
-  logo: React.ReactNode;
+  logo?: React.ReactNode;
   onLogout: () => void;
   onMenuToggle?: () => void;
 }
@@ -63,7 +63,7 @@ const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
         {...props}
       >
         <div className="flex items-center justify-between h-16 px-4 lg:px-6">
-          {/* Left section: Hamburger (mobile) + Logo + Page title */}
+          {/* Left section: Hamburger (mobile) + Page title */}
           <div className="flex items-center gap-4">
             {onMenuToggle && (
               <button
@@ -74,8 +74,6 @@ const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
                 <Menu size={20} />
               </button>
             )}
-
-            <div className="hidden lg:flex items-center">{logo}</div>
 
             <h1 className="text-lg font-semibold text-gray-900">{pageTitle}</h1>
           </div>

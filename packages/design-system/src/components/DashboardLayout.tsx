@@ -61,7 +61,6 @@ const DashboardLayout = React.forwardRef<HTMLDivElement, DashboardLayoutProps>(
           <Navbar
             pageTitle={pageTitle}
             user={user}
-            logo={sidebarConfig.logo}
             onLogout={onLogout}
             onMenuToggle={handleMenuToggle}
           />
