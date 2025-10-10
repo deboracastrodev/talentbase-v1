@@ -17,16 +17,20 @@
  * 3. Tools & Software (multi-select)
  * 4. Solutions & Departments (multi-select)
  * 5. Work History, Bio & Video (experiences, bio, pitch video)
+ *
+ * NOTE: This wizard uses a clean layout without sidebar to maintain focus during profile creation.
+ * After completion, user is redirected to /candidate/profile which uses CandidateLayout.
  */
 
 import { useState, useEffect } from 'react';
-import { useNavigate } from '@remix-run/react';
+import { useNavigate, Link } from '@remix-run/react';
 import {
   MultiStepWizard,
   Input,
   Select,
   Textarea,
   Alert,
+  Logo,
 } from '@talentbase/design-system';
 
 import { DepartmentsSelector } from '~/components/candidate/DepartmentsSelector';
@@ -431,8 +435,18 @@ export default function CandidateProfileCreate() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4">
+    <div className="min-h-screen bg-gray-50">
+      {/* Simple header with logo */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+          <Logo variant="full" theme="primary" size="md" />
+          <Link to="/candidate/dashboard" className="text-sm text-gray-600 hover:text-gray-900">
+            ← Voltar ao Dashboard
+          </Link>
+        </div>
+      </div>
+
+      <div className="max-w-4xl mx-auto px-4 py-8">
         {error && (
           <Alert variant="error" message={error} className="mb-6" />
         )}

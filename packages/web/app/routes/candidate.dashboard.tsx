@@ -20,6 +20,7 @@ import {
 } from '@talentbase/design-system';
 import { Share2, Copy, Eye, EyeOff, CheckCircle, ExternalLink } from 'lucide-react';
 import { getApiBaseUrl, getAppBaseUrl } from '~/config/api';
+import { CandidateLayout } from '~/components/layouts/CandidateLayout';
 
 // Types
 interface CandidateProfile {
@@ -50,14 +51,19 @@ export async function loader({ request }: LoaderFunctionArgs) {
       share_link_generated_at: undefined,
     };
 
-    return json({ profile });
+    const user = {
+      name: profile.full_name,
+      email: 'joao@email.com', // TODO: Get from API
+    };
+
+    return json({ profile, user });
   } catch (error) {
     throw new Response('Failed to load profile', { status: 500 });
   }
 }
 
 export default function CandidateDashboard() {
-  const { profile } = useLoaderData<typeof loader>();
+  const { profile, user } = useLoaderData<typeof loader>();
   const [shareLink, setShareLink] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isToggling, setIsToggling] = useState(false);
@@ -143,15 +149,8 @@ export default function CandidateDashboard() {
     : null);
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="mt-2 text-gray-600">
-            Bem-vindo, {profile.full_name}!
-          </p>
-        </div>
+    <CandidateLayout pageTitle="Dashboard" activeItem="dashboard" user={user}>
+      <div className="max-w-4xl mx-auto">{/* Content wrapped by CandidateLayout */}
 
         {/* Share Link Card */}
         <Card className="mb-6">
@@ -334,6 +333,6 @@ export default function CandidateDashboard() {
           </Card>
         </div>
       </div>
-    </div>
+    </CandidateLayout>
   );
 }
