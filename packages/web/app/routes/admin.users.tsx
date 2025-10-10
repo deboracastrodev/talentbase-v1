@@ -29,7 +29,7 @@ import { UserTable } from '~/components/admin/UserTable';
 import { UserDetailModal } from '~/components/admin/UserDetailModal';
 import { fetchUsers, fetchUserDetail, updateUserStatus } from '~/lib/api/admin';
 import type { User, UserDetail, UsersFilters } from '~/lib/api/admin';
-import { requireAdmin } from '~/utils/auth.server';
+import { requireAdmin, getUserFromToken } from '~/utils/auth.server';
 
 interface LoaderData {
   users: User[];
@@ -65,10 +65,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   const response = await fetchUsers(filters, token);
 
-  // TODO: Get actual user info from token/session
+  // Get actual user info from token
+  const userData = await getUserFromToken(token);
   const user = {
-    name: 'Admin User',
-    email: 'admin@talentbase.com',
+    name: userData?.name || 'Admin User',
+    email: userData?.email || 'admin@talentbase.com',
   };
 
   return json<LoaderData>({

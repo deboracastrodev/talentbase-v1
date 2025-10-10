@@ -14,7 +14,7 @@
  */
 
 import { useState, useCallback } from 'react';
-import { useNavigate } from '@remix-run/react';
+import { useNavigate, useLoaderData } from '@remix-run/react';
 import { json } from '@remix-run/node';
 import type { LoaderFunctionArgs } from '@remix-run/node';
 import { AdminLayout } from '~/components/layouts/AdminLayout';
@@ -39,16 +39,24 @@ import {
   ProgressBar,
   Badge,
 } from '@talentbase/design-system';
-import { requireAdmin } from '~/utils/auth.server';
+import { requireAdmin, getUserFromToken } from '~/utils/auth.server';
 import { FileDown, Upload, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 import type { Step } from '@talentbase/design-system';
 
 /**
- * Loader - Ensure admin access
+ * Loader - Ensure admin access and fetch user data
  */
 export async function loader({ request }: LoaderFunctionArgs) {
-  await requireAdmin(request);
-  return json({});
+  const { token } = await requireAdmin(request);
+
+  // Get actual user info from token
+  const userData = await getUserFromToken(token);
+  const user = {
+    name: userData?.name || 'Admin',
+    email: userData?.email || 'admin@talentbase.com',
+  };
+
+  return json({ user });
 }
 
 /**
@@ -93,6 +101,7 @@ interface ImportStatus {
 }
 
 export default function AdminImportCandidatesPage() {
+  const { user } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
 
   // Wizard state
@@ -325,7 +334,7 @@ export default function AdminImportCandidatesPage() {
     <AdminLayout
       pageTitle="Importar Candidatos"
       activeItem="import"
-      user={{ name: "Admin", email: "admin@talentbase.com" }}
+      user={user}
     >
       <div className="p-6 max-w-6xl mx-auto">
         {/* Header */}

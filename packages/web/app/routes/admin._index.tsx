@@ -18,7 +18,7 @@ import { StatCard } from '~/components/admin/StatCard';
 import { getAdminStats, type AdminStats } from '~/lib/api/admin';
 import { Users, AlertCircle, Briefcase, UserCheck, Activity } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@talentbase/design-system';
-import { requireAdmin } from '~/utils/auth.server';
+import { requireAdmin, getUserFromToken } from '~/utils/auth.server';
 
 interface LoaderData {
   stats: AdminStats;
@@ -32,7 +32,7 @@ interface LoaderData {
 /**
  * Loader - Fetch admin dashboard stats
  * Requires admin authentication (AC13)
- * Story 2.6: Updated to use requireAdmin utility
+ * Story 2.6: Updated to use requireAdmin utility and fetch real user data
  */
 export async function loader({ request }: LoaderFunctionArgs) {
   // Story 2.6: Require admin role (checks auth + role)
@@ -42,11 +42,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
     // Fetch dashboard stats
     const stats = await getAdminStats(token);
 
-    // Get user from localStorage (set during login)
-    // TODO: Future improvement - fetch from API /api/v1/auth/me
+    // Fetch real user data from API
+    const userData = await getUserFromToken(token);
     const user = {
-      name: 'Admin User',
-      email: 'admin@talentbase.com',
+      name: userData?.name || 'Admin User',
+      email: userData?.email || 'admin@talentbase.com',
     };
 
     return json<LoaderData>({
