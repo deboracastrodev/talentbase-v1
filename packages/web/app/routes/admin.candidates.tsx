@@ -26,7 +26,7 @@ import {
   TableCell,
   Avatar,
 } from '@talentbase/design-system';
-import { Search, Upload, Eye, CheckCircle, XCircle, Clock, User } from 'lucide-react';
+import { Search, Upload, Eye, User } from 'lucide-react';
 import { useState } from 'react';
 
 import { AdminLayout } from '~/components/layouts/AdminLayout';

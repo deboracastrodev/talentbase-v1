@@ -39,6 +39,7 @@ import { PhotoUpload } from '~/components/candidate/PhotoUpload';
 import { SolutionsSelector } from '~/components/candidate/SolutionsSelector';
 import { ToolsSelector } from '~/components/candidate/ToolsSelector';
 import { VideoUpload } from '~/components/candidate/VideoUpload';
+import { ROUTES } from '~/config/routes';
 import { createCandidateProfile } from '~/lib/api/candidates';
 import { formatPhone } from '~/utils/formatting';
 import { validatePhone } from '~/utils/validation';
@@ -97,6 +98,7 @@ export default function CandidateProfileCreate() {
   const [formData, setFormData] = useState<FormData>(INITIAL_FORM_DATA);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   // Load draft from localStorage on mount
   useEffect(() => {
@@ -128,19 +130,94 @@ export default function CandidateProfileCreate() {
     setFormData((prev) => ({ ...prev, ...updates }));
   };
 
+  // Validation per step
+  const validateCurrentStep = (): boolean => {
+    setValidationError(null);
+
+    switch (currentStep) {
+      case 0: // Basic Info
+        if (!formData.full_name.trim()) {
+          setValidationError('Nome completo é obrigatório');
+          return false;
+        }
+        if (!formData.city.trim()) {
+          setValidationError('Cidade é obrigatória');
+          return false;
+        }
+        const phoneValidation = validatePhone(formData.phone);
+        if (!phoneValidation.isValid) {
+          setValidationError('Telefone inválido');
+          return false;
+        }
+        break;
+
+      case 1: // Position & Experience
+        if (!formData.current_position) {
+          setValidationError('Posição atual é obrigatória');
+          return false;
+        }
+        if (!formData.sales_type) {
+          setValidationError('Tipo de vendas é obrigatório');
+          return false;
+        }
+        if (formData.years_of_experience <= 0) {
+          setValidationError('Anos de experiência deve ser maior que 0');
+          return false;
+        }
+        break;
+
+      case 2: // Tools & Software
+        if (formData.tools_software.length === 0) {
+          setValidationError('Selecione pelo menos uma ferramenta');
+          return false;
+        }
+        break;
+
+      case 3: // Solutions & Departments
+        if (formData.solutions_sold.length === 0) {
+          setValidationError('Selecione pelo menos uma solução vendida');
+          return false;
+        }
+        if (formData.departments_sold_to.length === 0) {
+          setValidationError('Selecione pelo menos um departamento');
+          return false;
+        }
+        break;
+
+      case 4: // Work History, Bio & Video
+        if (!formData.pitch_video_url) {
+          setValidationError('Vídeo pitch é obrigatório');
+          return false;
+        }
+        break;
+    }
+
+    return true;
+  };
+
   const handleNext = () => {
+    if (!validateCurrentStep()) {
+      return;
+    }
+
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
+      setValidationError(null);
     }
   };
 
   const handlePrevious = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
+      setValidationError(null);
     }
   };
 
   const handleSubmit = async () => {
+    if (!validateCurrentStep()) {
+      return;
+    }
+
     setIsSubmitting(true);
     setError(null);
 
@@ -150,9 +227,12 @@ export default function CandidateProfileCreate() {
       // Clear draft after successful creation
       localStorage.removeItem(DRAFT_STORAGE_KEY);
 
-      // Redirect to profile view
-      navigate('/candidate/profile', {
-        state: { message: 'Perfil criado! Gere seu link compartilhável.' },
+      // Redirect to profile view with success message
+      navigate(ROUTES.candidate.profile, {
+        state: {
+          success: true,
+          message: 'Perfil criado com sucesso! Agora você pode gerar seu link compartilhável.'
+        },
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao criar perfil');
@@ -439,7 +519,7 @@ export default function CandidateProfileCreate() {
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
           <Logo variant="full" theme="primary" size="md" />
-          <Link to="/candidate/dashboard" className="text-sm text-gray-600 hover:text-gray-900">
+          <Link to={ROUTES.candidate.dashboard} className="text-sm text-gray-600 hover:text-gray-900">
             ← Voltar ao Dashboard
           </Link>
         </div>
@@ -448,6 +528,10 @@ export default function CandidateProfileCreate() {
       <div className="max-w-4xl mx-auto px-4 py-8">
         {error && (
           <Alert variant="error" message={error} className="mb-6" />
+        )}
+
+        {validationError && (
+          <Alert variant="warning" message={validationError} className="mb-6" />
         )}
 
         <MultiStepWizard
