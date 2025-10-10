@@ -16,8 +16,8 @@
 
 import { json } from '@remix-run/node';
 import type { LoaderFunctionArgs } from '@remix-run/node';
-import { useLoaderData, useSearchParams, useRevalidator } from '@remix-run/react';
-import { Card, Input, Select, Button } from '@talentbase/design-system';
+import { useLoaderData, useSearchParams } from '@remix-run/react';
+import { Card, Input, Select, Button, useToast } from '@talentbase/design-system';
 import { useState } from 'react';
 
 import { UserDetailModal } from '~/components/admin/UserDetailModal';
@@ -84,14 +84,12 @@ export default function AdminUsersPage() {
   const { users, totalCount, currentPage, hasNext, hasPrevious, filters, user, token } =
     useLoaderData<typeof loader>();
 
+  const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [selectedUser, setSelectedUser] = useState<UserDetail | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
-  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(
-    null
-  );
 
   // Local state for filters (controlled inputs)
   const [localSearch, setLocalSearch] = useState(filters.search || '');
@@ -150,10 +148,10 @@ export default function AdminUsersPage() {
   /**
    * Handle status change (AC7, AC8)
    * Story 2.5 - AC5, AC7: Adiciona suporte para campo motivo
+   * Story 3.3.5 - Atualizado para usar Toast notifications
    */
   const handleStatusChange = async (userId: string, isActive: boolean, reason?: string) => {
     setIsUpdatingStatus(true);
-    setFeedback(null);
 
     try {
       const updatedUser = await updateUserStatus(userId, isActive, token, reason);
@@ -161,7 +159,7 @@ export default function AdminUsersPage() {
       // Update the selected user with new data
       setSelectedUser(updatedUser);
 
-      // Show success feedback
+      // Show success toast notification
       const statusText = isActive
         ? updatedUser.role === 'company'
           ? 'aprovada'
@@ -169,10 +167,11 @@ export default function AdminUsersPage() {
         : updatedUser.role === 'company'
           ? 'rejeitada'
           : 'desativado';
-      setFeedback({
-        type: 'success',
-        message: `Usuário ${statusText} com sucesso! Uma notificação foi enviada por email.`,
-      });
+
+      toast.success(
+        `Usuário ${statusText} com sucesso! Uma notificação foi enviada por email.`,
+        'Status Atualizado'
+      );
 
       // Refresh the user list after a short delay
       setTimeout(() => {
@@ -180,10 +179,7 @@ export default function AdminUsersPage() {
       }, 2000);
     } catch (error) {
       console.error('Error updating user status:', error);
-      setFeedback({
-        type: 'error',
-        message: 'Erro ao atualizar status do usuário. Tente novamente.',
-      });
+      toast.error('Erro ao atualizar status do usuário. Tente novamente.', 'Erro');
     } finally {
       setIsUpdatingStatus(false);
     }
@@ -199,19 +195,6 @@ export default function AdminUsersPage() {
             {totalCount} {totalCount === 1 ? 'usuário encontrado' : 'usuários encontrados'}
           </p>
         </div>
-
-        {/* Feedback Messages */}
-        {feedback && (
-          <div
-            className={`mb-6 p-4 rounded-lg ${
-              feedback.type === 'success'
-                ? 'bg-green-50 border border-green-200 text-green-800'
-                : 'bg-red-50 border border-red-200 text-red-800'
-            }`}
-          >
-            <p className="text-sm font-medium">{feedback.message}</p>
-          </div>
-        )}
 
         {/* Filters */}
         <Card className="mb-6">
@@ -310,7 +293,6 @@ export default function AdminUsersPage() {
             setIsModalOpen(false);
             setSelectedUser(null);
             setSelectedUserId(null);
-            setFeedback(null);
           }}
           user={selectedUser}
           onStatusChange={handleStatusChange}

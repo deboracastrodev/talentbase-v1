@@ -1,21 +1,40 @@
 /**
- * Table Component - Design System
+ * Table Component - Enhanced
  *
- * Responsive table component with support for sorting, loading states, and empty states.
+ * Professional table component with blue header, striped rows, and hover effects.
+ * Designed for displaying data in admin panels and dashboards.
+ *
+ * Features:
+ * - 🎨 Primary blue header background
+ * - 📊 Zebra-striped rows for better readability
+ * - 🖱️ Hover effects on clickable rows
+ * - 📱 Responsive with horizontal scroll
+ * - ♿️ Semantic HTML and accessible
+ * - 🎯 Optional sorting indicators
+ * - 🔄 Loading and empty states
+ *
+ * UX Best Practices:
+ * - Use striped rows for tables with 5+ rows
+ * - Make entire row clickable when row action exists
+ * - Show loading state during data fetch
+ * - Provide clear empty state with action
+ * - Keep header sticky on scroll for long tables
  *
  * @example
  * ```tsx
- * <Table>
+ * <Table striped>
  *   <TableHeader>
  *     <TableRow>
  *       <TableHead>Name</TableHead>
  *       <TableHead>Email</TableHead>
+ *       <TableHead>Status</TableHead>
  *     </TableRow>
  *   </TableHeader>
  *   <TableBody>
- *     <TableRow>
+ *     <TableRow clickable onClick={() => handleRowClick(user)}>
  *       <TableCell>John Doe</TableCell>
  *       <TableCell>john@example.com</TableCell>
+ *       <TableCell><Badge>Active</Badge></TableCell>
  *     </TableRow>
  *   </TableBody>
  * </Table>
@@ -23,39 +42,59 @@
  */
 
 import * as React from 'react';
+import { cn } from '../lib/utils';
 
-interface TableProps extends React.HTMLAttributes<HTMLTableElement> {
+export interface TableProps extends React.HTMLAttributes<HTMLTableElement> {
   children: React.ReactNode;
+  /** Enable zebra-striped rows */
+  striped?: boolean;
+  /** Make table header sticky on scroll */
+  stickyHeader?: boolean;
+  /** Custom className */
+  className?: string;
 }
 
+const TableContext = React.createContext<{ striped: boolean }>({ striped: false });
+
 export const Table = React.forwardRef<HTMLTableElement, TableProps>(
-  ({ className = '', children, ...props }, ref) => {
+  ({ className = '', children, striped = false, stickyHeader = false, ...props }, ref) => {
     return (
-      <div className="relative w-full overflow-auto">
-        <table
-          ref={ref}
-          className={`w-full caption-bottom text-sm ${className}`}
-          {...props}
-        >
-          {children}
-        </table>
-      </div>
+      <TableContext.Provider value={{ striped }}>
+        <div className={cn('relative w-full overflow-auto', stickyHeader && 'max-h-[600px]')}>
+          <table
+            ref={ref}
+            className={cn('w-full caption-bottom text-sm border-collapse', className)}
+            {...props}
+          >
+            {children}
+          </table>
+        </div>
+      </TableContext.Provider>
     );
   }
 );
 
 Table.displayName = 'Table';
 
-interface TableHeaderProps extends React.HTMLAttributes<HTMLTableSectionElement> {
+export interface TableHeaderProps extends React.HTMLAttributes<HTMLTableSectionElement> {
   children: React.ReactNode;
+  /** Use primary color (blue) for header background */
+  variant?: 'default' | 'primary' | 'secondary';
+  className?: string;
 }
 
 export const TableHeader = React.forwardRef<HTMLTableSectionElement, TableHeaderProps>(
-  ({ className = '', children, ...props }, ref) => {
+  ({ className = '', children, variant = 'primary', ...props }, ref) => {
+    const variantClasses = {
+      default: 'bg-gray-50 border-b border-gray-200',
+      primary: 'bg-primary-50 border-b border-primary-200',
+      secondary: 'bg-secondary-50 border-b border-secondary-200',
+    };
+
     return (
       <thead
         ref={ref}
-        className={`border-b bg-gray-50 ${className}`}
+        className={cn('sticky top-0 z-10', variantClasses[variant], className)}
         {...props}
       >
         {children}
@@ -66,18 +105,15 @@ export const TableHeader = React.forwardRef<HTMLTableSectionElement, TableHeader
 
 TableHeader.displayName = 'TableHeader';
 
-interface TableBodyProps extends React.HTMLAttributes<HTMLTableSectionElement> {
+export interface TableBodyProps extends React.HTMLAttributes<HTMLTableSectionElement> {
   children: React.ReactNode;
+  className?: string;
 }
 
 export const TableBody = React.forwardRef<HTMLTableSectionElement, TableBodyProps>(
   ({ className = '', children, ...props }, ref) => {
     return (
-      <tbody
-        ref={ref}
-        className={`divide-y divide-gray-200 ${className}`}
-        {...props}
-      >
+      <tbody ref={ref} className={cn('', className)} {...props}>
         {children}
       </tbody>
     );
@@ -86,22 +122,65 @@ export const TableBody = React.forwardRef<HTMLTableSectionElement, TableBodyProp
 
 TableBody.displayName = 'TableBody';
 
-interface TableRowProps extends React.HTMLAttributes<HTMLTableRowElement> {
+export interface TableRowProps extends React.HTMLAttributes<HTMLTableRowElement> {
   children: React.ReactNode;
+  /** Make row clickable with hover effect */
   clickable?: boolean;
+  /** Selected state */
+  selected?: boolean;
+  className?: string;
 }
 
 export const TableRow = React.forwardRef<HTMLTableRowElement, TableRowProps>(
-  ({ className = '', children, clickable = false, ...props }, ref) => {
-    const classes = `
-      ${clickable ? 'cursor-pointer hover:bg-gray-50 transition-colors' : ''}
-      ${className}
-    `.trim();
+  ({ className = '', children, clickable = false, selected = false, ...props }, ref) => {
+    const { striped } = React.useContext(TableContext);
+    const [rowIndex, setRowIndex] = React.useState<number>(0);
+    const internalRef = React.useRef<HTMLTableRowElement>(null);
+
+    // Merge internal ref with forwarded ref
+    const mergedRef = React.useCallback(
+      (node: HTMLTableRowElement | null) => {
+        // Update internal ref
+        (internalRef as React.MutableRefObject<HTMLTableRowElement | null>).current = node;
+
+        // Update forwarded ref
+        if (typeof ref === 'function') {
+          ref(node);
+        } else if (ref) {
+          (ref as React.MutableRefObject<HTMLTableRowElement | null>).current = node;
+        }
+      },
+      [ref]
+    );
+
+    React.useEffect(() => {
+      if (internalRef.current) {
+        const tbody = internalRef.current.parentElement;
+        if (tbody) {
+          const index = Array.from(tbody.children).indexOf(internalRef.current);
+          setRowIndex(index);
+        }
+      }
+    }, []);
 
     return (
       <tr
-        ref={ref}
-        className={classes}
+        ref={mergedRef}
+        className={cn(
+          // Base styles - apenas linha inferior sutil
+          'border-b border-gray-100 transition-colors duration-150',
+          // Striped rows (even rows get background) - mais sutil
+          striped && rowIndex % 2 === 0 && 'bg-gray-25',
+          // Clickable styles - hover mais sutil
+          clickable && [
+            'cursor-pointer',
+            'hover:bg-blue-50/50',
+            'active:bg-blue-100/50',
+          ],
+          // Selected state
+          selected && 'bg-blue-50 hover:bg-blue-100/70',
+          className
+        )}
         {...props}
       >
         {children}
@@ -112,19 +191,44 @@ export const TableRow = React.forwardRef<HTMLTableRowElement, TableRowProps>(
 
 TableRow.displayName = 'TableRow';
 
-interface TableHeadProps extends React.ThHTMLAttributes<HTMLTableCellElement> {
+export interface TableHeadProps extends React.ThHTMLAttributes<HTMLTableCellElement> {
   children: React.ReactNode;
+  /** Enable sorting indicator */
+  sortable?: boolean;
+  /** Current sort direction */
+  sortDirection?: 'asc' | 'desc' | null;
+  /** Callback when header is clicked (for sorting) */
+  onSort?: () => void;
+  className?: string;
 }
 
 export const TableHead = React.forwardRef<HTMLTableCellElement, TableHeadProps>(
-  ({ className = '', children, ...props }, ref) => {
+  (
+    { className = '', children, sortable = false, sortDirection = null, onSort, ...props },
+    ref
+  ) => {
     return (
       <th
         ref={ref}
-        className={`h-12 px-4 text-left align-middle font-medium text-gray-700 ${className}`}
+        className={cn(
+          'h-12 px-4 text-left align-middle font-medium',
+          'text-gray-700 text-sm',
+          sortable && 'cursor-pointer select-none hover:text-primary-700 transition-colors',
+          className
+        )}
+        onClick={sortable ? onSort : undefined}
         {...props}
       >
-        {children}
+        <div className="flex items-center gap-2">
+          {children}
+          {sortable && (
+            <span className="text-gray-400">
+              {sortDirection === 'asc' && '↑'}
+              {sortDirection === 'desc' && '↓'}
+              {sortDirection === null && '⇅'}
+            </span>
+          )}
+        </div>
       </th>
     );
   }
@@ -132,16 +236,29 @@ export const TableHead = React.forwardRef<HTMLTableCellElement, TableHeadProps>(
 
 TableHead.displayName = 'TableHead';
 
-interface TableCellProps extends React.TdHTMLAttributes<HTMLTableCellElement> {
+export interface TableCellProps extends React.TdHTMLAttributes<HTMLTableCellElement> {
   children: React.ReactNode;
+  /** Align cell content */
+  align?: 'left' | 'center' | 'right';
+  className?: string;
 }
 
 export const TableCell = React.forwardRef<HTMLTableCellElement, TableCellProps>(
-  ({ className = '', children, ...props }, ref) => {
+  ({ className = '', children, align = 'left', ...props }, ref) => {
+    const alignClasses = {
+      left: 'text-left',
+      center: 'text-center',
+      right: 'text-right',
+    };
+
     return (
       <td
         ref={ref}
-        className={`p-4 align-middle ${className}`}
+        className={cn(
+          'px-4 py-4 align-middle text-gray-900 text-sm',
+          alignClasses[align],
+          className
+        )}
         {...props}
       >
         {children}
@@ -151,3 +268,132 @@ export const TableCell = React.forwardRef<HTMLTableCellElement, TableCellProps>(
 );
 
 TableCell.displayName = 'TableCell';
+
+/**
+ * TableActionCell - Special cell for showing action indicator (chevron)
+ * Use this as the last cell in clickable rows to show the › icon
+ */
+export const TableActionCell = React.forwardRef<
+  HTMLTableCellElement,
+  React.TdHTMLAttributes<HTMLTableCellElement>
+>(({ className = '', ...props }, ref) => {
+  return (
+    <td
+      ref={ref}
+      className={cn('px-4 py-4 align-middle text-gray-400 text-right w-12', className)}
+      {...props}
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="inline-block"
+      >
+        <polyline points="9 18 15 12 9 6" />
+      </svg>
+    </td>
+  );
+});
+
+TableActionCell.displayName = 'TableActionCell';
+
+/* ===== Table Utility Components ===== */
+
+export interface TableEmptyProps {
+  icon?: React.ReactNode;
+  title?: string;
+  message: string;
+  action?: React.ReactNode;
+  className?: string;
+}
+
+/**
+ * Empty state for tables with no data
+ *
+ * @example
+ * <TableEmpty
+ *   title="No candidates found"
+ *   message="Start by importing candidates or creating a new one."
+ *   action={<Button>Add Candidate</Button>}
+ * />
+ */
+export function TableEmpty({
+  icon,
+  title,
+  message,
+  action,
+  className = '',
+}: TableEmptyProps) {
+  return (
+    <tr>
+      <td colSpan={100} className={cn('p-12', className)}>
+        <div className="flex flex-col items-center justify-center text-center">
+          {icon && <div className="mb-4 text-gray-400">{icon}</div>}
+          {title && <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>}
+          <p className="text-gray-600 mb-6 max-w-sm">{message}</p>
+          {action && <div>{action}</div>}
+        </div>
+      </td>
+    </tr>
+  );
+}
+
+export interface TableLoadingProps {
+  rows?: number;
+  columns?: number;
+  className?: string;
+}
+
+/**
+ * Loading skeleton for tables
+ *
+ * @example
+ * {isLoading ? (
+ *   <TableLoading rows={5} columns={4} />
+ * ) : (
+ *   // ... actual rows
+ * )}
+ */
+export function TableLoading({ rows = 5, columns = 3, className = '' }: TableLoadingProps) {
+  return (
+    <>
+      {Array.from({ length: rows }).map((_, rowIndex) => (
+        <tr key={rowIndex} className={className}>
+          {Array.from({ length: columns }).map((_, colIndex) => (
+            <td key={colIndex} className="p-4">
+              <div className="h-4 bg-gray-200 rounded animate-pulse" />
+            </td>
+          ))}
+        </tr>
+      ))}
+    </>
+  );
+}
+
+export interface TableCaptionProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+/**
+ * Table caption for accessibility
+ *
+ * @example
+ * <Table>
+ *   <TableCaption>List of all active candidates</TableCaption>
+ *   ...
+ * </Table>
+ */
+export function TableCaption({ children, className = '' }: TableCaptionProps) {
+  return (
+    <caption className={cn('mt-4 text-sm text-gray-600', className)}>
+      {children}
+    </caption>
+  );
+}
