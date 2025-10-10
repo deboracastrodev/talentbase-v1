@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { Sidebar } from './Sidebar';
-import { Logo } from './Logo';
+import { Sidebar } from '../components/Sidebar';
+import { Logo } from '../components/Logo';
 import { Home, Users, Building2, User, Briefcase, FileText, Target, Settings } from 'lucide-react';
 import { useState } from 'react';
 

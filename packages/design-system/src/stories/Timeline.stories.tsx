@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { Timeline } from './Timeline';
+import { Timeline } from '../components/Timeline';
 
 const meta = {
   title: 'Components/Timeline',

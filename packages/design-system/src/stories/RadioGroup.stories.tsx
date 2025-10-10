@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { RadioGroup, RadioCard, RadioOption } from './RadioGroup';
+import { RadioGroup, RadioCard, RadioOption } from '../components/RadioGroup';
 import { useState } from 'react';
 
 const meta = {

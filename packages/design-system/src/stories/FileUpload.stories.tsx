@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { FileUpload } from './FileUpload';
+import { FileUpload } from '../components/FileUpload';
 import { useState } from 'react';
 
 const meta = {

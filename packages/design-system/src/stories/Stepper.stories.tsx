@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { Stepper, Step } from './Stepper';
+import { Stepper, Step } from '../components/Stepper';
 import { useState } from 'react';
 
 const meta = {

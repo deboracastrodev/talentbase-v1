@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { ProgressBar, ProgressBarWithSteps } from './ProgressBar';
+import { ProgressBar, ProgressBarWithSteps } from '../components/ProgressBar';
 import { useState, useEffect } from 'react';
 
 const meta = {
