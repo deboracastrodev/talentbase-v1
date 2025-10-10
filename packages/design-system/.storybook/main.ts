@@ -1,4 +1,5 @@
 import type { StorybookConfig } from '@storybook/react-vite';
+import { mergeConfig } from 'vite';
 
 const config: StorybookConfig = {
   stories: ['../src/**/*.mdx', '../src/**/*.stories.@(js|jsx|mjs|ts|tsx)'],
@@ -15,6 +16,13 @@ const config: StorybookConfig = {
     autodocs: 'tag',
   },
   staticDirs: ['../public'],
+  async viteFinal(config, { configType }) {
+    return mergeConfig(config, {
+      base: configType === 'PRODUCTION'
+        ? '/talentbase-v1/'
+        : '/',
+    });
+  },
 };
 
 export default config;
