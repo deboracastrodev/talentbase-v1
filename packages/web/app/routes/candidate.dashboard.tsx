@@ -36,12 +36,9 @@ interface CandidateProfile {
 
 // Loader: Fetch candidate profile data
 export async function loader({ request: _request }: LoaderFunctionArgs) {
-  // TODO: Get token from session/cookie
-  const _candidateToken = 'mock-candidate-token';
-
+  // TODO: Get token from session/cookie and fetch candidate profile via API
+  // For now, return mock data
   try {
-    // TODO: Fetch candidate profile via API
-    // For now, return mock data
     const profile: CandidateProfile = {
       id: '1',
       full_name: 'João Silva',
