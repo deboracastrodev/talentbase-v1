@@ -65,10 +65,11 @@ export function ExperienceEditor({ experiences, onChange }: ExperienceEditorProp
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor={`company-${index}`} className="block text-sm font-medium text-gray-700 mb-1">
                 Empresa *
               </label>
               <Input
+                id={`company-${index}`}
                 type="text"
                 required
                 value={exp.company_name}
@@ -78,10 +79,11 @@ export function ExperienceEditor({ experiences, onChange }: ExperienceEditorProp
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor={`position-${index}`} className="block text-sm font-medium text-gray-700 mb-1">
                 Cargo *
               </label>
               <Input
+                id={`position-${index}`}
                 type="text"
                 required
                 value={exp.position}
@@ -91,10 +93,11 @@ export function ExperienceEditor({ experiences, onChange }: ExperienceEditorProp
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor={`start-date-${index}`} className="block text-sm font-medium text-gray-700 mb-1">
                 Data de Início *
               </label>
               <Input
+                id={`start-date-${index}`}
                 type="date"
                 required
                 value={exp.start_date}
@@ -103,10 +106,11 @@ export function ExperienceEditor({ experiences, onChange }: ExperienceEditorProp
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor={`end-date-${index}`} className="block text-sm font-medium text-gray-700 mb-1">
                 Data de Término
               </label>
               <Input
+                id={`end-date-${index}`}
                 type="date"
                 value={exp.end_date}
                 onChange={(e) => updateExperience(index, { end_date: e.target.value })}
@@ -116,10 +120,11 @@ export function ExperienceEditor({ experiences, onChange }: ExperienceEditorProp
           </div>
 
           <div className="mt-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor={`responsibilities-${index}`} className="block text-sm font-medium text-gray-700 mb-1">
               Responsabilidades
             </label>
             <Textarea
+              id={`responsibilities-${index}`}
               rows={3}
               value={exp.responsibilities}
               onChange={(e) => updateExperience(index, { responsibilities: e.target.value })}
