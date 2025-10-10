@@ -121,11 +121,11 @@ Para que **eu possa compartilhá-lo no LinkedIn e com recrutadores**.
   - [x] Disabled states em botões durante loading ✅
 
 - [x] **Task 8: Garantir Responsividade (AC: 5, 6)** ✅
-  - [ ] Layout mobile (flex-col, stack vertical)
-  - [ ] Layout tablet (grid 2 colunas)
-  - [ ] Layout desktop (grid 4 colunas, max-w-6xl)
-  - [ ] Tipografia responsiva (text-2xl md:text-3xl)
-  - [ ] Testar em dispositivos reais (Chrome DevTools + mobile)
+  - [x] Layout mobile (flex-col, stack vertical)
+  - [x] Layout tablet (grid 2 colunas)
+  - [x] Layout desktop (grid 4 colunas, max-w-6xl)
+  - [x] Tipografia responsiva (text-2xl md:text-3xl)
+  - [x] Testar em dispositivos reais (Chrome DevTools + mobile)
 
 ## Dev Notes
 
