@@ -233,7 +233,7 @@ class EmailTaskTests(TestCase):
         self.assertIn("https://www.salesdog.click/candidate/profile", html_content)
 
         # Footer with contact
-        self.assertIn("contato@salesdog.click", html_content)
+        self.assertIn("contato@talentbase.com.br", html_content)
         self.assertIn("Equipe TalentBase", html_content)
 
     def test_email_has_plain_text_fallback(self):
