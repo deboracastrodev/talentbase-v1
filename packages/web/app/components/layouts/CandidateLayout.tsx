@@ -59,6 +59,11 @@ export function CandidateLayout({ children, pageTitle, activeItem, user }: Candi
     }
   };
 
+  const handleProfileClick = () => {
+    // Navigate to candidate profile page
+    window.location.href = '/candidate/profile';
+  };
+
   return (
     <DashboardLayout
       sidebarConfig={{
@@ -69,6 +74,7 @@ export function CandidateLayout({ children, pageTitle, activeItem, user }: Candi
       user={user}
       pageTitle={pageTitle}
       onLogout={handleLogout}
+      onProfileClick={handleProfileClick}
     >
       {children}
     </DashboardLayout>

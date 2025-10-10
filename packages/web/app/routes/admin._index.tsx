@@ -21,6 +21,7 @@ import { AdminLayout } from '~/components/layouts/AdminLayout';
 import { ROUTES, QUICK_ROUTES } from '~/config/routes';
 import { getAdminStats, type AdminStats } from '~/lib/api/admin';
 import { requireAdmin, getUserFromToken } from '~/utils/auth.server';
+import { formatDateTime } from '~/utils/formatting';
 
 interface LoaderData {
   stats: AdminStats;
@@ -143,12 +144,7 @@ export default function AdminDashboard() {
                       <p className="text-xs text-gray-600">{activity.user_email}</p>
                     </div>
                     <span className="text-xs text-gray-500">
-                      {new Date(activity.timestamp).toLocaleDateString('pt-BR', {
-                        day: '2-digit',
-                        month: 'short',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
+                      {formatDateTime(activity.timestamp)}
                     </span>
                   </div>
                 ))}

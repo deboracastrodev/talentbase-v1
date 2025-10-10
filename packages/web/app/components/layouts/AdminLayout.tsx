@@ -52,6 +52,11 @@ export function AdminLayout({ children, pageTitle, activeItem, user }: AdminLayo
     }
   };
 
+  const handleProfileClick = () => {
+    // Navigate to admin profile page
+    window.location.href = '/admin/profile';
+  };
+
   return (
     <DashboardLayout
       sidebarConfig={{
@@ -62,6 +67,7 @@ export function AdminLayout({ children, pageTitle, activeItem, user }: AdminLayo
       user={user}
       pageTitle={pageTitle}
       onLogout={handleLogout}
+      onProfileClick={handleProfileClick}
     >
       {children}
     </DashboardLayout>

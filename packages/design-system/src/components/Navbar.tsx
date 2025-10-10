@@ -33,6 +33,7 @@ export interface NavbarProps
   logo?: React.ReactNode;
   onLogout: () => void;
   onMenuToggle?: () => void;
+  onProfileClick?: () => void;
 }
 
 const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
@@ -44,6 +45,7 @@ const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
       logo,
       onLogout,
       onMenuToggle,
+      onProfileClick,
       shadow,
       ...props
     },
@@ -54,6 +56,13 @@ const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
     const handleLogout = () => {
       setIsUserMenuOpen(false);
       onLogout();
+    };
+
+    const handleProfileClick = () => {
+      setIsUserMenuOpen(false);
+      if (onProfileClick) {
+        onProfileClick();
+      }
     };
 
     return (
@@ -139,16 +148,15 @@ const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
                   </div>
 
                   {/* Menu items */}
-                  <button
-                    onClick={() => {
-                      setIsUserMenuOpen(false);
-                      // Navigate to profile (to be implemented by consumer)
-                    }}
-                    className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    <UserIcon size={16} />
-                    <span>Profile</span>
-                  </button>
+                  {onProfileClick && (
+                    <button
+                      onClick={handleProfileClick}
+                      className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <UserIcon size={16} />
+                      <span>Profile</span>
+                    </button>
+                  )}
 
                   <div className="border-t border-gray-200 my-1" />
 

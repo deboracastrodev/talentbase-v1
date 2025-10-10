@@ -26,12 +26,17 @@ export interface AuthUser {
  */
 export function getAuthToken(request: Request): string | null {
   const cookieHeader = request.headers.get('Cookie');
+  console.log('[getAuthToken] Cookie header:', cookieHeader ? 'Present' : 'Missing');
+
   if (!cookieHeader) {
     return null;
   }
 
   const match = cookieHeader.match(/auth_token=([^;]+)/);
-  return match ? match[1] : null;
+  const token = match ? match[1] : null;
+  console.log('[getAuthToken] Token found:', token ? 'Yes' : 'No');
+
+  return token;
 }
 
 /**
@@ -46,6 +51,9 @@ export function getAuthToken(request: Request): string | null {
 export async function getUserFromToken(token: string): Promise<AuthUser | null> {
   try {
     const apiUrl = getApiBaseUrl();
+    console.log('[getUserFromToken] Calling API:', `${apiUrl}/api/v1/auth/me`);
+    console.log('[getUserFromToken] Token (first 20 chars):', token.substring(0, 20) + '...');
+
     const response = await fetch(`${apiUrl}/api/v1/auth/me`, {
       method: 'GET',
       headers: {
@@ -54,12 +62,21 @@ export async function getUserFromToken(token: string): Promise<AuthUser | null> 
       },
     });
 
+    console.log('[getUserFromToken] Response status:', response.status);
+
     if (!response.ok) {
       // Token is invalid or expired
+      const errorText = await response.text();
+      console.error('[getUserFromToken] API returned error:', response.status, errorText);
       return null;
     }
 
     const data = await response.json();
+    console.log('[getUserFromToken] User data:', {
+      id: data.id,
+      email: data.email,
+      role: data.role,
+    });
 
     return {
       id: data.id,

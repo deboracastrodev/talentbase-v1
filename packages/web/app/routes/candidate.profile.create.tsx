@@ -126,6 +126,7 @@ export default function CandidateProfileCreate() {
   // Validation per step
   const validateCurrentStep = (): boolean => {
     setValidationError(null);
+    const phoneValidation = validatePhone(formData.phone);
 
     switch (currentStep) {
       case 0: // Basic Info
@@ -137,7 +138,6 @@ export default function CandidateProfileCreate() {
           setValidationError('Cidade é obrigatória');
           return false;
         }
-        const phoneValidation = validatePhone(formData.phone);
         if (!phoneValidation.isValid) {
           setValidationError('Telefone inválido');
           return false;

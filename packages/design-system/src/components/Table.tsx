@@ -60,7 +60,7 @@ export const Table = React.forwardRef<HTMLTableElement, TableProps>(
   ({ className = '', children, striped = false, stickyHeader = false, ...props }, ref) => {
     return (
       <TableContext.Provider value={{ striped }}>
-        <div className={cn('relative w-full overflow-auto', stickyHeader && 'max-h-[600px]')}>
+        <div className={cn('relative w-full overflow-auto bg-white rounded-lg border border-gray-200', stickyHeader && 'max-h-[600px]')}>
           <table
             ref={ref}
             className={cn('w-full caption-bottom text-sm border-collapse', className)}
@@ -86,9 +86,9 @@ export interface TableHeaderProps extends React.HTMLAttributes<HTMLTableSectionE
 export const TableHeader = React.forwardRef<HTMLTableSectionElement, TableHeaderProps>(
   ({ className = '', children, variant = 'primary', ...props }, ref) => {
     const variantClasses = {
-      default: 'bg-gray-50 border-b border-gray-200',
-      primary: 'bg-primary-50 border-b border-primary-200',
-      secondary: 'bg-secondary-50 border-b border-secondary-200',
+      default: 'bg-gray-100 border-b-2 border-gray-300',
+      primary: 'bg-slate-100 border-b-2 border-slate-200',
+      secondary: 'bg-secondary-100 border-b-2 border-secondary-200',
     };
 
     return (
@@ -167,18 +167,18 @@ export const TableRow = React.forwardRef<HTMLTableRowElement, TableRowProps>(
       <tr
         ref={mergedRef}
         className={cn(
-          // Base styles - apenas linha inferior sutil
-          'border-b border-gray-100 transition-colors duration-150',
-          // Striped rows (even rows get background) - mais sutil
-          striped && rowIndex % 2 === 0 && 'bg-gray-25',
-          // Clickable styles - hover mais sutil
+          // Base styles
+          'border-b border-gray-200 transition-colors duration-150 bg-white',
+          // Striped rows (even rows get background)
+          striped && rowIndex % 2 === 0 && 'bg-gray-50',
+          // Clickable styles
           clickable && [
             'cursor-pointer',
-            'hover:bg-blue-50/50',
-            'active:bg-blue-100/50',
+            'hover:bg-slate-50',
+            'active:bg-slate-100',
           ],
           // Selected state
-          selected && 'bg-blue-50 hover:bg-blue-100/70',
+          selected && 'bg-blue-50 hover:bg-blue-100',
           className
         )}
         {...props}
@@ -211,8 +211,8 @@ export const TableHead = React.forwardRef<HTMLTableCellElement, TableHeadProps>(
       <th
         ref={ref}
         className={cn(
-          'h-12 px-4 text-left align-middle font-medium',
-          'text-gray-700 text-sm',
+          'h-12 px-4 text-left align-middle font-semibold',
+          'text-slate-800 text-xs uppercase tracking-wide',
           sortable && 'cursor-pointer select-none hover:text-primary-700 transition-colors',
           className
         )}
@@ -222,7 +222,7 @@ export const TableHead = React.forwardRef<HTMLTableCellElement, TableHeadProps>(
         <div className="flex items-center gap-2">
           {children}
           {sortable && (
-            <span className="text-gray-400">
+            <span className="text-slate-500">
               {sortDirection === 'asc' && '↑'}
               {sortDirection === 'desc' && '↓'}
               {sortDirection === null && '⇅'}

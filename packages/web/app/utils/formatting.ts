@@ -7,6 +7,9 @@
  * - Phone: (XX) XXXXX-XXXX or (XX) XXXX-XXXX
  */
 
+import { formatInTimeZone } from 'date-fns-tz';
+import { ptBR } from 'date-fns/locale';
+
 /**
  * Format CNPJ as user types: XX.XXX.XXX/XXXX-XX
  * @param value - Raw CNPJ string (formatted or unformatted)
@@ -93,4 +96,70 @@ export function formatPhone(value: string): string {
  */
 export function stripFormatting(value: string): string {
   return value.replace(/\D/g, '');
+}
+
+/**
+ * Default timezone for the application (São Paulo, Brazil)
+ */
+const DEFAULT_TIMEZONE = 'America/Sao_Paulo';
+
+/**
+ * Format date to Brazilian locale (pt-BR) with consistent timezone
+ * This function is safe for SSR/hydration as it always uses the same timezone
+ *
+ * @param date - Date string, Date object, or timestamp
+ * @param formatString - Format string (default: 'dd/MM/yyyy')
+ * @param timezone - Timezone to use (default: America/Sao_Paulo)
+ * @returns Formatted date string in pt-BR locale
+ * @example
+ * formatDate('2024-01-15T10:30:00Z') // '15/01/2024'
+ * formatDate('2024-01-15T10:30:00Z', 'dd/MM/yyyy HH:mm') // '15/01/2024 07:30'
+ * formatDate('2024-01-15T10:30:00Z', "dd 'de' MMMM 'de' yyyy") // '15 de janeiro de 2024'
+ */
+export function formatDate(
+  date: string | Date | number,
+  formatString: string = 'dd/MM/yyyy',
+  timezone: string = DEFAULT_TIMEZONE
+): string {
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+
+  return formatInTimeZone(dateObj, timezone, formatString, { locale: ptBR });
+}
+
+/**
+ * Format date with time to Brazilian locale
+ * @param date - Date string, Date object, or timestamp
+ * @returns Formatted date and time string
+ * @example
+ * formatDateTime('2024-01-15T10:30:00Z') // '15/01/2024 07:30'
+ */
+export function formatDateTime(
+  date: string | Date | number,
+  timezone: string = DEFAULT_TIMEZONE
+): string {
+  return formatDate(date, 'dd/MM/yyyy HH:mm', timezone);
+}
+
+/**
+ * Format date in a relative way (e.g., "2 dias atrás")
+ * For dates within the last 7 days, shows relative time
+ * For older dates, shows the full date
+ * @param date - Date string, Date object, or timestamp
+ * @returns Formatted relative or absolute date string
+ * @example
+ * formatRelativeDate(new Date()) // 'hoje'
+ * formatRelativeDate(new Date(Date.now() - 86400000)) // 'ontem'
+ * formatRelativeDate('2024-01-01') // '01/01/2024'
+ */
+export function formatRelativeDate(date: string | Date | number): string {
+  const dateObj = typeof date === 'string' ? new Date(date) : new Date(date);
+  const now = new Date();
+  const diffMs = now.getTime() - dateObj.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) return 'hoje';
+  if (diffDays === 1) return 'ontem';
+  if (diffDays < 7) return `${diffDays} dias atrás`;
+
+  return formatDate(dateObj);
 }

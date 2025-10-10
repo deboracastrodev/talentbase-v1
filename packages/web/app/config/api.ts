@@ -34,24 +34,32 @@ declare global {
  * In Remix, we expose server env vars via window.ENV in root.tsx.
  */
 export function getApiBaseUrl(): string {
-  // 1. Check window.ENV (set by root.tsx loader) - Client side
-  if (typeof window !== 'undefined' && window.ENV?.API_URL) {
+  const isServer = typeof window === 'undefined';
+
+  // SERVER-SIDE: Use Docker internal network (api:8000)
+  if (isServer) {
+    // Check process.env.API_URL first (from Docker env)
+    if (typeof process !== 'undefined' && process.env?.API_URL) {
+      // Remove /api/v1 suffix if present
+      return process.env.API_URL.replace(/\/api\/v1$/, '');
+    }
+
+    // Development fallback for server-side
+    return 'http://api:8000';
+  }
+
+  // CLIENT-SIDE: Use localhost (browser accessible)
+  // 1. Check window.ENV (set by root.tsx loader)
+  if (window.ENV?.API_URL) {
     return window.ENV.API_URL;
   }
 
-  // 2. Check process.env.API_URL (Server side - for loaders)
-  if (typeof process !== 'undefined' && process.env?.API_URL) {
-    // Remove /api/v1 suffix if present (env var includes it but endpoints already have it)
-    return process.env.API_URL.replace(/\/api\/v1$/, '');
-  }
-
-  // 3. Check Vite env var (build-time)
+  // 2. Check Vite env var (build-time)
   if (import.meta.env.VITE_API_URL) {
     return import.meta.env.VITE_API_URL;
   }
 
-  // 4. Development fallback
-  // In production, this will fail fast and tell us env var is missing
+  // 3. Development fallback for client-side
   const isDevelopment = import.meta.env.DEV;
   if (isDevelopment) {
     return 'http://localhost:8000';

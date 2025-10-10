@@ -32,6 +32,7 @@ import { useState } from 'react';
 import { AdminLayout } from '~/components/layouts/AdminLayout';
 import { getApiBaseUrl } from '~/config/api';
 import { requireAdmin, getUserFromToken } from '~/utils/auth.server';
+import { formatDate } from '~/utils/formatting';
 
 interface Candidate {
   id: string;
@@ -325,7 +326,7 @@ export default function AdminCandidatesPage() {
                         </TableCell>
                         <TableCell>{getStatusBadge(candidate.status)}</TableCell>
                         <TableCell className="text-sm text-gray-600">
-                          {new Date(candidate.created_at).toLocaleDateString('pt-BR')}
+                          {formatDate(candidate.created_at)}
                         </TableCell>
                         <TableCell>
                           <Button

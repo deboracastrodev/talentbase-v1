@@ -22,6 +22,7 @@ import { useState } from 'react';
 
 import { CandidateLayout } from '~/components/layouts/CandidateLayout';
 import { getApiBaseUrl, getAppBaseUrl } from '~/config/api';
+import { formatDateTime } from '~/utils/formatting';
 
 // Types
 interface CandidateProfile {
@@ -281,7 +282,7 @@ export default function CandidateDashboard() {
                   </p>
                   {profile.share_link_generated_at && (
                     <p className="text-sm text-gray-500 mt-1">
-                      Gerado em: {new Date(profile.share_link_generated_at).toLocaleString('pt-BR')}
+                      Gerado em: {formatDateTime(profile.share_link_generated_at)}
                     </p>
                   )}
                 </div>
