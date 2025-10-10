@@ -21,9 +21,7 @@ User = get_user_model()
 def candidate_user(db):
     """Create a candidate user."""
     return User.objects.create_user(
-        email="candidate@example.com",
-        password="testpass123",
-        role="candidate"
+        email="candidate@example.com", password="testpass123", role="candidate"
     )
 
 
@@ -38,7 +36,7 @@ def candidate_profile(candidate_user):
         current_position="SDR/BDR",
         years_of_experience=3,
         pitch_video_url="https://youtube.com/watch?v=existing123",
-        pitch_video_type="youtube"
+        pitch_video_type="youtube",
     )
 
 
@@ -54,7 +52,7 @@ class TestExperienceSerializer:
             position="SDR",
             start_date=date(2020, 1, 1),
             end_date=date(2023, 6, 1),
-            responsibilities="Cold calling and lead qualification"
+            responsibilities="Cold calling and lead qualification",
         )
 
         serializer = ExperienceSerializer(experience)
@@ -72,7 +70,7 @@ class TestExperienceSerializer:
             "position": "AE",
             "start_date": "2021-03-15",
             "end_date": "2023-12-31",
-            "responsibilities": "Closing deals"
+            "responsibilities": "Closing deals",
         }
 
         serializer = ExperienceSerializer(data=data)
@@ -88,7 +86,7 @@ class TestExperienceSerializer:
             "position": "CSM",
             "start_date": "2023-01-01",
             "end_date": None,
-            "responsibilities": "Customer success"
+            "responsibilities": "Customer success",
         }
 
         serializer = ExperienceSerializer(data=data)
@@ -137,7 +135,7 @@ class TestCandidateProfileSerializer:
             "sales_type": "Inbound",
             "bio": "Experienced AE",
             "pitch_video_url": "https://youtube.com/watch?v=abc123",
-            "pitch_video_type": "youtube"
+            "pitch_video_type": "youtube",
         }
 
         serializer = CandidateProfileSerializer(data=data)
@@ -162,16 +160,16 @@ class TestCandidateProfileSerializer:
                     "position": "SDR",
                     "start_date": "2019-01-01",
                     "end_date": "2021-06-01",
-                    "responsibilities": "Prospecting"
+                    "responsibilities": "Prospecting",
                 },
                 {
                     "company_name": "Company B",
                     "position": "CSM",
                     "start_date": "2021-07-01",
                     "end_date": None,
-                    "responsibilities": "Account management"
-                }
-            ]
+                    "responsibilities": "Account management",
+                },
+            ],
         }
 
         serializer = CandidateProfileSerializer(data=data)
@@ -196,7 +194,7 @@ class TestCandidateProfileSerializer:
             "solutions_sold": ["SaaS B2B", "Fintech"],
             "departments_sold_to": ["Marketing", "C-Level"],
             "pitch_video_url": "https://youtube.com/watch?v=ghi789",
-            "pitch_video_type": "youtube"
+            "pitch_video_type": "youtube",
         }
 
         serializer = CandidateProfileSerializer(data=data)
@@ -205,8 +203,8 @@ class TestCandidateProfileSerializer:
         assert len(serializer.validated_data["tools_software"]) == 3
         assert "Salesforce" in serializer.validated_data["tools_software"]
 
-    @patch('candidates.serializers.validate_s3_url')
-    @patch('candidates.serializers.get_s3_file_size')
+    @patch("candidates.serializers.validate_s3_url")
+    @patch("candidates.serializers.get_s3_file_size")
     def test_profile_with_video_s3(self, mock_file_size, mock_validate_s3):
         """Test profile with S3 video."""
         # Mock S3 validation
@@ -219,7 +217,7 @@ class TestCandidateProfileSerializer:
             "current_position": "AE/Closer",
             "years_of_experience": 6,
             "pitch_video_url": "https://talentbase-dev-uploads.s3.amazonaws.com/pitch-videos/test.mp4",
-            "pitch_video_type": "s3"
+            "pitch_video_type": "s3",
         }
 
         serializer = CandidateProfileSerializer(data=data)
@@ -235,7 +233,7 @@ class TestCandidateProfileSerializer:
             "current_position": "CSM",
             "years_of_experience": 3,
             "pitch_video_url": "https://youtube.com/watch?v=abc123",
-            "pitch_video_type": "youtube"
+            "pitch_video_type": "youtube",
         }
 
         serializer = CandidateProfileSerializer(data=data)
@@ -251,7 +249,7 @@ class TestCandidateProfileSerializer:
             "current_position": "SDR/BDR",
             "years_of_experience": 1,
             "pitch_video_url": "https://vimeo.com/123456",
-            "pitch_video_type": "youtube"
+            "pitch_video_type": "youtube",
         }
 
         serializer = CandidateProfileSerializer(data=data)
@@ -277,14 +275,10 @@ class TestCandidateProfileSerializer:
         # candidate_profile fixture already has video
         data = {
             "bio": "Updated bio with more information",
-            "tools_software": ["Pipedrive", "Apollo.io"]
+            "tools_software": ["Pipedrive", "Apollo.io"],
         }
 
-        serializer = CandidateProfileSerializer(
-            candidate_profile,
-            data=data,
-            partial=True
-        )
+        serializer = CandidateProfileSerializer(candidate_profile, data=data, partial=True)
 
         assert serializer.is_valid(), serializer.errors
 
@@ -335,7 +329,7 @@ class TestCandidateProfileDraftSerializer:
                 {
                     "company_name": "Draft Company",
                     "position": "Draft Position",
-                    "start_date": "2020-01-01"
+                    "start_date": "2020-01-01",
                 }
             ]
             # No pitch_video - should still be valid for draft

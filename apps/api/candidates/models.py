@@ -83,6 +83,8 @@ class CandidateProfile(BaseModel):
     )  # TODO: Add encryption via django-encrypted-model-fields
     linkedin = models.URLField(blank=True, default="", help_text="URL do perfil LinkedIn")
     city = models.CharField(max_length=100, blank=True, default="", help_text="Cidade do candidato")
+    # Story 3.3: Additional fields for CSV import
+    zip_code = models.CharField(max_length=10, blank=True, default="", help_text="CEP")
     profile_photo_url = models.URLField(
         blank=True, null=True, help_text="URL da foto de perfil (S3)"
     )
@@ -151,56 +153,46 @@ class CandidateProfile(BaseModel):
 
     # Story 3.2: Public sharing fields
     public_sharing_enabled = models.BooleanField(
-        default=False,
-        help_text="Compartilhamento público ativado?"
+        default=False, help_text="Compartilhamento público ativado?"
     )
     share_link_generated_at = models.DateTimeField(
-        null=True,
-        blank=True,
-        help_text="Data/hora da geração do link de compartilhamento"
+        null=True, blank=True, help_text="Data/hora da geração do link de compartilhamento"
     )
 
     # Story 3.2: Additional candidate information (from Notion layout)
     pcd = models.BooleanField(
-        default=False,
-        verbose_name="Pessoa com Deficiência",
-        help_text="Indica se é PCD"
+        default=False, verbose_name="Pessoa com Deficiência", help_text="Indica se é PCD"
     )
     languages = models.JSONField(
-        default=list,
-        help_text="Lista de idiomas: [{'name': 'Português', 'level': 'Nativo'}, ...]"
+        default=list, help_text="Lista de idiomas: [{'name': 'Português', 'level': 'Nativo'}, ...]"
     )
     accepts_pj = models.BooleanField(
-        default=False,
-        verbose_name="Aceita PJ",
-        help_text="Aceita trabalhar como PJ"
+        default=False, verbose_name="Aceita PJ", help_text="Aceita trabalhar como PJ"
     )
     travel_availability = models.CharField(
         max_length=100,
         blank=True,
         default="",
-        help_text="Disponibilidade para viagens (ex: 'Sim, semanalmente', 'Sim, eventualmente', 'Não')"
+        help_text="Disponibilidade para viagens (ex: 'Sim, semanalmente', 'Sim, eventualmente', 'Não')",
     )
     relocation = models.BooleanField(
-        default=False,
-        verbose_name="Disponível para mudança",
-        help_text="Disponível para relocação"
+        default=False, verbose_name="Disponível para mudança", help_text="Disponível para relocação"
     )
     work_model = models.CharField(
         max_length=20,
         choices=[
-            ('remote', 'Remoto'),
-            ('hybrid', 'Híbrido'),
-            ('onsite', 'Presencial'),
+            ("remote", "Remoto"),
+            ("hybrid", "Híbrido"),
+            ("onsite", "Presencial"),
         ],
-        default='hybrid',
-        help_text="Modelo de trabalho preferido"
+        default="hybrid",
+        help_text="Modelo de trabalho preferido",
     )
     position_interest = models.CharField(
         max_length=200,
         blank=True,
         default="",
-        help_text="Posição de interesse (ex: 'Account Manager/CSM', 'SDR', 'AE')"
+        help_text="Posição de interesse (ex: 'Account Manager/CSM', 'SDR', 'AE')",
     )
 
     # Story 3.2: Experience summary (structured as per Notion layout)
@@ -226,7 +218,98 @@ class CandidateProfile(BaseModel):
             "expansion_years": 10
           }
         }
-        """
+        """,
+    )
+
+    # Story 3.3: Additional Notion CSV import fields
+    contract_signed = models.BooleanField(
+        default=False,
+        verbose_name="Contrato Assinado",
+        help_text="Indica se o contrato foi assinado",
+    )
+    interview_date = models.DateField(null=True, blank=True, help_text="Data da entrevista")
+    academic_degree = models.CharField(
+        max_length=200,
+        blank=True,
+        default="",
+        help_text="Formação acadêmica (ex: 'Ensino Superior Completo', 'MBA')",
+    )
+    minimum_salary = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Remuneração mínima mensal desejada (R$)",
+    )
+    salary_notes = models.TextField(
+        blank=True, default="", help_text="Observações sobre remuneração"
+    )
+    has_drivers_license = models.BooleanField(
+        default=False, verbose_name="Possui CNH", help_text="Possui carteira de motorista"
+    )
+    has_vehicle = models.BooleanField(
+        default=False, verbose_name="Possui veículo próprio", help_text="Possui veículo próprio"
+    )
+    positions_of_interest = models.JSONField(
+        default=list, help_text="Lista de posições de interesse (ex: ['SDR', 'AE', 'CSM'])"
+    )
+    # Experience fields (text ranges from Notion)
+    active_prospecting_experience = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+        help_text="Experiência em prospecção ativa (ex: 'Entre 3 e 5 anos')",
+    )
+    inbound_qualification_experience = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+        help_text="Experiência em qualificação de leads inbound",
+    )
+    portfolio_retention_experience = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+        help_text="Experiência em retenção de carteira de clientes",
+    )
+    portfolio_expansion_experience = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+        help_text="Experiência em expansão/venda para carteira",
+    )
+    portfolio_size = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+        help_text="Tamanho da carteira gerida (ex: 'Entre 10 e 30 contas')",
+    )
+    inbound_sales_experience = models.CharField(
+        max_length=100, blank=True, default="", help_text="Experiência em vendas para leads inbound"
+    )
+    outbound_sales_experience = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+        help_text="Experiência em vendas para leads outbound",
+    )
+    field_sales_experience = models.CharField(
+        max_length=100, blank=True, default="", help_text="Experiência em field sales"
+    )
+    inside_sales_experience = models.CharField(
+        max_length=100, blank=True, default="", help_text="Experiência em inside sales"
+    )
+    # Rename existing field for clarity
+    relocation_availability = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+        help_text="Disponibilidade para mudança (ex: 'Sim', 'Não', 'Depende da oportunidade')",
+    )
+    is_pcd = models.BooleanField(
+        default=False,
+        verbose_name="PCD",
+        help_text="Pessoa com Deficiência (campo alternativo para compatibilidade CSV)",
     )
 
     class Meta:
@@ -266,9 +349,7 @@ class Experience(BaseModel):
     )
     company_name = models.CharField(max_length=200, help_text="Nome da empresa")
     company_logo_url = models.URLField(
-        blank=True,
-        null=True,
-        help_text="URL do logo da empresa (S3)"
+        blank=True, null=True, help_text="URL do logo da empresa (S3)"
     )
     position = models.CharField(max_length=200, help_text="Cargo ocupado")
     start_date = models.DateField(help_text="Data de início")

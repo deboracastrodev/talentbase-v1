@@ -46,29 +46,30 @@ class SharingService:
         # Validate profile is complete (has required fields)
         if not candidate.pitch_video_url:
             raise exceptions.ValidationError(
-                "Perfil deve estar completo para gerar link público. "
-                "Vídeo pitch é obrigatório."
+                "Perfil deve estar completo para gerar link público. " "Vídeo pitch é obrigatório."
             )
 
         # Generate new token (invalidates old one)
         candidate.public_token = uuid.uuid4()
         candidate.public_sharing_enabled = True
         candidate.share_link_generated_at = timezone.now()
-        candidate.save(update_fields=[
-            'public_token',
-            'public_sharing_enabled',
-            'share_link_generated_at',
-            'updated_at'
-        ])
+        candidate.save(
+            update_fields=[
+                "public_token",
+                "public_sharing_enabled",
+                "share_link_generated_at",
+                "updated_at",
+            ]
+        )
 
         # Build share URL using environment variable
         base_url = settings.FRONTEND_URL or settings.BASE_URL
         share_url = f"{base_url}/share/candidate/{candidate.public_token}"
 
         return {
-            'share_token': str(candidate.public_token),
-            'share_url': share_url,
-            'generated_at': candidate.share_link_generated_at.isoformat()
+            "share_token": str(candidate.public_token),
+            "share_url": share_url,
+            "generated_at": candidate.share_link_generated_at.isoformat(),
         }
 
     @staticmethod
@@ -88,7 +89,7 @@ class SharingService:
             bool: New enabled status
         """
         candidate.public_sharing_enabled = enabled
-        candidate.save(update_fields=['public_sharing_enabled', 'updated_at'])
+        candidate.save(update_fields=["public_sharing_enabled", "updated_at"])
 
         return candidate.public_sharing_enabled
 
@@ -106,12 +107,10 @@ class SharingService:
             CandidateProfile or None
         """
         try:
-            candidate = CandidateProfile.objects.select_related('user').prefetch_related(
-                'experiences'
-            ).get(
-                public_token=token,
-                public_sharing_enabled=True,
-                is_active=True
+            candidate = (
+                CandidateProfile.objects.select_related("user")
+                .prefetch_related("experiences")
+                .get(public_token=token, public_sharing_enabled=True, is_active=True)
             )
             return candidate
         except (CandidateProfile.DoesNotExist, ValueError, exceptions.ValidationError):
@@ -120,10 +119,7 @@ class SharingService:
 
     @staticmethod
     def send_contact_request(
-        candidate: CandidateProfile,
-        contact_name: str,
-        contact_email: str,
-        message: str
+        candidate: CandidateProfile, contact_name: str, contact_email: str, message: str
     ) -> None:
         """
         Send contact request email to admin.
@@ -147,18 +143,18 @@ class SharingService:
 
         # Email context
         context = {
-            'candidate_name': candidate.full_name,
-            'candidate_position': candidate.current_position,
-            'contact_name': contact_name,
-            'contact_email': contact_email,
-            'message': message,
-            'profile_admin_url': f"{settings.BASE_URL}/admin/candidate/{candidate.id}"
+            "candidate_name": candidate.full_name,
+            "candidate_position": candidate.current_position,
+            "contact_name": contact_name,
+            "contact_email": contact_email,
+            "message": message,
+            "profile_admin_url": f"{settings.BASE_URL}/admin/candidate/{candidate.id}",
         }
 
         # Send email (async via Celery)
         send_email_task.delay(
             to_email=admin_email,
             subject=subject,
-            template_name='emails/candidate_contact_request.html',
-            context=context
+            template_name="emails/candidate_contact_request.html",
+            context=context,
         )
