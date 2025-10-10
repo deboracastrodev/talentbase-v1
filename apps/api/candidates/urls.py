@@ -16,13 +16,13 @@ urlpatterns = [
 
     # Profile CRUD
     path('', views.create_candidate_profile, name='create-profile'),
-    path('<int:pk>/draft', views.save_draft, name='save-draft'),
-    path('<int:pk>/photo', views.update_profile_photo, name='update-photo'),
-    path('<int:pk>/video', views.update_pitch_video, name='update-video'),
+    path('<uuid:pk>/draft', views.save_draft, name='save-draft'),
+    path('<uuid:pk>/photo', views.update_profile_photo, name='update-photo'),
+    path('<uuid:pk>/video', views.update_pitch_video, name='update-video'),
 
     # Story 3.2: Public sharing
-    path('<int:pk>/generate-share-token', views.generate_share_token, name='generate-share-token'),
-    path('<int:pk>/toggle-sharing', views.toggle_sharing, name='toggle-sharing'),
+    path('<uuid:pk>/generate-share-token', views.generate_share_token, name='generate-share-token'),
+    path('<uuid:pk>/toggle-sharing', views.toggle_sharing, name='toggle-sharing'),
 
     # Story 3.2: Public endpoints (no auth required)
     path('public/<uuid:token>', views.get_public_profile, name='public-profile'),
