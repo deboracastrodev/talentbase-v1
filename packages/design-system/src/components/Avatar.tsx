@@ -7,12 +7,14 @@ const avatarVariants = cva(
   {
     variants: {
       size: {
-        sm: 'h-8 w-8',
-        md: 'h-10 w-10',
-        lg: 'h-12 w-12',
-        xl: 'h-16 w-16',
-        '2xl': 'h-20 w-20',
-        '3xl': 'h-24 w-24',
+        sm: 'h-8 w-8',       // 32px
+        md: 'h-10 w-10',     // 40px
+        lg: 'h-12 w-12',     // 48px
+        xl: 'h-16 w-16',     // 64px
+        '2xl': 'h-20 w-20',  // 80px
+        '3xl': 'h-24 w-24',  // 96px
+        '4xl': 'h-32 w-32',  // 128px
+        '5xl': 'h-40 w-40',  // 160px - para hero sections
       },
     },
     defaultVariants: {

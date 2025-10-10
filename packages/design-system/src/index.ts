@@ -81,5 +81,11 @@ export type { DashboardLayoutProps, SidebarConfig } from './components/Dashboard
 export { MultiStepWizard } from './components/MultiStepWizard';
 export type { MultiStepWizardProps, WizardStep } from './components/MultiStepWizard';
 
+export { Timeline } from './components/Timeline';
+export type { TimelineProps, TimelineItem } from './components/Timeline';
+
+export { PublicProfileHero } from './components/PublicProfileHero';
+export type { PublicProfileHeroProps, HeroBadge } from './components/PublicProfileHero';
+
 // Utils
 export { cn } from './lib/utils';
