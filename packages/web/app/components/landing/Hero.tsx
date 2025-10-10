@@ -2,6 +2,8 @@ import { Link } from '@remix-run/react';
 import { Button } from '@talentbase/design-system';
 import { ArrowRight } from 'lucide-react';
 
+import { ROUTES } from '~/config/routes';
+
 /**
  * Hero section component for landing page
  * Premium design with gradient background, social proof, and animations
@@ -45,7 +47,7 @@ export function Hero() {
 
           {/* CTA Button */}
           <div className="animate-scale-in" style={{ animationDelay: '0.4s' }}>
-            <Link to="/auth/register?type=candidate">
+            <Link to={`${ROUTES.auth.candidateRegister}?type=candidate`}>
               <Button
                 size="lg"
                 className="bg-white text-gray-900 hover:bg-gray-100 text-lg px-8 py-6 h-auto shadow-xl transition-all duration-300 hover:scale-105"

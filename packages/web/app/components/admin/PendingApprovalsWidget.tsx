@@ -9,6 +9,8 @@ import { Link } from '@remix-run/react';
 import { Card } from '@talentbase/design-system';
 import { AlertCircle } from 'lucide-react';
 
+import { QUICK_ROUTES } from '~/config/routes';
+
 interface PendingApprovalsWidgetProps {
   count: number;
 }
@@ -18,7 +20,7 @@ export function PendingApprovalsWidget({ count }: PendingApprovalsWidgetProps) {
 
   return (
     <Link
-      to="/admin/users?status=pending&role=company"
+      to={QUICK_ROUTES.pendingCompanyApprovals}
       className="block hover:shadow-lg transition-shadow"
     >
       <Card className={`p-6 ${hasPending ? 'border-l-4 border-yellow-500' : ''}`}>

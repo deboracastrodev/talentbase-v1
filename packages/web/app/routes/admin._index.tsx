@@ -19,6 +19,7 @@ import { getAdminStats, type AdminStats } from '~/lib/api/admin';
 import { Users, AlertCircle, Briefcase, UserCheck, Activity } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@talentbase/design-system';
 import { requireAdmin, getUserFromToken } from '~/utils/auth.server';
+import { ROUTES, QUICK_ROUTES } from '~/config/routes';
 
 interface LoaderData {
   stats: AdminStats;
@@ -166,14 +167,14 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Link to="/admin/users">
+              <Link to={ROUTES.admin.users}>
                 <button className="w-full px-4 py-3 text-left bg-primary-50 hover:bg-primary-100 rounded-lg transition-colors">
                   <p className="font-medium text-primary-700">Manage Users</p>
                   <p className="text-sm text-primary-600">View and manage all users</p>
                 </button>
               </Link>
 
-              <Link to="/admin/users?status=pending&role=company">
+              <Link to={QUICK_ROUTES.pendingCompanyApprovals}>
                 <button className="w-full px-4 py-3 text-left bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors">
                   <p className="font-medium text-orange-700">Review Approvals</p>
                   <p className="text-sm text-orange-600">
@@ -211,7 +212,7 @@ export function ErrorBoundary() {
           <p className="text-gray-600 mb-4">
             Failed to load dashboard statistics. Please try again.
           </p>
-          <Link to="/admin/users">
+          <Link to={ROUTES.admin.users}>
             <button className="w-full px-4 py-2 bg-primary-500 text-white rounded-md hover:bg-primary-600">
               Go to User Management
             </button>
