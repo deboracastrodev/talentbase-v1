@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import Optional
 
 from django.conf import settings
-from django.core.exceptions import ValidationError
+from django.core import exceptions
 from django.db import transaction
 from django.utils import timezone
 
@@ -45,7 +45,7 @@ class SharingService:
         """
         # Validate profile is complete (has required fields)
         if not candidate.pitch_video_url:
-            raise ValidationError(
+            raise exceptions.ValidationError(
                 "Perfil deve estar completo para gerar link público. "
                 "Vídeo pitch é obrigatório."
             )
@@ -114,7 +114,8 @@ class SharingService:
                 is_active=True
             )
             return candidate
-        except CandidateProfile.DoesNotExist:
+        except (CandidateProfile.DoesNotExist, ValueError, exceptions.ValidationError):
+            # ValueError/ValidationError is raised when token is not a valid UUID
             return None
 
     @staticmethod
