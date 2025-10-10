@@ -149,6 +149,86 @@ class CandidateProfile(BaseModel):
         default=uuid.uuid4, unique=True, db_index=True, help_text="Token para URL pública do perfil"
     )
 
+    # Story 3.2: Public sharing fields
+    public_sharing_enabled = models.BooleanField(
+        default=False,
+        help_text="Compartilhamento público ativado?"
+    )
+    share_link_generated_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Data/hora da geração do link de compartilhamento"
+    )
+
+    # Story 3.2: Additional candidate information (from Notion layout)
+    pcd = models.BooleanField(
+        default=False,
+        verbose_name="Pessoa com Deficiência",
+        help_text="Indica se é PCD"
+    )
+    languages = models.JSONField(
+        default=list,
+        help_text="Lista de idiomas: [{'name': 'Português', 'level': 'Nativo'}, ...]"
+    )
+    accepts_pj = models.BooleanField(
+        default=False,
+        verbose_name="Aceita PJ",
+        help_text="Aceita trabalhar como PJ"
+    )
+    travel_availability = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+        help_text="Disponibilidade para viagens (ex: 'Sim, semanalmente', 'Sim, eventualmente', 'Não')"
+    )
+    relocation = models.BooleanField(
+        default=False,
+        verbose_name="Disponível para mudança",
+        help_text="Disponível para relocação"
+    )
+    work_model = models.CharField(
+        max_length=20,
+        choices=[
+            ('remote', 'Remoto'),
+            ('hybrid', 'Híbrido'),
+            ('onsite', 'Presencial'),
+        ],
+        default='hybrid',
+        help_text="Modelo de trabalho preferido"
+    )
+    position_interest = models.CharField(
+        max_length=200,
+        blank=True,
+        default="",
+        help_text="Posição de interesse (ex: 'Account Manager/CSM', 'SDR', 'AE')"
+    )
+
+    # Story 3.2: Experience summary (structured as per Notion layout)
+    experience_summary = models.JSONField(
+        default=dict,
+        help_text="""
+        Resumo estruturado de experiências:
+        {
+          "sdr": {
+            "has_experience": false,
+            "details": []
+          },
+          "sales": {
+            "outbound_years": 10,
+            "inbound_years": 10,
+            "inside_sales_years": 10,
+            "field_sales_years": 3,
+            "arr_range": "60K-120K ARR",
+            "sales_cycle": "1-3 meses"
+          },
+          "csm": {
+            "retention_years": 10,
+            "expansion_years": 10
+          }
+        }
+        """
+    )
+
     class Meta:
         db_table = "candidate_profiles"
         verbose_name = "Perfil de Candidato"
@@ -185,6 +265,11 @@ class Experience(BaseModel):
         help_text="Candidato dono desta experiência",
     )
     company_name = models.CharField(max_length=200, help_text="Nome da empresa")
+    company_logo_url = models.URLField(
+        blank=True,
+        null=True,
+        help_text="URL do logo da empresa (S3)"
+    )
     position = models.CharField(max_length=200, help_text="Cargo ocupado")
     start_date = models.DateField(help_text="Data de início")
     end_date = models.DateField(

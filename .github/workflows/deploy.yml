@@ -96,7 +96,20 @@ jobs:
             echo "API_SERVICE=talentbase-api-dev" >> $GITHUB_OUTPUT
           fi
 
+      - name: Check if ECS Cluster exists
+        id: check-cluster
+        continue-on-error: true
+        run: |
+          if aws ecs describe-clusters --clusters ${{ steps.env.outputs.CLUSTER }} --query 'clusters[0].status' --output text 2>/dev/null | grep -q "ACTIVE"; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "✅ ECS Cluster ${{ steps.env.outputs.CLUSTER }} found"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "⚠️  ECS Cluster ${{ steps.env.outputs.CLUSTER }} not found - skipping deployment"
+          fi
+
       - name: Build and Push API Docker Image
+        if: steps.check-cluster.outputs.exists == 'true'
         run: |
           cd apps/api
           docker build \
@@ -111,6 +124,7 @@ jobs:
           docker push ${{ env.ECR_REGISTRY }}/talentbase-api:latest
 
       - name: Build and Push Web Docker Image
+        if: steps.check-cluster.outputs.exists == 'true'
         run: |
           docker build \
             -f packages/web/Dockerfile \
@@ -127,6 +141,7 @@ jobs:
           docker push ${{ env.ECR_REGISTRY }}/talentbase-web:latest
 
       - name: Update ECS Service - API
+        if: steps.check-cluster.outputs.exists == 'true'
         run: |
           aws ecs update-service \
             --cluster ${{ steps.env.outputs.CLUSTER }} \
@@ -134,6 +149,7 @@ jobs:
             --force-new-deployment
 
       - name: Update ECS Service - Web
+        if: steps.check-cluster.outputs.exists == 'true'
         run: |
           aws ecs update-service \
             --cluster ${{ steps.env.outputs.CLUSTER }} \
@@ -141,18 +157,21 @@ jobs:
             --force-new-deployment
 
       - name: Wait for API Deployment
+        if: steps.check-cluster.outputs.exists == 'true'
         run: |
           aws ecs wait services-stable \
             --cluster ${{ steps.env.outputs.CLUSTER }} \
             --services ${{ steps.env.outputs.API_SERVICE }}
 
       - name: Wait for Web Deployment
+        if: steps.check-cluster.outputs.exists == 'true'
         run: |
           aws ecs wait services-stable \
             --cluster ${{ steps.env.outputs.CLUSTER }} \
             --services ${{ steps.env.outputs.WEB_SERVICE }}
 
       - name: Validate API Health
+        if: steps.check-cluster.outputs.exists == 'true'
         run: |
           ENVIRONMENT=${{ github.ref == 'refs/heads/master' && 'prod' || 'dev' }}
           if [ "$ENVIRONMENT" = "dev" ]; then
@@ -173,6 +192,7 @@ jobs:
           exit 1
 
       - name: Validate Web Health
+        if: steps.check-cluster.outputs.exists == 'true'
         run: |
           ENVIRONMENT=${{ github.ref == 'refs/heads/master' && 'prod' || 'dev' }}
           if [ "$ENVIRONMENT" = "dev" ]; then

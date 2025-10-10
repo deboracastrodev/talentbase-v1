@@ -321,3 +321,131 @@ class CandidateProfileDraftSerializer(CandidateProfileSerializer):
         """Skip required field validation for drafts."""
         # Call parent validate with is_draft=True
         return super().validate(data)
+
+
+class PublicExperienceSerializer(serializers.ModelSerializer):
+    """
+    Public serializer for Experience (excludes responsibilities details).
+
+    Story 3.2: Public profile page - shows only company, position, dates, logo.
+    """
+
+    class Meta:
+        model = Experience
+        fields = [
+            'id',
+            'company_name',
+            'company_logo_url',
+            'position',
+            'start_date',
+            'end_date',
+        ]
+        read_only_fields = fields
+
+
+class PublicCandidateProfileSerializer(serializers.ModelSerializer):
+    """
+    Public serializer for candidate profiles (shareable link).
+
+    Excludes private data:
+    - CPF, phone, email
+    - User ID
+    - Status, internal fields
+    - Salary expectations (future)
+
+    Includes public data:
+    - Name, photo, position, location
+    - Years of experience, sales type
+    - Tools, solutions, departments
+    - Bio, work history (basic)
+    - Verified badge
+
+    Story 3.2: Shareable public profile.
+    """
+
+    experiences = PublicExperienceSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = CandidateProfile
+        fields = [
+            # Basic info (public)
+            'id',
+            'full_name',
+            'profile_photo_url',
+            'city',
+            'current_position',
+            'years_of_experience',
+
+            # Sales info (public)
+            'sales_type',
+            'sales_cycle',
+            'avg_ticket',
+
+            # Skills & tools (public)
+            'top_skills',
+            'tools_software',
+            'solutions_sold',
+            'departments_sold_to',
+
+            # Bio (public)
+            'bio',
+
+            # Video (public)
+            'pitch_video_url',
+            'pitch_video_type',
+
+            # Work history (public - basic)
+            'experiences',
+
+            # Story 3.2: Additional public info
+            'pcd',
+            'languages',
+            'accepts_pj',
+            'travel_availability',
+            'relocation',
+            'work_model',
+            'position_interest',
+            'experience_summary',
+
+            # Metadata
+            'created_at',
+        ]
+        read_only_fields = fields
+
+
+class ContactCandidateSerializer(serializers.Serializer):
+    """
+    Serializer for contact form on public profile.
+
+    Validates contact request data before sending email to admin.
+    Story 3.2: Contact form functionality.
+    """
+
+    name = serializers.CharField(
+        max_length=200,
+        required=True,
+        help_text="Nome do interessado"
+    )
+    email = serializers.EmailField(
+        required=True,
+        help_text="E-mail do interessado"
+    )
+    message = serializers.CharField(
+        max_length=1000,
+        required=True,
+        help_text="Mensagem de contato"
+    )
+
+    def validate_message(self, value: str) -> str:
+        """
+        Sanitize message to prevent XSS.
+
+        Args:
+            value: Message text
+
+        Returns:
+            str: Sanitized message
+        """
+        # Strip all HTML tags
+        sanitized = bleach.clean(value, tags=[], strip=True)
+        return sanitized

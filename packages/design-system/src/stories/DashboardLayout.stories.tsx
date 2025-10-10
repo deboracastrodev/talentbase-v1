@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { DashboardLayout } from './DashboardLayout';
+import { DashboardLayout } from '../components/DashboardLayout';
 import { Home, Users, Building2, User, Briefcase, FileText, Target, Settings } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardContent } from './Card';
+import { Card, CardHeader, CardTitle, CardContent } from '../components/Card';
 
 const meta = {
   title: 'Components/DashboardLayout',

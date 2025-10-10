@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { PublicProfileHero } from './PublicProfileHero';
+import { PublicProfileHero } from '../components/PublicProfileHero';
 
 const meta = {
   title: 'Components/PublicProfileHero',
