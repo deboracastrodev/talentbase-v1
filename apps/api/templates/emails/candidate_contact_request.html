@@ -1,0 +1,46 @@
+{% extends "emails/base.html" %}
+
+{% block content %}
+<h2>Nova Solicitação de Contato via Perfil Público</h2>
+
+<p>
+    Um interessado entrou em contato através do perfil público de <strong>{{ candidate_name }}</strong> ({{ candidate_position }}).
+</p>
+
+<div class="info-box">
+    <p><strong>Dados do Candidato:</strong></p>
+    <p style="margin-top: 8px;">
+        <strong>Nome:</strong> {{ candidate_name }}<br>
+        <strong>Posição:</strong> {{ candidate_position }}
+    </p>
+</div>
+
+<div class="divider"></div>
+
+<h2 style="font-size: 18px;">Dados do Interessado</h2>
+
+<p>
+    <strong>Nome:</strong> {{ contact_name }}<br>
+    <strong>E-mail:</strong> <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>
+</p>
+
+<div class="success-box">
+    <p><strong>Mensagem:</strong></p>
+    <p style="margin-top: 8px; white-space: pre-wrap;">{{ message }}</p>
+</div>
+
+<div class="divider"></div>
+
+<p style="text-align: center; margin: 24px 0;">
+    <a href="{{ profile_admin_url }}" class="button">
+        Ver Perfil do Candidato no Admin
+    </a>
+</p>
+
+<p style="color: #718096; font-size: 14px;">
+    <strong>Próximos passos:</strong><br>
+    1. Revisar o perfil do candidato no painel administrativo<br>
+    2. Entrar em contato com o interessado via e-mail ou telefone<br>
+    3. Mediar o processo de conexão entre candidato e empresa
+</p>
+{% endblock %}

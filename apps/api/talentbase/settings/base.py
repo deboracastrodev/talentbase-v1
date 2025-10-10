@@ -218,3 +218,8 @@ MAX_VIDEO_SIZE = 50 * 1024 * 1024  # 50MB in bytes
 ALLOWED_VIDEO_TYPES = ["video/mp4", "video/quicktime", "video/x-msvideo"]
 ALLOWED_VIDEO_EXTENSIONS = [".mp4", ".mov", ".avi"]
 VIDEO_PRESIGNED_EXPIRY = 600  # 10 minutes (in seconds) - videos take longer to upload
+
+# Story 3.2: Public Profile Sharing Configuration
+BASE_URL = config("BASE_URL", default="http://localhost:8000")  # Backend URL
+FRONTEND_URL = config("FRONTEND_URL", default="http://localhost:3000")  # Frontend URL for share links
+ADMIN_EMAIL = config("ADMIN_EMAIL", default="admin@localhost")  # Admin email for contact requests

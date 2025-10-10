@@ -2,14 +2,16 @@
 Candidate views module.
 API endpoints for candidate profile management.
 Story 3.1: Multi-step wizard profile creation with S3 uploads.
+Story 3.2: Public shareable profile with token-based access.
 """
 
 import logging
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 
 from core.permissions import IsCandidate
@@ -18,7 +20,10 @@ from .models import CandidateProfile
 from .serializers import (
     CandidateProfileSerializer,
     CandidateProfileDraftSerializer,
+    PublicCandidateProfileSerializer,
+    ContactCandidateSerializer,
 )
+from .services.sharing import SharingService
 
 logger = logging.getLogger(__name__)
 
@@ -403,3 +408,228 @@ def update_pitch_video(request, pk):
         CandidateProfileSerializer(profile).data,
         status=status.HTTP_200_OK
     )
+
+
+# Story 3.2: Public sharing endpoints
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated, IsCandidate])
+def generate_share_token(request, pk):
+    """
+    Generate or regenerate public share token for candidate profile.
+
+    Creates a unique UUID token and enables public sharing.
+    Previous token is automatically invalidated.
+
+    Auth: Required (candidate role, owner only)
+
+    Returns:
+        200: {
+            'share_token': 'uuid-string',
+            'share_url': 'https://domain.com/share/candidate/uuid',
+            'generated_at': '2025-01-01T00:00:00Z'
+        }
+        404: { 'error': 'Profile not found' }
+        403: { 'error': 'You can only generate token for your own profile' }
+        400: { 'error': 'Profile must be complete to generate public link' }
+
+    Example:
+        POST /api/v1/candidates/123/generate-share-token
+    """
+    try:
+        profile = CandidateProfile.objects.get(pk=pk)
+    except CandidateProfile.DoesNotExist:
+        return Response(
+            {'error': 'Profile not found'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+    # Check ownership
+    if profile.user != request.user:
+        return Response(
+            {'error': 'You can only generate token for your own profile'},
+            status=status.HTTP_403_FORBIDDEN
+        )
+
+    try:
+        share_data = SharingService.generate_share_token(profile)
+
+        logger.info(f"Generated share token for profile {pk}", extra={
+            'profile_id': pk,
+            'user_id': request.user.id,
+            'share_token': share_data['share_token']
+        })
+
+        return Response(share_data, status=status.HTTP_200_OK)
+
+    except ValidationError as e:
+        logger.warning(f"Cannot generate share token: {e}", extra={
+            'profile_id': pk,
+            'user_id': request.user.id
+        })
+        return Response(
+            {'error': str(e)},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated, IsCandidate])
+def toggle_sharing(request, pk):
+    """
+    Enable or disable public sharing for candidate profile.
+
+    When disabled, public URL returns 404.
+    Token remains the same, can be re-enabled anytime.
+
+    Auth: Required (candidate role, owner only)
+    Body: { 'enabled': true/false }
+
+    Returns:
+        200: { 'public_sharing_enabled': true/false }
+        404: { 'error': 'Profile not found' }
+        403: { 'error': 'You can only toggle sharing for your own profile' }
+        400: { 'error': 'enabled field is required' }
+
+    Example:
+        PATCH /api/v1/candidates/123/toggle-sharing
+        { "enabled": false }
+    """
+    try:
+        profile = CandidateProfile.objects.get(pk=pk)
+    except CandidateProfile.DoesNotExist:
+        return Response(
+            {'error': 'Profile not found'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+    # Check ownership
+    if profile.user != request.user:
+        return Response(
+            {'error': 'You can only toggle sharing for your own profile'},
+            status=status.HTTP_403_FORBIDDEN
+        )
+
+    enabled = request.data.get('enabled')
+
+    if enabled is None:
+        return Response(
+            {'error': 'enabled field is required (true or false)'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    new_status = SharingService.toggle_sharing(profile, bool(enabled))
+
+    logger.info(f"Toggled sharing for profile {pk}: {new_status}", extra={
+        'profile_id': pk,
+        'user_id': request.user.id,
+        'enabled': new_status
+    })
+
+    return Response(
+        {'public_sharing_enabled': new_status},
+        status=status.HTTP_200_OK
+    )
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_public_profile(request, token):
+    """
+    Get public candidate profile by share token.
+
+    No authentication required - public endpoint.
+
+    Returns:
+        200: Public profile data (excludes CPF, phone, email, etc.)
+        404: { 'error': 'Profile not found or sharing is disabled' }
+
+    Example:
+        GET /api/v1/public/candidates/550e8400-e29b-41d4-a716-446655440000
+    """
+    profile = SharingService.get_public_profile(token)
+
+    if not profile:
+        logger.warning(f"Public profile not found for token: {token}")
+        return Response(
+            {'error': 'Profile not found or sharing is disabled'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+    logger.info(f"Public profile accessed", extra={
+        'profile_id': profile.id,
+        'token': token
+    })
+
+    serializer = PublicCandidateProfileSerializer(profile)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def contact_candidate(request, token):
+    """
+    Send contact request for candidate profile.
+
+    No authentication required - public endpoint.
+
+    Body: {
+        'name': 'Nome do interessado',
+        'email': 'email@example.com',
+        'message': 'Mensagem de contato'
+    }
+
+    Sends email to admin with contact details.
+
+    Returns:
+        200: { 'message': 'Contact request sent successfully' }
+        404: { 'error': 'Profile not found or sharing is disabled' }
+        400: { 'error': { field: ['message'] } }
+
+    Example:
+        POST /api/v1/public/candidates/550e8400-e29b-41d4-a716-446655440000/contact
+        {
+            "name": "João Recrutador",
+            "email": "joao@empresa.com",
+            "message": "Gostaria de conversar sobre uma oportunidade..."
+        }
+    """
+    profile = SharingService.get_public_profile(token)
+
+    if not profile:
+        return Response(
+            {'error': 'Profile not found or sharing is disabled'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+    serializer = ContactCandidateSerializer(data=request.data)
+
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        SharingService.send_contact_request(
+            candidate=profile,
+            contact_name=serializer.validated_data['name'],
+            contact_email=serializer.validated_data['email'],
+            message=serializer.validated_data['message']
+        )
+
+        logger.info(f"Contact request sent for profile {profile.id}", extra={
+            'profile_id': profile.id,
+            'contact_email': serializer.validated_data['email']
+        })
+
+        return Response(
+            {'message': 'Contact request sent successfully'},
+            status=status.HTTP_200_OK
+        )
+
+    except Exception as e:
+        logger.error(f"Error sending contact request: {e}", extra={
+            'profile_id': profile.id
+        })
+        return Response(
+            {'error': 'Failed to send contact request'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )

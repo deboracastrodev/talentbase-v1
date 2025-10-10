@@ -87,5 +87,17 @@ export type { TimelineProps, TimelineItem } from './components/Timeline';
 export { PublicProfileHero } from './components/PublicProfileHero';
 export type { PublicProfileHeroProps, HeroBadge } from './components/PublicProfileHero';
 
+export { FileUpload } from './components/FileUpload';
+export type { FileUploadProps } from './components/FileUpload';
+
+export { ProgressBar, ProgressBarWithSteps, progressBarVariants, progressContainerVariants } from './components/ProgressBar';
+export type { ProgressBarProps, ProgressBarWithStepsProps } from './components/ProgressBar';
+
+export { Stepper, StepIcon } from './components/Stepper';
+export type { StepperProps, Step, StepStatus } from './components/Stepper';
+
+export { RadioGroup, RadioCard } from './components/RadioGroup';
+export type { RadioGroupProps, RadioOption, RadioCardProps } from './components/RadioGroup';
+
 // Utils
 export { cn } from './lib/utils';
