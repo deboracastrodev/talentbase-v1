@@ -3,11 +3,7 @@
  * Story 3.1: Profile creation and management.
  */
 
-import type {
-  CandidateProfile,
-  PresignedUrlResponse,
-  ApiError,
-} from '../types/candidate';
+import type { CandidateProfile, PresignedUrlResponse, ApiError } from '../types/candidate';
 
 import { getApiBaseUrl } from '~/config/api';
 
@@ -34,10 +30,7 @@ function getAuthToken(): string | null {
 /**
  * Make authenticated API request.
  */
-async function apiRequest<T>(
-  endpoint: string,
-  options: RequestInit = {}
-): Promise<T> {
+async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const token = getAuthToken();
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
@@ -80,9 +73,7 @@ export async function getUploadUrl(
     type,
   });
 
-  return apiRequest<PresignedUrlResponse>(
-    `/api/v1/candidates/upload-url?${params}`
-  );
+  return apiRequest<PresignedUrlResponse>(`/api/v1/candidates/upload-url?${params}`);
 }
 
 /**

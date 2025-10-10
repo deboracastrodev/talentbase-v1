@@ -32,8 +32,7 @@ export function Hero() {
         <div className="max-w-4xl mx-auto">
           {/* Main Heading */}
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6 animate-fade-in-up leading-tight">
-            O parceiro de IA para sua{' '}
-            <span className="text-cyan-400">próxima oportunidade</span>
+            O parceiro de IA para sua <span className="text-cyan-400">próxima oportunidade</span>
           </h1>
 
           {/* Subtitle */}
@@ -41,8 +40,8 @@ export function Hero() {
             className="text-lg sm:text-xl text-gray-300 mb-8 max-w-2xl mx-auto animate-fade-in"
             style={{ animationDelay: '0.2s' }}
           >
-            Encontre oportunidades de carreira com o apoio de um parceiro de IA que
-            entende seu perfil e conecta você às vagas certas em menos tempo.
+            Encontre oportunidades de carreira com o apoio de um parceiro de IA que entende seu
+            perfil e conecta você às vagas certas em menos tempo.
           </p>
 
           {/* CTA Button */}

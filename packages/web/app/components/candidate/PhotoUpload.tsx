@@ -66,11 +66,7 @@ export function PhotoUpload({
         {/* Preview */}
         {preview && (
           <div className="relative w-32 h-32 rounded-full overflow-hidden border-2 border-gray-300">
-            <img
-              src={preview}
-              alt="Preview"
-              className="w-full h-full object-cover"
-            />
+            <img src={preview} alt="Preview" className="w-full h-full object-cover" />
           </div>
         )}
 
@@ -89,9 +85,10 @@ export function PhotoUpload({
             htmlFor="photo-upload"
             className={`
               inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium
-              ${disabled || uploadState.isUploading
-                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                : 'bg-white text-gray-700 hover:bg-gray-50 cursor-pointer'
+              ${
+                disabled || uploadState.isUploading
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  : 'bg-white text-gray-700 hover:bg-gray-50 cursor-pointer'
               }
             `}
           >
@@ -122,14 +119,10 @@ export function PhotoUpload({
       )}
 
       {/* Error message */}
-      {uploadState.error && (
-        <p className="text-sm text-red-600">{uploadState.error}</p>
-      )}
+      {uploadState.error && <p className="text-sm text-red-600">{uploadState.error}</p>}
 
       {/* Help text */}
-      <p className="text-sm text-gray-500">
-        JPG ou PNG, máximo 2MB
-      </p>
+      <p className="text-sm text-gray-500">JPG ou PNG, máximo 2MB</p>
     </div>
   );
 }

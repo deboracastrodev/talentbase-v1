@@ -48,19 +48,19 @@ import { buildAdminUsersRoute } from '~/config/routes';
 // All pending company approvals
 const route = buildAdminUsersRoute({
   status: 'pending',
-  role: 'company'
+  role: 'company',
 });
 // => '/admin/users?status=pending&role=company'
 
 // Search for a specific user
 const route = buildAdminUsersRoute({
-  search: 'john@example.com'
+  search: 'john@example.com',
 });
 // => '/admin/users?search=john%40example.com'
 
 // Page 2 of all users
 const route = buildAdminUsersRoute({
-  page: 2
+  page: 2,
 });
 // => '/admin/users?page=2'
 
@@ -83,11 +83,7 @@ function UserFilters() {
 
   const route = buildAdminUsersRoute(filters);
 
-  return (
-    <Link to={route}>
-      Apply Filters
-    </Link>
-  );
+  return <Link to={route}>Apply Filters</Link>;
 }
 ```
 
@@ -144,15 +140,18 @@ if (isAuthRoute(path)) {
 ## 📚 Available Routes
 
 ### Public Routes
+
 - `ROUTES.home` - `/`
 
 ### Auth Routes
+
 - `ROUTES.auth.login` - `/auth/login`
 - `ROUTES.auth.register` - `/auth/register`
 - `ROUTES.auth.candidateRegister` - `/auth/register/candidate`
 - `ROUTES.auth.companyRegister` - `/auth/register/company`
 
 ### Admin Routes
+
 - `ROUTES.admin.dashboard` - `/admin`
 - `ROUTES.admin.users` - `/admin/users`
 - `ROUTES.admin.companies` - `/admin/companies`
@@ -163,21 +162,25 @@ if (isAuthRoute(path)) {
 - `ROUTES.admin.importCandidates` - `/admin/import/candidates`
 
 ### Candidate Routes
+
 - `ROUTES.candidate.dashboard` - `/candidate/dashboard`
 - `ROUTES.candidate.profile` - `/candidate/profile`
 - `ROUTES.candidate.profileCreate` - `/candidate/profile/create`
 
 ### Company Routes
+
 - `ROUTES.company.dashboard` - `/company/dashboard`
 - `ROUTES.company.profile` - `/company/profile`
 - `ROUTES.company.jobs` - `/company/jobs`
 
 ### Share Routes
+
 - `ROUTES.share.candidate(token)` - `/share/candidate/${token}`
 
 ## 🔄 Migration Guide
 
 ### Before
+
 ```tsx
 // components/UserList.tsx
 <Link to="/admin/users?status=pending&role=company">
@@ -192,28 +195,28 @@ if (isAuthRoute(path)) {
 ```
 
 ### After
+
 ```tsx
 // components/UserList.tsx
 import { QUICK_ROUTES } from '~/config/routes';
 
-<Link to={QUICK_ROUTES.pendingCompanyApprovals}>
-  Pending Companies
-</Link>
+<Link to={QUICK_ROUTES.pendingCompanyApprovals}>Pending Companies</Link>;
 
 // routes/admin.dashboard.tsx
 import { ROUTES } from '~/config/routes';
 
-<Link to={ROUTES.auth.register}>Register</Link>
+<Link to={ROUTES.auth.register}>Register</Link>;
 
 // components/Navbar.tsx
 import { ROUTES } from '~/config/routes';
 
-<Link to={ROUTES.candidate.dashboard}>Dashboard</Link>
+<Link to={ROUTES.candidate.dashboard}>Dashboard</Link>;
 ```
 
 ## 🚀 Adding New Routes
 
 1. **Add to `ROUTES` constant:**
+
 ```tsx
 // config/routes.ts
 export const ROUTES = {
@@ -227,16 +230,15 @@ export const ROUTES = {
 ```
 
 2. **Add builder if needed:**
+
 ```tsx
-export function buildNewFeatureRoute(params?: {
-  filter?: string;
-  page?: number;
-}): string {
+export function buildNewFeatureRoute(params?: { filter?: string; page?: number }): string {
   // Implementation
 }
 ```
 
 3. **Add to quick routes if common:**
+
 ```tsx
 export const QUICK_ROUTES = {
   // ... existing routes
@@ -248,11 +250,13 @@ export const QUICK_ROUTES = {
 ## 💡 Best Practices
 
 1. **Always import from `~/config/routes`**
+
    ```tsx
    import { ROUTES, QUICK_ROUTES, buildAdminUsersRoute } from '~/config/routes';
    ```
 
 2. **Use QUICK_ROUTES for common combinations**
+
    ```tsx
    // Good
    <Link to={QUICK_ROUTES.pendingCompanyApprovals} />
@@ -262,12 +266,14 @@ export const QUICK_ROUTES = {
    ```
 
 3. **Use builders for dynamic routes**
+
    ```tsx
    const filters = useSearchParams();
    const route = buildAdminUsersRoute(filters);
    ```
 
 4. **Never hardcode URLs**
+
    ```tsx
    // ❌ Never do this
    <Link to="/admin/users?status=pending" />
@@ -287,15 +293,14 @@ describe('Route builders', () => {
   it('builds correct URL with filters', () => {
     const route = buildAdminUsersRoute({
       status: 'pending',
-      role: 'company'
+      role: 'company',
     });
 
     expect(route).toBe('/admin/users?status=pending&role=company');
   });
 
   it('has correct quick route', () => {
-    expect(QUICK_ROUTES.pendingCompanyApprovals)
-      .toBe('/admin/users?status=pending&role=company');
+    expect(QUICK_ROUTES.pendingCompanyApprovals).toBe('/admin/users?status=pending&role=company');
   });
 });
 ```
@@ -303,6 +308,7 @@ describe('Route builders', () => {
 ## 📞 Questions?
 
 If you have questions about routes or need to add new ones, check:
+
 1. This documentation
 2. The `config/routes.ts` file for all available routes
 3. Ask the team in #frontend channel

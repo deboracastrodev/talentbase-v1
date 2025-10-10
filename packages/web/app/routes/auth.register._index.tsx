@@ -45,7 +45,10 @@ export default function AuthEntryPoint() {
             src={logoFull}
             alt="TalentBase"
             className="h-16 w-auto pl-14"
-            style={{ filter: 'brightness(0) saturate(100%) invert(18%) sepia(51%) saturate(2878%) hue-rotate(197deg) brightness(95%) contrast(101%)' }}
+            style={{
+              filter:
+                'brightness(0) saturate(100%) invert(18%) sepia(51%) saturate(2878%) hue-rotate(197deg) brightness(95%) contrast(101%)',
+            }}
           />
         </div>
 
@@ -66,9 +69,7 @@ export default function AuthEntryPoint() {
               </div>
 
               {/* Title */}
-              <h3 className="text-xl font-bold text-gray-900">
-                Candidato
-              </h3>
+              <h3 className="text-xl font-bold text-gray-900">Candidato</h3>
 
               {/* Description */}
               <p className="text-sm text-gray-600">
@@ -111,9 +112,7 @@ export default function AuthEntryPoint() {
               </div>
 
               {/* Title */}
-              <h3 className="text-xl font-bold text-gray-900">
-                Empresa
-              </h3>
+              <h3 className="text-xl font-bold text-gray-900">Empresa</h3>
 
               {/* Description */}
               <p className="text-sm text-gray-600">

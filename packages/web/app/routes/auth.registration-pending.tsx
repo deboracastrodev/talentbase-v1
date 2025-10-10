@@ -65,7 +65,7 @@ export default function RegistrationPending() {
             <Button
               variant="outline"
               className="w-full"
-              onClick={() => window.location.href = '/'}
+              onClick={() => (window.location.href = '/')}
             >
               Voltar para Home
             </Button>

@@ -21,7 +21,13 @@ interface UserDetailModalProps {
   isUpdating?: boolean;
 }
 
-export function UserDetailModal({ isOpen, onClose, user, onStatusChange, isUpdating = false }: UserDetailModalProps) {
+export function UserDetailModal({
+  isOpen,
+  onClose,
+  user,
+  onStatusChange,
+  isUpdating = false,
+}: UserDetailModalProps) {
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
 
   if (!user) return null;
@@ -73,12 +79,7 @@ export function UserDetailModal({ isOpen, onClose, user, onStatusChange, isUpdat
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title="Detalhes do Usuário"
-      size="lg"
-    >
+    <Modal isOpen={isOpen} onClose={onClose} title="Detalhes do Usuário" size="lg">
       <div className="space-y-6">
         {/* Basic Info */}
         <div className="grid grid-cols-2 gap-4">
@@ -103,7 +104,11 @@ export function UserDetailModal({ isOpen, onClose, user, onStatusChange, isUpdat
             <div className="text-sm font-medium text-gray-700">Status</div>
             <div className="mt-1">
               <Badge variant={getStatusBadgeVariant(user.status)}>
-                {user.status === 'active' ? 'Ativo' : user.status === 'pending' ? 'Pendente' : 'Inativo'}
+                {user.status === 'active'
+                  ? 'Ativo'
+                  : user.status === 'pending'
+                    ? 'Pendente'
+                    : 'Inativo'}
               </Badge>
             </div>
           </div>
@@ -142,16 +147,22 @@ export function UserDetailModal({ isOpen, onClose, user, onStatusChange, isUpdat
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <div className="text-sm font-medium text-gray-700">Pessoa de Contato</div>
-                    <p className="mt-1 text-sm text-gray-900">{user.profile.contact_person_name || '-'}</p>
+                    <p className="mt-1 text-sm text-gray-900">
+                      {user.profile.contact_person_name || '-'}
+                    </p>
                   </div>
                   <div>
                     <div className="text-sm font-medium text-gray-700">Email de Contato</div>
-                    <p className="mt-1 text-sm text-gray-900">{user.profile.contact_person_email || '-'}</p>
+                    <p className="mt-1 text-sm text-gray-900">
+                      {user.profile.contact_person_email || '-'}
+                    </p>
                   </div>
                 </div>
                 <div>
                   <div className="text-sm font-medium text-gray-700">Telefone de Contato</div>
-                  <p className="mt-1 text-sm text-gray-900">{user.profile.contact_person_phone || '-'}</p>
+                  <p className="mt-1 text-sm text-gray-900">
+                    {user.profile.contact_person_phone || '-'}
+                  </p>
                 </div>
               </div>
             )}
@@ -183,28 +194,24 @@ export function UserDetailModal({ isOpen, onClose, user, onStatusChange, isUpdat
             <h3 className="text-sm font-medium text-gray-900 mb-3">Ações de Status</h3>
             <div className="flex items-center gap-3">
               {user.is_active ? (
-                <Button
-                  variant="destructive"
-                  onClick={handleStatusToggle}
-                  disabled={isUpdating}
-                >
+                <Button variant="destructive" onClick={handleStatusToggle} disabled={isUpdating}>
                   {isUpdating ? 'Desativando...' : 'Desativar Usuário'}
                 </Button>
               ) : (
-                <Button
-                  variant="default"
-                  onClick={handleStatusToggle}
-                  disabled={isUpdating}
-                >
-                  {isUpdating ? 'Ativando...' : user.role === 'company' ? 'Aprovar Empresa' : 'Ativar Usuário'}
+                <Button variant="default" onClick={handleStatusToggle} disabled={isUpdating}>
+                  {isUpdating
+                    ? 'Ativando...'
+                    : user.role === 'company'
+                      ? 'Aprovar Empresa'
+                      : 'Ativar Usuário'}
                 </Button>
               )}
               <p className="text-sm text-gray-600">
                 {user.is_active
                   ? 'Desativar impedirá o acesso do usuário à plataforma.'
                   : user.role === 'company'
-                  ? 'Aprovar permitirá que a empresa acesse a plataforma.'
-                  : 'Ativar permitirá que o usuário acesse a plataforma.'}
+                    ? 'Aprovar permitirá que a empresa acesse a plataforma.'
+                    : 'Ativar permitirá que o usuário acesse a plataforma.'}
               </p>
             </div>
           </div>

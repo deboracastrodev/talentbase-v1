@@ -23,15 +23,8 @@
  */
 
 import { useNavigate, Link } from '@remix-run/react';
+import { MultiStepWizard, Input, Select, Textarea, Alert, Logo } from '@talentbase/design-system';
 import { useState, useEffect, useCallback } from 'react';
-import {
-  MultiStepWizard,
-  Input,
-  Select,
-  Textarea,
-  Alert,
-  Logo,
-} from '@talentbase/design-system';
 
 import { DepartmentsSelector } from '~/components/candidate/DepartmentsSelector';
 import { ExperienceEditor, Experience } from '~/components/candidate/ExperienceEditor';
@@ -231,7 +224,7 @@ export default function CandidateProfileCreate() {
       navigate(ROUTES.candidate.profile, {
         state: {
           success: true,
-          message: 'Perfil criado com sucesso! Agora você pode gerar seu link compartilhável.'
+          message: 'Perfil criado com sucesso! Agora você pode gerar seu link compartilhável.',
         },
       });
     } catch (err) {
@@ -307,9 +300,7 @@ export default function CandidateProfileCreate() {
                 placeholder="(11) 98765-4321"
                 variant={phoneValid ? 'success' : 'default'}
               />
-              {phoneValid && (
-                <p className="text-sm text-green-600 mt-1">✓ Telefone válido</p>
-              )}
+              {phoneValid && <p className="text-sm text-green-600 mt-1">✓ Telefone válido</p>}
             </div>
 
             <div>
@@ -327,9 +318,7 @@ export default function CandidateProfileCreate() {
             </div>
 
             <div>
-              <div className="block text-sm font-medium text-gray-700 mb-2">
-                Foto de Perfil
-              </div>
+              <div className="block text-sm font-medium text-gray-700 mb-2">Foto de Perfil</div>
               <PhotoUpload
                 onUploadComplete={(url) => updateFormData({ profile_photo_url: url })}
                 currentPhotoUrl={formData.profile_photo_url}
@@ -343,7 +332,10 @@ export default function CandidateProfileCreate() {
         return (
           <div className="space-y-6">
             <div>
-              <label htmlFor="current_position" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="current_position"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Posição Atual *
               </label>
               <Select
@@ -361,7 +353,10 @@ export default function CandidateProfileCreate() {
             </div>
 
             <div>
-              <label htmlFor="years_of_experience" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="years_of_experience"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Anos de Experiência *
               </label>
               <Input
@@ -439,9 +434,7 @@ export default function CandidateProfileCreate() {
         return (
           <div className="space-y-8">
             <div>
-              <div className="block text-sm font-medium text-gray-700 mb-3">
-                Soluções Vendidas
-              </div>
+              <div className="block text-sm font-medium text-gray-700 mb-3">Soluções Vendidas</div>
               <SolutionsSelector
                 selected={formData.solutions_sold}
                 onChange={(solutions) => updateFormData({ solutions_sold: solutions })}
@@ -492,13 +485,14 @@ export default function CandidateProfileCreate() {
                 Vídeo Pitch * (Obrigatório)
               </div>
               <p className="text-sm text-gray-600 mb-3">
-                Grave um vídeo de até 2 minutos se apresentando. Você pode fazer upload direto ou usar um vídeo do YouTube.
+                Grave um vídeo de até 2 minutos se apresentando. Você pode fazer upload direto ou
+                usar um vídeo do YouTube.
               </p>
               <VideoUpload
                 onUploadComplete={(url, type) =>
                   updateFormData({
                     pitch_video_url: url,
-                    pitch_video_type: type === 's3' ? 'S3' : 'youtube'
+                    pitch_video_type: type === 's3' ? 'S3' : 'youtube',
                   })
                 }
                 currentVideoUrl={formData.pitch_video_url}
@@ -519,20 +513,19 @@ export default function CandidateProfileCreate() {
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
           <Logo variant="full" theme="primary" size="md" />
-          <Link to={ROUTES.candidate.dashboard} className="text-sm text-gray-600 hover:text-gray-900">
+          <Link
+            to={ROUTES.candidate.dashboard}
+            className="text-sm text-gray-600 hover:text-gray-900"
+          >
             ← Voltar ao Dashboard
           </Link>
         </div>
       </div>
 
       <div className="max-w-4xl mx-auto px-4 py-8">
-        {error && (
-          <Alert variant="error" message={error} className="mb-6" />
-        )}
+        {error && <Alert variant="error" message={error} className="mb-6" />}
 
-        {validationError && (
-          <Alert variant="warning" message={validationError} className="mb-6" />
-        )}
+        {validationError && <Alert variant="warning" message={validationError} className="mb-6" />}
 
         <MultiStepWizard
           steps={steps}

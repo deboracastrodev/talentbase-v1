@@ -74,9 +74,7 @@ export default function AdminDashboard() {
       <div className="space-y-6">
         {/* Welcome message */}
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">
-            Welcome back, {user.name}!
-          </h2>
+          <h2 className="text-2xl font-bold text-gray-900">Welcome back, {user.name}!</h2>
           <p className="text-gray-600 mt-1">
             Here&apos;s what&apos;s happening with your platform today.
           </p>
@@ -178,9 +176,7 @@ export default function AdminDashboard() {
               <Link to={QUICK_ROUTES.pendingCompanyApprovals}>
                 <button className="w-full px-4 py-3 text-left bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors">
                   <p className="font-medium text-orange-700">Review Approvals</p>
-                  <p className="text-sm text-orange-600">
-                    {stats.pending_approvals} pending
-                  </p>
+                  <p className="text-sm text-orange-600">{stats.pending_approvals} pending</p>
                 </button>
               </Link>
 

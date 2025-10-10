@@ -27,10 +27,10 @@ export function PendingApprovalsWidget({ count }: PendingApprovalsWidgetProps) {
         <div className="flex items-center justify-between">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
-              <AlertCircle className={`w-5 h-5 ${hasPending ? 'text-yellow-600' : 'text-gray-400'}`} />
-              <h3 className="text-sm font-medium text-gray-700">
-                Pending Approvals
-              </h3>
+              <AlertCircle
+                className={`w-5 h-5 ${hasPending ? 'text-yellow-600' : 'text-gray-400'}`}
+              />
+              <h3 className="text-sm font-medium text-gray-700">Pending Approvals</h3>
             </div>
             <p className={`text-3xl font-bold ${hasPending ? 'text-yellow-600' : 'text-gray-400'}`}>
               {count}

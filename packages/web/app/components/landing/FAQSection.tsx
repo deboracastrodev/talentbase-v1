@@ -49,9 +49,7 @@ export function FAQSection() {
         <div className="grid md:grid-cols-12 gap-12">
           {/* Left: Title */}
           <div className="md:col-span-4">
-            <h2 className="text-4xl md:text-5xl font-bold sticky top-24">
-              Perguntas Frequentes
-            </h2>
+            <h2 className="text-4xl md:text-5xl font-bold sticky top-24">Perguntas Frequentes</h2>
           </div>
 
           {/* Right: Accordion */}

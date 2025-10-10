@@ -84,10 +84,7 @@ export default function Login() {
 
   return (
     <AuthLayout>
-      <AuthCard
-        title="Login"
-        subtitle="Entre com seu email e senha para acessar sua conta"
-      >
+      <AuthCard title="Login" subtitle="Entre com seu email e senha para acessar sua conta">
         {/* Server Error Alert (AC7, AC8) */}
         {serverError && <Alert variant="error" message={serverError} />}
 

@@ -105,11 +105,7 @@ export function UserTable({ users, onUserClick, isLoading = false }: UserTablePr
       </TableHeader>
       <TableBody>
         {users.map((user) => (
-          <TableRow
-            key={user.id}
-            clickable
-            onClick={() => onUserClick(user.id)}
-          >
+          <TableRow key={user.id} clickable onClick={() => onUserClick(user.id)}>
             <TableCell className="font-medium">{user.name}</TableCell>
             <TableCell className="text-gray-600">{user.email}</TableCell>
             <TableCell>

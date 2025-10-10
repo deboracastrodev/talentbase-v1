@@ -56,10 +56,7 @@ export function useLogin(): UseLoginReturn {
     setFieldErrors({});
   };
 
-  const login = async (
-    email: string,
-    password: string
-  ): Promise<LoginResponse | null> => {
+  const login = async (email: string, password: string): Promise<LoginResponse | null> => {
     setIsLoading(true);
     setError(null);
     setFieldErrors({});

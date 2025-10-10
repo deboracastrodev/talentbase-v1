@@ -7,7 +7,15 @@
 
 import { json, type LoaderFunctionArgs } from '@remix-run/node';
 import { useLoaderData, useLocation, Link } from '@remix-run/react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, Button, Alert } from '@talentbase/design-system';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  Button,
+  Alert,
+} from '@talentbase/design-system';
 import { CheckCircle, User, Edit, Eye } from 'lucide-react';
 
 import { CandidateLayout } from '~/components/layouts/CandidateLayout';
@@ -79,13 +87,9 @@ export default function CandidateProfile() {
             {!hasProfile ? (
               <div className="text-center py-8">
                 <User className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-                <p className="text-gray-600 mb-4">
-                  Você ainda não criou seu perfil profissional
-                </p>
+                <p className="text-gray-600 mb-4">Você ainda não criou seu perfil profissional</p>
                 <Link to="/candidate/profile/create">
-                  <Button size="lg">
-                    Criar Meu Perfil
-                  </Button>
+                  <Button size="lg">Criar Meu Perfil</Button>
                 </Link>
               </div>
             ) : (

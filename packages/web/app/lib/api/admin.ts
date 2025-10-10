@@ -66,13 +66,15 @@ export async function fetchUsers(
     params.append('page', filters.page.toString());
   }
 
-  const url = buildApiUrl(`${API_ENDPOINTS.admin.users}${params.toString() ? `?${params.toString()}` : ''}`);
+  const url = buildApiUrl(
+    `${API_ENDPOINTS.admin.users}${params.toString() ? `?${params.toString()}` : ''}`
+  );
 
   const response = await fetch(url, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Token ${token}`,
+      Authorization: `Token ${token}`,
     },
     credentials: 'include',
   });
@@ -96,17 +98,14 @@ export async function fetchUsers(
 /**
  * Fetch user detail by ID
  */
-export async function fetchUserDetail(
-  userId: string,
-  token: string
-): Promise<UserDetail> {
+export async function fetchUserDetail(userId: string, token: string): Promise<UserDetail> {
   const url = buildApiUrl(API_ENDPOINTS.admin.userDetail(userId));
 
   const response = await fetch(url, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Token ${token}`,
+      Authorization: `Token ${token}`,
     },
     credentials: 'include',
   });
@@ -148,7 +147,7 @@ export async function updateUserStatus(
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Token ${token}`,
+      Authorization: `Token ${token}`,
     },
     credentials: 'include',
     body: JSON.stringify(body),
@@ -172,7 +171,7 @@ export async function fetchPendingApprovalsCount(token: string): Promise<number>
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Token ${token}`,
+      Authorization: `Token ${token}`,
     },
     credentials: 'include',
   });
@@ -215,7 +214,7 @@ export async function getAdminStats(token: string): Promise<AdminStats> {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Token ${token}`,
+      Authorization: `Token ${token}`,
     },
     credentials: 'include',
   });

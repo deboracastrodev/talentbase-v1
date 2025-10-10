@@ -18,9 +18,7 @@ describe('Design System Components', () => {
   });
 
   it('renders VideoPlayer with valid YouTube URL', () => {
-    const { container } = render(
-      <VideoPlayer url="https://youtube.com/watch?v=abc12345678" />
-    );
+    const { container } = render(<VideoPlayer url="https://youtube.com/watch?v=abc12345678" />);
     const iframe = container.querySelector('iframe');
     expect(iframe).toBeInTheDocument();
     expect(iframe?.src).toContain('youtube.com/embed/abc12345678');

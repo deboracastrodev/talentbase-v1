@@ -16,8 +16,20 @@ const candidateMenuItems: MenuItem[] = [
   { id: 'dashboard', label: 'Dashboard', href: '/candidate/dashboard', icon: Home },
   { id: 'profile', label: 'Meu Perfil', href: '/candidate/profile', icon: User },
   { id: 'jobs', label: 'Buscar Vagas', href: '/jobs', icon: Briefcase, disabled: true },
-  { id: 'applications', label: 'Minhas Candidaturas', href: '/candidate/applications', icon: FileText, disabled: true },
-  { id: 'settings', label: 'Configurações', href: '/candidate/settings', icon: Settings, disabled: true },
+  {
+    id: 'applications',
+    label: 'Minhas Candidaturas',
+    href: '/candidate/applications',
+    icon: FileText,
+    disabled: true,
+  },
+  {
+    id: 'settings',
+    label: 'Configurações',
+    href: '/candidate/settings',
+    icon: Settings,
+    disabled: true,
+  },
 ];
 
 export interface CandidateLayoutProps {

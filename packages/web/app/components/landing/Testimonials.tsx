@@ -25,9 +25,7 @@ export function Testimonials() {
     <section id="depoimentos" className="py-20 bg-gray-50">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            O que dizem nossos talentos
-          </h2>
+          <h2 className="text-4xl md:text-5xl font-bold mb-4">O que dizem nossos talentos</h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             Histórias reais de profissionais que encontraram suas oportunidades ideais
           </p>
@@ -57,9 +55,7 @@ export function Testimonials() {
               {/* Author */}
               <div className="flex items-center space-x-4">
                 <Avatar size="lg" className="bg-gradient-to-r from-primary-500 to-cyan-500">
-                  <span className="text-white font-semibold text-lg">
-                    {testimonial.initials}
-                  </span>
+                  <span className="text-white font-semibold text-lg">{testimonial.initials}</span>
                 </Avatar>
                 <div>
                   <h4 className="font-semibold text-lg">{testimonial.name}</h4>

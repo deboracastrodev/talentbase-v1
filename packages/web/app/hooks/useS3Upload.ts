@@ -46,47 +46,47 @@ export function useS3Upload(): UseS3UploadReturn {
     fileUrl: null,
   });
 
-  const uploadFile = useCallback(async (
-    file: File,
-    type: 'photo' | 'video'
-  ): Promise<string | null> => {
-    try {
-      setUploadState({
-        isUploading: true,
-        progress: 0,
-        error: null,
-        fileUrl: null,
-      });
+  const uploadFile = useCallback(
+    async (file: File, type: 'photo' | 'video'): Promise<string | null> => {
+      try {
+        setUploadState({
+          isUploading: true,
+          progress: 0,
+          error: null,
+          fileUrl: null,
+        });
 
-      // Get presigned URL
-      const presignedData = await getUploadUrl(file.name, file.type, type);
+        // Get presigned URL
+        const presignedData = await getUploadUrl(file.name, file.type, type);
 
-      // Upload to S3 with progress tracking
-      const fileUrl = await uploadToS3(file, presignedData, (progress) => {
-        setUploadState((prev) => ({ ...prev, progress }));
-      });
+        // Upload to S3 with progress tracking
+        const fileUrl = await uploadToS3(file, presignedData, (progress) => {
+          setUploadState((prev) => ({ ...prev, progress }));
+        });
 
-      setUploadState({
-        isUploading: false,
-        progress: 100,
-        error: null,
-        fileUrl,
-      });
+        setUploadState({
+          isUploading: false,
+          progress: 100,
+          error: null,
+          fileUrl,
+        });
 
-      return fileUrl;
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Upload failed';
+        return fileUrl;
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Upload failed';
 
-      setUploadState({
-        isUploading: false,
-        progress: 0,
-        error: errorMessage,
-        fileUrl: null,
-      });
+        setUploadState({
+          isUploading: false,
+          progress: 0,
+          error: errorMessage,
+          fileUrl: null,
+        });
 
-      return null;
-    }
-  }, []);
+        return null;
+      }
+    },
+    []
+  );
 
   const reset = useCallback(() => {
     setUploadState({

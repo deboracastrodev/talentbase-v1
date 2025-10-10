@@ -77,7 +77,10 @@ export function HideForRole({ roles, children }: HideForRoleProps) {
 /**
  * Show content only for authenticated users
  */
-export function RequireAuth({ children, fallback = null }: {
+export function RequireAuth({
+  children,
+  fallback = null,
+}: {
   children: React.ReactNode;
   fallback?: React.ReactNode;
 }) {

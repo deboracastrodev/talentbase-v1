@@ -139,7 +139,8 @@ export const QUICK_ROUTES = {
   activeUsers: buildAdminUsersRoute({ status: 'approved' }),
 
   // Auth redirects
-  loginWithRedirect: (returnTo: string) => `${ROUTES.auth.login}?returnTo=${encodeURIComponent(returnTo)}`,
+  loginWithRedirect: (returnTo: string) =>
+    `${ROUTES.auth.login}?returnTo=${encodeURIComponent(returnTo)}`,
 } as const;
 
 /**
@@ -149,4 +150,5 @@ export const isAdminRoute = (path: string): boolean => path.startsWith('/admin')
 export const isCandidateRoute = (path: string): boolean => path.startsWith('/candidate');
 export const isCompanyRoute = (path: string): boolean => path.startsWith('/company');
 export const isAuthRoute = (path: string): boolean => path.startsWith('/auth');
-export const isPublicRoute = (path: string): boolean => !isAdminRoute(path) && !isCandidateRoute(path) && !isCompanyRoute(path);
+export const isPublicRoute = (path: string): boolean =>
+  !isAdminRoute(path) && !isCandidateRoute(path) && !isCompanyRoute(path);

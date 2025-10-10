@@ -50,9 +50,7 @@ export function ExperienceEditor({ experiences, onChange }: ExperienceEditorProp
       {experiences.map((exp, index) => (
         <div key={index} className="p-4 border border-gray-200 rounded-md">
           <div className="flex justify-between items-start mb-4">
-            <h4 className="text-sm font-medium text-gray-700">
-              Experiência {index + 1}
-            </h4>
+            <h4 className="text-sm font-medium text-gray-700">Experiência {index + 1}</h4>
             <Button
               variant="ghost"
               size="sm"
@@ -65,7 +63,10 @@ export function ExperienceEditor({ experiences, onChange }: ExperienceEditorProp
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label htmlFor={`company-${index}`} className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor={`company-${index}`}
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Empresa *
               </label>
               <Input
@@ -79,7 +80,10 @@ export function ExperienceEditor({ experiences, onChange }: ExperienceEditorProp
             </div>
 
             <div>
-              <label htmlFor={`position-${index}`} className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor={`position-${index}`}
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Cargo *
               </label>
               <Input
@@ -93,7 +97,10 @@ export function ExperienceEditor({ experiences, onChange }: ExperienceEditorProp
             </div>
 
             <div>
-              <label htmlFor={`start-date-${index}`} className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor={`start-date-${index}`}
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Data de Início *
               </label>
               <Input
@@ -106,7 +113,10 @@ export function ExperienceEditor({ experiences, onChange }: ExperienceEditorProp
             </div>
 
             <div>
-              <label htmlFor={`end-date-${index}`} className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor={`end-date-${index}`}
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Data de Término
               </label>
               <Input
@@ -120,7 +130,10 @@ export function ExperienceEditor({ experiences, onChange }: ExperienceEditorProp
           </div>
 
           <div className="mt-4">
-            <label htmlFor={`responsibilities-${index}`} className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor={`responsibilities-${index}`}
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Responsabilidades
             </label>
             <Textarea
@@ -134,11 +147,7 @@ export function ExperienceEditor({ experiences, onChange }: ExperienceEditorProp
         </div>
       ))}
 
-      <Button
-        variant="outline"
-        onClick={addExperience}
-        className="w-full"
-      >
+      <Button variant="outline" onClick={addExperience} className="w-full">
         + Adicionar Experiência
       </Button>
     </div>

@@ -7,9 +7,21 @@ const adminMenuItems: MenuItem[] = [
   { id: 'dashboard', label: 'Dashboard', href: '/admin', icon: Home },
   { id: 'users', label: 'Users', href: '/admin/users', icon: Users },
   { id: 'candidates', label: 'Candidates', href: '/admin/candidates', icon: User },
-  { id: 'companies', label: 'Companies', href: '/admin/companies', icon: Building2, disabled: true },
+  {
+    id: 'companies',
+    label: 'Companies',
+    href: '/admin/companies',
+    icon: Building2,
+    disabled: true,
+  },
   { id: 'jobs', label: 'Jobs', href: '/admin/jobs', icon: Briefcase, disabled: true },
-  { id: 'applications', label: 'Applications', href: '/admin/applications', icon: FileText, disabled: true },
+  {
+    id: 'applications',
+    label: 'Applications',
+    href: '/admin/applications',
+    icon: FileText,
+    disabled: true,
+  },
   { id: 'matching', label: 'Matching', href: '/admin/matching', icon: Target, disabled: true },
 ];
 

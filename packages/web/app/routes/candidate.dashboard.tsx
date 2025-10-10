@@ -77,14 +77,17 @@ export default function CandidateDashboard() {
     setError(null);
 
     try {
-      const response = await fetch(`${apiBaseUrl}/api/v1/candidates/${profile.id}/generate-share-token`, {
-        method: 'POST',
-        headers: {
-          // TODO: Add actual auth token
-          'Authorization': 'Token mock-token',
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await fetch(
+        `${apiBaseUrl}/api/v1/candidates/${profile.id}/generate-share-token`,
+        {
+          method: 'POST',
+          headers: {
+            // TODO: Add actual auth token
+            Authorization: 'Token mock-token',
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -110,7 +113,7 @@ export default function CandidateDashboard() {
         method: 'PATCH',
         headers: {
           // TODO: Add actual auth token
-          'Authorization': 'Token mock-token',
+          Authorization: 'Token mock-token',
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ enabled: !sharingEnabled }),
@@ -142,13 +145,16 @@ export default function CandidateDashboard() {
   };
 
   // Build share link from token if already generated
-  const currentShareLink = shareLink || (profile.share_link_generated_at
-    ? `${appBaseUrl}/share/candidate/${profile.public_token}`
-    : null);
+  const currentShareLink =
+    shareLink ||
+    (profile.share_link_generated_at
+      ? `${appBaseUrl}/share/candidate/${profile.public_token}`
+      : null);
 
   return (
     <CandidateLayout pageTitle="Dashboard" activeItem="dashboard" user={user}>
-      <div className="max-w-4xl mx-auto">{/* Content wrapped by CandidateLayout */}
+      <div className="max-w-4xl mx-auto">
+        {/* Content wrapped by CandidateLayout */}
 
         {/* Share Link Card */}
         <Card className="mb-6">
@@ -210,7 +216,10 @@ export default function CandidateDashboard() {
               <div className="space-y-4">
                 {/* Share Link Display */}
                 <div>
-                  <label htmlFor="share-link" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="share-link"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     Link de compartilhamento
                   </label>
                   <div className="flex gap-2">
@@ -244,11 +253,7 @@ export default function CandidateDashboard() {
 
                 {/* Actions */}
                 <div className="flex gap-3">
-                  <Button
-                    variant="outline"
-                    onClick={handleGenerateLink}
-                    disabled={isGenerating}
-                  >
+                  <Button variant="outline" onClick={handleGenerateLink} disabled={isGenerating}>
                     {isGenerating ? 'Gerando...' : 'Gerar Novo Link'}
                   </Button>
 
@@ -268,7 +273,9 @@ export default function CandidateDashboard() {
                 <div className="pt-4 border-t">
                   <p className="text-sm text-gray-500">
                     Status:{' '}
-                    <span className={sharingEnabled ? 'text-green-600 font-medium' : 'text-gray-600'}>
+                    <span
+                      className={sharingEnabled ? 'text-green-600 font-medium' : 'text-gray-600'}
+                    >
                       {sharingEnabled ? 'Compartilhamento ativo' : 'Compartilhamento desativado'}
                     </span>
                   </p>
@@ -302,9 +309,7 @@ export default function CandidateDashboard() {
           <Card>
             <CardHeader>
               <CardTitle>Completar Perfil</CardTitle>
-              <CardDescription>
-                Adicione mais informações ao seu perfil
-              </CardDescription>
+              <CardDescription>Adicione mais informações ao seu perfil</CardDescription>
             </CardHeader>
             <CardContent>
               <Link to="/candidate/profile/create">
@@ -318,9 +323,7 @@ export default function CandidateDashboard() {
           <Card>
             <CardHeader>
               <CardTitle>Buscar Vagas</CardTitle>
-              <CardDescription>
-                Encontre oportunidades que combinam com você
-              </CardDescription>
+              <CardDescription>Encontre oportunidades que combinam com você</CardDescription>
             </CardHeader>
             <CardContent>
               <Link to="/jobs">

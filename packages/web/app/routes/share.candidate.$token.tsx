@@ -283,16 +283,23 @@ export default function ShareCandidateProfile() {
                       {profile.experience_summary.sales && (
                         <ul className="list-disc list-inside text-sm space-y-1">
                           {profile.experience_summary.sales.outbound_years && (
-                            <li>Outbound: {profile.experience_summary.sales.outbound_years} anos</li>
+                            <li>
+                              Outbound: {profile.experience_summary.sales.outbound_years} anos
+                            </li>
                           )}
                           {profile.experience_summary.sales.inbound_years && (
                             <li>Inbound: {profile.experience_summary.sales.inbound_years} anos</li>
                           )}
                           {profile.experience_summary.sales.inside_sales_years && (
-                            <li>Inside Sales: {profile.experience_summary.sales.inside_sales_years} anos</li>
+                            <li>
+                              Inside Sales: {profile.experience_summary.sales.inside_sales_years}{' '}
+                              anos
+                            </li>
                           )}
                           {profile.experience_summary.sales.field_sales_years && (
-                            <li>Field Sales: {profile.experience_summary.sales.field_sales_years} anos</li>
+                            <li>
+                              Field Sales: {profile.experience_summary.sales.field_sales_years} anos
+                            </li>
                           )}
                           {profile.experience_summary.sales.arr_range && (
                             <li>ARR: {profile.experience_summary.sales.arr_range}</li>
@@ -417,11 +424,7 @@ export default function ShareCandidateProfile() {
             <div className="sticky top-6 space-y-4">
               <Card>
                 <CardContent className="pt-6">
-                  <Button
-                    onClick={() => setIsContactModalOpen(true)}
-                    className="w-full"
-                    size="lg"
-                  >
+                  <Button onClick={() => setIsContactModalOpen(true)} className="w-full" size="lg">
                     <svg
                       className="w-5 h-5 mr-2"
                       fill="none"

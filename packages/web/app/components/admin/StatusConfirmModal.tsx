@@ -52,7 +52,8 @@ export function StatusConfirmModal({
           message: `Tem certeza que deseja aprovar ${userName}?`,
           buttonText: 'Aprovar',
           buttonVariant: 'default' as const,
-          description: 'A empresa receberá um email de confirmação e poderá acessar a plataforma imediatamente.',
+          description:
+            'A empresa receberá um email de confirmação e poderá acessar a plataforma imediatamente.',
         };
       case 'reject':
         return {
@@ -84,12 +85,7 @@ export function StatusConfirmModal({
   const actionText = getActionText();
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={handleClose}
-      title={actionText.title}
-      size="md"
-    >
+    <Modal isOpen={isOpen} onClose={handleClose} title={actionText.title} size="md">
       <div className="space-y-4">
         <div>
           <p className="text-sm text-gray-900">{actionText.message}</p>
@@ -133,11 +129,7 @@ export function StatusConfirmModal({
         )}
 
         <div className="flex justify-end gap-3 pt-4">
-          <Button
-            variant="secondary"
-            onClick={handleClose}
-            disabled={isLoading}
-          >
+          <Button variant="secondary" onClick={handleClose} disabled={isLoading}>
             Cancelar
           </Button>
           <Button

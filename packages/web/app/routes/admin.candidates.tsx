@@ -94,7 +94,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       `${apiBaseUrl}/api/v1/candidates/admin/candidates?${params.toString()}`,
       {
         headers: {
-          'Authorization': `Token ${token}`,
+          Authorization: `Token ${token}`,
           'Content-Type': 'application/json',
         },
       }
@@ -303,9 +303,7 @@ export default function AdminCandidatesPage() {
                               size="sm"
                             />
                             <div>
-                              <p className="font-medium text-gray-900">
-                                {candidate.full_name}
-                              </p>
+                              <p className="font-medium text-gray-900">{candidate.full_name}</p>
                               {candidate.email && (
                                 <p className="text-sm text-gray-500">{candidate.email}</p>
                               )}
@@ -313,9 +311,7 @@ export default function AdminCandidatesPage() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          {candidate.current_position || (
-                            <span className="text-gray-400">—</span>
-                          )}
+                          {candidate.current_position || <span className="text-gray-400">—</span>}
                         </TableCell>
                         <TableCell>
                           {candidate.city || <span className="text-gray-400">—</span>}

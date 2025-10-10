@@ -124,9 +124,7 @@ export function getAppBaseUrl(): string {
   }
 
   // Production without env var - fail fast with helpful error
-  throw new Error(
-    'APP_BASE_URL not configured! Set VITE_APP_BASE_URL environment variable'
-  );
+  throw new Error('APP_BASE_URL not configured! Set VITE_APP_BASE_URL environment variable');
 }
 
 /**

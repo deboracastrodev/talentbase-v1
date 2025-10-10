@@ -216,14 +216,11 @@ export default function AdminImportCandidatesPage() {
   const startProgressPolling = (task_id: string) => {
     const interval = setInterval(async () => {
       try {
-        const response = await fetch(
-          `/api/v1/candidates/admin/import/${task_id}/status`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem('token')}`,
-            },
-          }
-        );
+        const response = await fetch(`/api/v1/candidates/admin/import/${task_id}/status`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        });
 
         if (!response.ok) {
           throw new Error('Erro ao buscar status');
@@ -255,14 +252,11 @@ export default function AdminImportCandidatesPage() {
    */
   const fetchImportResult = async (task_id: string) => {
     try {
-      const response = await fetch(
-        `/api/v1/candidates/admin/import/${task_id}/result`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        }
-      );
+      const response = await fetch(`/api/v1/candidates/admin/import/${task_id}/result`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
 
       if (!response.ok) {
         throw new Error('Erro ao buscar resultado');
@@ -332,29 +326,17 @@ export default function AdminImportCandidatesPage() {
   };
 
   return (
-    <AdminLayout
-      pageTitle="Importar Candidatos"
-      activeItem="import"
-      user={user}
-    >
+    <AdminLayout pageTitle="Importar Candidatos" activeItem="import" user={user}>
       <div className="p-6 max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">
-            Importar Candidatos
-          </h1>
-          <p className="text-gray-600 mt-2">
-            Importe candidatos em massa via CSV (formato Notion)
-          </p>
+          <h1 className="text-3xl font-bold text-gray-900">Importar Candidatos</h1>
+          <p className="text-gray-600 mt-2">Importe candidatos em massa via CSV (formato Notion)</p>
         </div>
 
         {/* Stepper */}
         <div className="mb-8">
-          <Stepper
-            steps={WIZARD_STEPS}
-            currentStep={currentStep}
-            orientation="horizontal"
-          />
+          <Stepper steps={WIZARD_STEPS} currentStep={currentStep} orientation="horizontal" />
         </div>
 
         {/* Step Content */}
@@ -375,18 +357,11 @@ export default function AdminImportCandidatesPage() {
                   disabled={isUploading}
                 />
 
-                {uploadError && (
-                  <Alert variant="error" message={uploadError} className="mt-4" />
-                )}
+                {uploadError && <Alert variant="error" message={uploadError} className="mt-4" />}
 
                 {isUploading && (
                   <div className="mt-4">
-                    <ProgressBar
-                      value={50}
-                      max={100}
-                      label="Processando CSV..."
-                      animated
-                    />
+                    <ProgressBar value={50} max={100} label="Processando CSV..." animated />
                   </div>
                 )}
               </CardContent>
@@ -443,9 +418,7 @@ export default function AdminImportCandidatesPage() {
 
                 {/* Column Mapping Table */}
                 <div>
-                  <h3 className="text-sm font-medium text-gray-900 mb-3">
-                    Mapeamento de Colunas
-                  </h3>
+                  <h3 className="text-sm font-medium text-gray-900 mb-3">Mapeamento de Colunas</h3>
                   <div className="border rounded-lg overflow-hidden">
                     <Table>
                       <TableHeader>
@@ -462,9 +435,7 @@ export default function AdminImportCandidatesPage() {
                             <TableCell>
                               <select
                                 value={columnMapping[col] || ''}
-                                onChange={(e) =>
-                                  handleMappingChange(col, e.target.value)
-                                }
+                                onChange={(e) => handleMappingChange(col, e.target.value)}
                                 className="w-full border rounded px-2 py-1"
                               >
                                 <option value="">-- Não mapear --</option>
@@ -497,9 +468,7 @@ export default function AdminImportCandidatesPage() {
                       <TableHeader>
                         <TableRow>
                           {Object.keys(columnMapping).map((col, idx) => (
-                            <TableHead key={idx}>
-                              {columnMapping[col] || col}
-                            </TableHead>
+                            <TableHead key={idx}>{columnMapping[col] || col}</TableHead>
                           ))}
                         </TableRow>
                       </TableHeader>
@@ -549,9 +518,7 @@ export default function AdminImportCandidatesPage() {
                   <div className="p-4 bg-green-50 rounded-lg">
                     <div className="flex items-center gap-2">
                       <CheckCircle className="w-5 h-5 text-green-600" />
-                      <span className="text-sm font-medium text-green-900">
-                        Sucessos
-                      </span>
+                      <span className="text-sm font-medium text-green-900">Sucessos</span>
                     </div>
                     <p className="text-2xl font-bold text-green-600 mt-2">
                       {importStatus.success || 0}
@@ -561,9 +528,7 @@ export default function AdminImportCandidatesPage() {
                   <div className="p-4 bg-red-50 rounded-lg">
                     <div className="flex items-center gap-2">
                       <XCircle className="w-5 h-5 text-red-600" />
-                      <span className="text-sm font-medium text-red-900">
-                        Erros
-                      </span>
+                      <span className="text-sm font-medium text-red-900">Erros</span>
                     </div>
                     <p className="text-2xl font-bold text-red-600 mt-2">
                       {importStatus.errors || 0}
@@ -585,15 +550,11 @@ export default function AdminImportCandidatesPage() {
                 <div className="grid grid-cols-3 gap-4">
                   <div className="p-4 bg-blue-50 rounded-lg text-center">
                     <p className="text-sm text-gray-600">Total</p>
-                    <p className="text-3xl font-bold text-blue-600 mt-1">
-                      {importResult.total}
-                    </p>
+                    <p className="text-3xl font-bold text-blue-600 mt-1">{importResult.total}</p>
                   </div>
                   <div className="p-4 bg-green-50 rounded-lg text-center">
                     <p className="text-sm text-gray-600">Sucessos</p>
-                    <p className="text-3xl font-bold text-green-600 mt-1">
-                      {importResult.success}
-                    </p>
+                    <p className="text-3xl font-bold text-green-600 mt-1">{importResult.success}</p>
                   </div>
                   <div className="p-4 bg-yellow-50 rounded-lg text-center">
                     <p className="text-sm text-gray-600">Erros/Pulados</p>
@@ -619,11 +580,7 @@ export default function AdminImportCandidatesPage() {
                         Erros Encontrados ({importResult.errors.length})
                       </h3>
                       {importResult.error_file_url && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={handleDownloadErrorLog}
-                        >
+                        <Button variant="outline" size="sm" onClick={handleDownloadErrorLog}>
                           <FileDown className="w-4 h-4 mr-2" />
                           Baixar Log de Erros
                         </Button>
@@ -646,9 +603,7 @@ export default function AdminImportCandidatesPage() {
                               <TableCell>{err.row}</TableCell>
                               <TableCell>{err.nome}</TableCell>
                               <TableCell>{err.email}</TableCell>
-                              <TableCell className="text-red-600 text-sm">
-                                {err.error}
-                              </TableCell>
+                              <TableCell className="text-red-600 text-sm">{err.error}</TableCell>
                             </TableRow>
                           ))}
                         </TableBody>
@@ -657,8 +612,8 @@ export default function AdminImportCandidatesPage() {
 
                     {importResult.errors.length > 10 && (
                       <p className="text-sm text-gray-600 mt-2 text-center">
-                        Mostrando 10 de {importResult.errors.length} erros.
-                        Baixe o log completo acima.
+                        Mostrando 10 de {importResult.errors.length} erros. Baixe o log completo
+                        acima.
                       </p>
                     )}
                   </div>
@@ -668,9 +623,7 @@ export default function AdminImportCandidatesPage() {
                 <Button variant="outline" onClick={handleReset}>
                   Nova Importação
                 </Button>
-                <Button onClick={() => navigate('/admin/candidates')}>
-                  Ver Candidatos
-                </Button>
+                <Button onClick={() => navigate('/admin/candidates')}>Ver Candidatos</Button>
               </CardFooter>
             </>
           )}

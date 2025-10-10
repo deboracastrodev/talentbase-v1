@@ -55,7 +55,13 @@ export default function CompanyRegister() {
   const [successMessage, setSuccessMessage] = useState<string>('');
 
   // Form validation hook (without confirmPassword validator to avoid circular reference)
-  const { formData, errors, handleChange, validateForm: baseValidateForm, setErrors } = useFormValidation<CompanyFormData>(
+  const {
+    formData,
+    errors,
+    handleChange,
+    validateForm: baseValidateForm,
+    setErrors,
+  } = useFormValidation<CompanyFormData>(
     {
       company_name: '',
       cnpj: '',
@@ -88,7 +94,7 @@ export default function CompanyRegister() {
     const confirmResult = validatePasswordConfirmation(formData.password, formData.confirmPassword);
 
     if (!confirmResult.isValid) {
-      setErrors(prev => ({ ...prev, confirmPassword: confirmResult.error }));
+      setErrors((prev) => ({ ...prev, confirmPassword: confirmResult.error }));
       return false;
     }
 
@@ -139,7 +145,9 @@ export default function CompanyRegister() {
       // Redirect to login after 3 seconds
       setTimeout(() => {
         navigate('/auth/login', {
-          state: { message: 'Cadastro realizado! Você receberá um email quando sua conta for aprovada.' },
+          state: {
+            message: 'Cadastro realizado! Você receberá um email quando sua conta for aprovada.',
+          },
         });
       }, 3000);
     }
