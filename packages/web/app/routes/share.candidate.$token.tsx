@@ -25,6 +25,7 @@ import {
   Alert,
   VideoPlayer,
 } from '@talentbase/design-system';
+import { getApiBaseUrl, getAppBaseUrl } from '~/config/api';
 
 // Types
 interface PublicProfile {
@@ -92,7 +93,7 @@ export async function loader({ params }: LoaderFunctionArgs) {
     throw new Response('Token not found', { status: 404 });
   }
 
-  const apiBaseUrl = process.env.VITE_API_BASE_URL || 'http://localhost:8000';
+  const apiBaseUrl = getApiBaseUrl();
 
   try {
     const response = await fetch(`${apiBaseUrl}/api/v1/candidates/public/${token}`);
@@ -116,7 +117,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   }
 
   const { profile } = data;
-  const appBaseUrl = process.env.VITE_APP_BASE_URL || 'http://localhost:3000';
+  const appBaseUrl = getAppBaseUrl();
   const shareUrl = `${appBaseUrl}/share/candidate/${data.token}`;
 
   const title = `${profile.full_name} - ${profile.current_position || 'Profissional de Vendas'} | TalentBase`;
@@ -161,7 +162,7 @@ export default function ShareCandidateProfile() {
     setContactError(null);
 
     try {
-      const apiBaseUrl = process.env.VITE_API_BASE_URL || 'http://localhost:8000';
+      const apiBaseUrl = getApiBaseUrl();
       const response = await fetch(`${apiBaseUrl}/api/v1/candidates/public/${token}/contact`, {
         method: 'POST',
         headers: {

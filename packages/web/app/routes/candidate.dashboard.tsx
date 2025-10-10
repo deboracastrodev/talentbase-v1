@@ -19,6 +19,7 @@ import {
   Alert,
 } from '@talentbase/design-system';
 import { Share2, Copy, Eye, EyeOff, CheckCircle, ExternalLink } from 'lucide-react';
+import { getApiBaseUrl, getAppBaseUrl } from '~/config/api';
 
 // Types
 interface CandidateProfile {
@@ -35,8 +36,6 @@ interface CandidateProfile {
 export async function loader({ request }: LoaderFunctionArgs) {
   // TODO: Get token from session/cookie
   const candidateToken = 'mock-candidate-token';
-
-  const apiBaseUrl = process.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
   try {
     // TODO: Fetch candidate profile via API
@@ -66,8 +65,8 @@ export default function CandidateDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [sharingEnabled, setSharingEnabled] = useState(profile.public_sharing_enabled);
 
-  const appBaseUrl = process.env.VITE_APP_BASE_URL || 'http://localhost:3000';
-  const apiBaseUrl = process.env.VITE_API_BASE_URL || 'http://localhost:8000';
+  const appBaseUrl = getAppBaseUrl();
+  const apiBaseUrl = getApiBaseUrl();
 
   const handleGenerateLink = async () => {
     setIsGenerating(true);

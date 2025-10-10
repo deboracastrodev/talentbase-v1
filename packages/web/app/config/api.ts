@@ -103,6 +103,33 @@ export function buildApiUrl(endpoint: string): string {
 }
 
 /**
+ * Get the App base URL (frontend URL for share links, etc)
+ * Returns URL without trailing slash
+ */
+export function getAppBaseUrl(): string {
+  // 1. Check import.meta.env.VITE_APP_BASE_URL (Client side)
+  if (typeof window !== 'undefined' && import.meta.env.VITE_APP_BASE_URL) {
+    return import.meta.env.VITE_APP_BASE_URL.replace(/\/$/, '');
+  }
+
+  // 2. Check process.env.VITE_APP_BASE_URL (Server side)
+  if (typeof process !== 'undefined' && process.env.VITE_APP_BASE_URL) {
+    return process.env.VITE_APP_BASE_URL.replace(/\/$/, '');
+  }
+
+  // 3. Development fallback
+  const isDevelopment = import.meta.env.DEV;
+  if (isDevelopment) {
+    return 'http://localhost:3000';
+  }
+
+  // Production without env var - fail fast with helpful error
+  throw new Error(
+    'APP_BASE_URL not configured! Set VITE_APP_BASE_URL environment variable'
+  );
+}
+
+/**
  * Default fetch options for API requests
  */
 export const defaultFetchOptions: RequestInit = {

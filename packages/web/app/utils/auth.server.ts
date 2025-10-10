@@ -8,6 +8,7 @@
  */
 
 import { redirect } from '@remix-run/node';
+import { getApiBaseUrl } from '~/config/api';
 
 export interface AuthUser {
   id: string;
@@ -33,20 +34,42 @@ export function getAuthToken(request: Request): string | null {
 }
 
 /**
- * Get user data from localStorage (passed via loader)
- * This is a helper to parse user data stored in localStorage after login
+ * Get user data from token by calling the API
  *
- * Note: localStorage is not accessible in server loaders, so we need to
- * fetch user info from the API using the token
+ * Calls GET /api/v1/auth/me to validate the token and retrieve user info.
+ * This is used in server-side loaders to verify authentication and get user role.
  *
- * @param request - Remix request object
- * @returns User object or null
+ * @param token - JWT authentication token
+ * @returns User object or null if token is invalid
  */
 export async function getUserFromToken(token: string): Promise<AuthUser | null> {
-  // TODO: Implement token validation endpoint
-  // For now, we'll return null and rely on API calls to validate
-  // In future, add: GET /api/v1/auth/me endpoint
-  return null;
+  try {
+    const apiUrl = getApiBaseUrl();
+    const response = await fetch(`${apiUrl}/api/v1/auth/me`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      // Token is invalid or expired
+      return null;
+    }
+
+    const data = await response.json();
+
+    return {
+      id: data.id,
+      email: data.email,
+      role: data.role as 'admin' | 'candidate' | 'company',
+      name: data.name,
+    };
+  } catch (error) {
+    console.error('[getUserFromToken] Error:', error);
+    return null;
+  }
 }
 
 /**

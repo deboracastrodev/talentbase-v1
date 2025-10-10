@@ -1,5 +1,6 @@
 import { DashboardLayout, Logo, type MenuItem } from '@talentbase/design-system';
 import { Home, Users, Building2, User, Briefcase, FileText, Target } from 'lucide-react';
+import { getApiBaseUrl } from '~/config/api';
 
 const adminMenuItems: MenuItem[] = [
   { id: 'dashboard', label: 'Dashboard', href: '/admin', icon: Home },
@@ -25,7 +26,8 @@ export interface AdminLayoutProps {
 export function AdminLayout({ children, pageTitle, activeItem, user }: AdminLayoutProps) {
   const handleLogout = async () => {
     try {
-      await fetch(`${process.env.API_URL}/api/v1/auth/logout`, {
+      const apiUrl = getApiBaseUrl();
+      await fetch(`${apiUrl}/api/v1/auth/logout`, {
         method: 'POST',
         credentials: 'include',
       });

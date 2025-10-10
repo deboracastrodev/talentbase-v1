@@ -13,9 +13,10 @@ from rest_framework.decorators import (
     permission_classes,
     throttle_classes,
 )
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from authentication.serializers import (
     CandidateRegistrationSerializer,
@@ -437,3 +438,62 @@ def get_redirect_url(role: str, is_active: bool) -> str:
         return "/company" if is_active else "/auth/registration-pending"
     else:
         return "/"
+
+
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def get_current_user(request):
+    """
+    Get current authenticated user information.
+
+    **Endpoint:** GET /api/v1/auth/me
+
+    **Headers:**
+    ```
+    Authorization: Bearer <jwt_token>
+    ```
+
+    **Response 200:**
+    ```json
+    {
+        "id": "uuid",
+        "email": "user@example.com",
+        "role": "admin|candidate|company",
+        "name": "User Name",
+        "is_active": true
+    }
+    ```
+
+    **Error Responses:**
+    - 401: Unauthorized (invalid or missing token)
+
+    **Purpose:**
+    This endpoint is used by the frontend to validate JWT tokens
+    and retrieve user information for role-based access control (RBAC).
+
+    **Security:**
+    - Requires valid JWT token in Authorization header
+    - Token is validated by JWTAuthentication backend
+    - Returns minimal user info needed for frontend auth
+    """
+    user = request.user
+
+    # Build user data response
+    user_data = {
+        "id": str(user.id),
+        "email": user.email,
+        "role": user.role,
+        "is_active": user.is_active,
+    }
+
+    # Add name based on role
+    if user.role == "candidate" and hasattr(user, "candidate_profile"):
+        user_data["name"] = user.candidate_profile.full_name
+    elif user.role == "company" and hasattr(user, "company_profile"):
+        user_data["name"] = user.company_profile.company_name
+    else:
+        # Admin or no profile
+        user_data["name"] = user.email.split("@")[0].title()
+
+    return Response(user_data, status=status.HTTP_200_OK)
