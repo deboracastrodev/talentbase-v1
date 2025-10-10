@@ -5,8 +5,8 @@
  * Story 2.5 - AC5, AC7: Campo de motivo para reject/deactivate
  */
 
-import { useState } from 'react';
 import { Modal, Button, Input } from '@talentbase/design-system';
+import { useState } from 'react';
 
 interface StatusConfirmModalProps {
   isOpen: boolean;

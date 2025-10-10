@@ -1,6 +1,6 @@
+import { Link } from '@remix-run/react';
 import { Card, CardHeader, CardTitle, CardContent } from '@talentbase/design-system';
 import { LucideIcon } from 'lucide-react';
-import { Link } from '@remix-run/react';
 
 export interface StatCardProps {
   title: string;

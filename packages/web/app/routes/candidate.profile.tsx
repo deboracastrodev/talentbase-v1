@@ -9,6 +9,7 @@ import { json, type LoaderFunctionArgs } from '@remix-run/node';
 import { useLoaderData, useLocation, Link } from '@remix-run/react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, Button, Alert } from '@talentbase/design-system';
 import { CheckCircle, User, Edit, Eye } from 'lucide-react';
+
 import { CandidateLayout } from '~/components/layouts/CandidateLayout';
 
 // Loader: Fetch user data

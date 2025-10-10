@@ -13,11 +13,9 @@
  * AC9: Download de log de erros CSV
  */
 
-import { useState, useCallback } from 'react';
-import { useNavigate, useLoaderData } from '@remix-run/react';
 import { json } from '@remix-run/node';
 import type { LoaderFunctionArgs } from '@remix-run/node';
-import { AdminLayout } from '~/components/layouts/AdminLayout';
+import { useNavigate, useLoaderData } from '@remix-run/react';
 import {
   FileUpload,
   Stepper,
@@ -39,9 +37,12 @@ import {
   ProgressBar,
   Badge,
 } from '@talentbase/design-system';
-import { requireAdmin, getUserFromToken } from '~/utils/auth.server';
-import { FileDown, Upload, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 import type { Step } from '@talentbase/design-system';
+import { FileDown, Upload, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
+import { useState, useCallback } from 'react';
+
+import { AdminLayout } from '~/components/layouts/AdminLayout';
+import { requireAdmin, getUserFromToken } from '~/utils/auth.server';
 
 /**
  * Loader - Ensure admin access and fetch user data

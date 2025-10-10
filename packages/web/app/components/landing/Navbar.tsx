@@ -1,7 +1,7 @@
-import { useState } from 'react';
 import { Link } from '@remix-run/react';
 import { Button } from '@talentbase/design-system';
 import { Menu, X } from 'lucide-react';
+import { useState } from 'react';
 
 import logoFull from '~/assets/logo-full.svg';
 import { ROUTES } from '~/config/routes';

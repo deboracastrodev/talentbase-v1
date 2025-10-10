@@ -1,5 +1,6 @@
 import { DashboardLayout, Logo, type MenuItem } from '@talentbase/design-system';
 import { Home, Users, Building2, User, Briefcase, FileText, Target } from 'lucide-react';
+
 import { getApiBaseUrl } from '~/config/api';
 
 const adminMenuItems: MenuItem[] = [

@@ -8,6 +8,7 @@
  */
 
 import { redirect } from '@remix-run/node';
+
 import { getApiBaseUrl } from '~/config/api';
 
 export interface AuthUser {

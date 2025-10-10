@@ -13,13 +13,14 @@
 import { json } from '@remix-run/node';
 import type { LoaderFunctionArgs } from '@remix-run/node';
 import { useLoaderData, Link } from '@remix-run/react';
-import { AdminLayout } from '~/components/layouts/AdminLayout';
-import { StatCard } from '~/components/admin/StatCard';
-import { getAdminStats, type AdminStats } from '~/lib/api/admin';
-import { Users, AlertCircle, Briefcase, UserCheck, Activity } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@talentbase/design-system';
-import { requireAdmin, getUserFromToken } from '~/utils/auth.server';
+import { Users, AlertCircle, Briefcase, UserCheck, Activity } from 'lucide-react';
+
+import { StatCard } from '~/components/admin/StatCard';
+import { AdminLayout } from '~/components/layouts/AdminLayout';
 import { ROUTES, QUICK_ROUTES } from '~/config/routes';
+import { getAdminStats, type AdminStats } from '~/lib/api/admin';
+import { requireAdmin, getUserFromToken } from '~/utils/auth.server';
 
 interface LoaderData {
   stats: AdminStats;

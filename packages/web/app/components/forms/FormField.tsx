@@ -12,9 +12,9 @@
  * across multiple forms, following DRY principle.
  */
 
-import { ReactNode } from 'react';
 import { Input, InputProps } from '@talentbase/design-system';
 import { AlertCircle, CheckCircle } from 'lucide-react';
+import { ReactNode } from 'react';
 
 export interface FormFieldProps extends Omit<InputProps, 'variant'> {
   label: ReactNode; // Can be string or JSX element for flexibility

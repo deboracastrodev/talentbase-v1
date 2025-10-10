@@ -14,12 +14,20 @@
  * - DRY principle applied
  */
 
-import { useState, FormEvent } from 'react';
 import { useNavigate, Link } from '@remix-run/react';
 import { Button, AuthLayout, AuthCard, Alert, AuthFormField } from '@talentbase/design-system';
 import { Loader2 } from 'lucide-react';
+import { useState, FormEvent } from 'react';
 
 // Utilities
+import { API_ENDPOINTS } from '~/config/api';
+import { useFormValidation } from '~/hooks/useFormValidation';
+import { useRegistration } from '~/hooks/useRegistration';
+import { SUCCESS_MESSAGES, HELPER_TEXT } from '~/utils/constants';
+
+// Hooks
+
+// API
 import { formatCNPJ, formatPhone } from '~/utils/formatting';
 import {
   validateEmail,
@@ -30,14 +38,6 @@ import {
   validatePhone,
   validateURL,
 } from '~/utils/validation';
-import { SUCCESS_MESSAGES, HELPER_TEXT } from '~/utils/constants';
-
-// Hooks
-import { useFormValidation } from '~/hooks/useFormValidation';
-import { useRegistration } from '~/hooks/useRegistration';
-
-// API
-import { API_ENDPOINTS } from '~/config/api';
 
 interface CompanyFormData {
   company_name: string;

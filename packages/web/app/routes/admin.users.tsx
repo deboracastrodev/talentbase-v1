@@ -14,7 +14,6 @@
  * AC15: Navegação entre páginas admin funcional (sidebar active highlighting)
  */
 
-import { useState } from 'react';
 import { json } from '@remix-run/node';
 import type { LoaderFunctionArgs } from '@remix-run/node';
 import { useLoaderData, useSearchParams, useRevalidator } from '@remix-run/react';
@@ -24,9 +23,11 @@ import {
   Select,
   Button,
 } from '@talentbase/design-system';
-import { AdminLayout } from '~/components/layouts/AdminLayout';
-import { UserTable } from '~/components/admin/UserTable';
+import { useState } from 'react';
+
 import { UserDetailModal } from '~/components/admin/UserDetailModal';
+import { UserTable } from '~/components/admin/UserTable';
+import { AdminLayout } from '~/components/layouts/AdminLayout';
 import { fetchUsers, fetchUserDetail, updateUserStatus } from '~/lib/api/admin';
 import type { User, UserDetail, UsersFilters } from '~/lib/api/admin';
 import { requireAdmin, getUserFromToken } from '~/utils/auth.server';

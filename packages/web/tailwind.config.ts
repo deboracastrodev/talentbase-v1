@@ -1,5 +1,5 @@
-import type { Config } from 'tailwindcss';
 import designSystemConfig from '@talentbase/design-system/tailwind.config';
+import type { Config } from 'tailwindcss';
 
 export default {
   presets: [designSystemConfig],

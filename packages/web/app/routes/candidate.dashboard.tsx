@@ -8,7 +8,6 @@
 
 import { json, type LoaderFunctionArgs } from '@remix-run/node';
 import { useLoaderData, Link } from '@remix-run/react';
-import { useState } from 'react';
 import {
   Card,
   CardHeader,
@@ -19,8 +18,10 @@ import {
   Alert,
 } from '@talentbase/design-system';
 import { Share2, Copy, Eye, EyeOff, CheckCircle, ExternalLink } from 'lucide-react';
-import { getApiBaseUrl, getAppBaseUrl } from '~/config/api';
+import { useState } from 'react';
+
 import { CandidateLayout } from '~/components/layouts/CandidateLayout';
+import { getApiBaseUrl, getAppBaseUrl } from '~/config/api';
 
 // Types
 interface CandidateProfile {
@@ -34,9 +35,9 @@ interface CandidateProfile {
 }
 
 // Loader: Fetch candidate profile data
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request: _request }: LoaderFunctionArgs) {
   // TODO: Get token from session/cookie
-  const candidateToken = 'mock-candidate-token';
+  const _candidateToken = 'mock-candidate-token';
 
   try {
     // TODO: Fetch candidate profile via API
@@ -212,11 +213,12 @@ export default function CandidateDashboard() {
               <div className="space-y-4">
                 {/* Share Link Display */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="share-link" className="block text-sm font-medium text-gray-700 mb-2">
                     Link de compartilhamento
                   </label>
                   <div className="flex gap-2">
                     <input
+                      id="share-link"
                       type="text"
                       value={currentShareLink}
                       readOnly

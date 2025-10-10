@@ -14,12 +14,21 @@
  * - DRY principle applied
  */
 
-import { FormEvent } from 'react';
 import { useNavigate, Link } from '@remix-run/react';
 import { Button, AuthLayout, AuthCard, Alert, AuthFormField } from '@talentbase/design-system';
 import { Loader2 } from 'lucide-react';
+import { FormEvent } from 'react';
 
 // Utilities
+import { API_ENDPOINTS } from '~/config/api';
+import { useFormValidation } from '~/hooks/useFormValidation';
+import { useRegistration } from '~/hooks/useRegistration';
+import { SUCCESS_MESSAGES, HELPER_TEXT } from '~/utils/constants';
+import { formatPhone } from '~/utils/formatting';
+
+// Hooks
+
+// API
 import {
   validateEmail,
   validatePassword,
@@ -27,15 +36,6 @@ import {
   validateFullName,
   validatePhone,
 } from '~/utils/validation';
-import { formatPhone } from '~/utils/formatting';
-import { SUCCESS_MESSAGES, HELPER_TEXT } from '~/utils/constants';
-
-// Hooks
-import { useFormValidation } from '~/hooks/useFormValidation';
-import { useRegistration } from '~/hooks/useRegistration';
-
-// API
-import { API_ENDPOINTS } from '~/config/api';
 
 interface CandidateFormData {
   email: string;

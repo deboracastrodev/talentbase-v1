@@ -6,9 +6,11 @@
  * Story 2.5 - AC5, AC7: Modal de confirmação com motivo
  */
 
-import { useState } from 'react';
 import { Modal, Badge, Button } from '@talentbase/design-system';
+import { useState } from 'react';
+
 import { StatusConfirmModal } from './StatusConfirmModal';
+
 import type { UserDetail } from '~/lib/api/admin';
 
 interface UserDetailModalProps {

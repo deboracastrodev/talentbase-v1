@@ -1,6 +1,6 @@
+import { Button, Input, FormField, VideoPlayer } from '@talentbase/design-system';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
-import { Button, Input, FormField, VideoPlayer } from '@talentbase/design-system';
 
 describe('Design System Components', () => {
   it('renders Button component', () => {

@@ -10,10 +10,11 @@
  * - No query param → show selection page
  */
 
-import { useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from '@remix-run/react';
 import { AuthLayout, AuthCard } from '@talentbase/design-system';
 import { Users, Building2, ArrowRight } from 'lucide-react';
+import { useEffect } from 'react';
+
 import logoFull from '~/assets/logo-full.svg';
 
 export default function AuthEntryPoint() {

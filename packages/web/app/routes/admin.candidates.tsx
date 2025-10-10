@@ -6,7 +6,6 @@
  * View and manage all candidates in the system
  */
 
-import { useState } from 'react';
 import { json } from '@remix-run/node';
 import type { LoaderFunctionArgs } from '@remix-run/node';
 import { useLoaderData, useSearchParams, Link } from '@remix-run/react';
@@ -27,10 +26,12 @@ import {
   TableCell,
   Avatar,
 } from '@talentbase/design-system';
-import { AdminLayout } from '~/components/layouts/AdminLayout';
-import { requireAdmin, getUserFromToken } from '~/utils/auth.server';
-import { getApiBaseUrl } from '~/config/api';
 import { Search, Upload, Eye, CheckCircle, XCircle, Clock, User } from 'lucide-react';
+import { useState } from 'react';
+
+import { AdminLayout } from '~/components/layouts/AdminLayout';
+import { getApiBaseUrl } from '~/config/api';
+import { requireAdmin, getUserFromToken } from '~/utils/auth.server';
 
 interface Candidate {
   id: string;

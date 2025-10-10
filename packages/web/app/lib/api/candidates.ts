@@ -8,6 +8,7 @@ import type {
   PresignedUrlResponse,
   ApiError,
 } from '../types/candidate';
+
 import { getApiBaseUrl } from '~/config/api';
 
 const API_BASE = getApiBaseUrl();

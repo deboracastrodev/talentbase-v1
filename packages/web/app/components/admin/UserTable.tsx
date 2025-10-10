@@ -14,6 +14,7 @@ import {
   TableCell,
   Badge,
 } from '@talentbase/design-system';
+
 import type { User } from '~/lib/api/admin';
 
 interface UserTableProps {

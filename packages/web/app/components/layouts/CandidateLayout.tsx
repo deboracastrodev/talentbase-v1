@@ -9,6 +9,7 @@
 
 import { DashboardLayout, Logo, type MenuItem } from '@talentbase/design-system';
 import { Home, User, Briefcase, FileText, Settings } from 'lucide-react';
+
 import { getApiBaseUrl } from '~/config/api';
 
 const candidateMenuItems: MenuItem[] = [

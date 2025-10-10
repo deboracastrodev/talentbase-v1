@@ -22,7 +22,6 @@
  * After completion, user is redirected to /candidate/profile which uses CandidateLayout.
  */
 
-import { useState, useEffect } from 'react';
 import { useNavigate, Link } from '@remix-run/react';
 import {
   MultiStepWizard,
@@ -32,6 +31,7 @@ import {
   Alert,
   Logo,
 } from '@talentbase/design-system';
+import { useState, useEffect } from 'react';
 
 import { DepartmentsSelector } from '~/components/candidate/DepartmentsSelector';
 import { ExperienceEditor, Experience } from '~/components/candidate/ExperienceEditor';
@@ -248,9 +248,9 @@ export default function CandidateProfileCreate() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="block text-sm font-medium text-gray-700 mb-2">
                 Foto de Perfil
-              </label>
+              </div>
               <PhotoUpload
                 onUploadComplete={(url) => updateFormData({ profile_photo_url: url })}
                 currentPhotoUrl={formData.profile_photo_url}
@@ -360,9 +360,9 @@ export default function CandidateProfileCreate() {
         return (
           <div className="space-y-8">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
+              <div className="block text-sm font-medium text-gray-700 mb-3">
                 Soluções Vendidas
-              </label>
+              </div>
               <SolutionsSelector
                 selected={formData.solutions_sold}
                 onChange={(solutions) => updateFormData({ solutions_sold: solutions })}
@@ -370,9 +370,9 @@ export default function CandidateProfileCreate() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
+              <div className="block text-sm font-medium text-gray-700 mb-3">
                 Departamentos para quem vendeu
-              </label>
+              </div>
               <DepartmentsSelector
                 selected={formData.departments_sold_to}
                 onChange={(departments) => updateFormData({ departments_sold_to: departments })}
@@ -386,9 +386,9 @@ export default function CandidateProfileCreate() {
         return (
           <div className="space-y-8">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
+              <div className="block text-sm font-medium text-gray-700 mb-3">
                 Experiências Profissionais
-              </label>
+              </div>
               <ExperienceEditor
                 experiences={formData.experiences}
                 onChange={(experiences) => updateFormData({ experiences })}
@@ -409,9 +409,9 @@ export default function CandidateProfileCreate() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="block text-sm font-medium text-gray-700 mb-2">
                 Vídeo Pitch * (Obrigatório)
-              </label>
+              </div>
               <p className="text-sm text-gray-600 mb-3">
                 Grave um vídeo de até 2 minutos se apresentando. Você pode fazer upload direto ou usar um vídeo do YouTube.
               </p>

@@ -8,7 +8,6 @@
 
 import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/node';
 import { useLoaderData, Link } from '@remix-run/react';
-import { useState } from 'react';
 import {
   PublicProfileHero,
   Timeline,
@@ -25,6 +24,8 @@ import {
   Alert,
   VideoPlayer,
 } from '@talentbase/design-system';
+import { useState } from 'react';
+
 import { getApiBaseUrl, getAppBaseUrl } from '~/config/api';
 
 // Types

@@ -14,18 +14,18 @@
  * - "Forgot password" placeholder link (AC9)
  */
 
-import { FormEvent } from 'react';
 import { useNavigate, Link } from '@remix-run/react';
 import { Button, AuthLayout, AuthCard, Alert, AuthFormField } from '@talentbase/design-system';
 import { Loader2 } from 'lucide-react';
+import { FormEvent } from 'react';
 
 // Hooks
 import { useFormValidation } from '~/hooks/useFormValidation';
 import { useLogin } from '~/hooks/useLogin';
 
 // Utilities
-import { validateEmail } from '~/utils/validation';
 import { ERROR_MESSAGES } from '~/utils/constants';
+import { validateEmail } from '~/utils/validation';
 
 interface LoginFormData {
   email: string;
