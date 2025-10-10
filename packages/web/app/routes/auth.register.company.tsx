@@ -20,7 +20,7 @@ import { Button, AuthLayout, AuthCard, Alert, AuthFormField } from '@talentbase/
 import { Loader2 } from 'lucide-react';
 
 // Utilities
-import { formatCNPJ } from '~/utils/formatting';
+import { formatCNPJ, formatPhone } from '~/utils/formatting';
 import {
   validateEmail,
   validatePassword,
@@ -146,12 +146,17 @@ export default function CompanyRegister() {
   };
 
   /**
-   * Handle input change with formatting for CNPJ
+   * Handle input change with formatting for CNPJ and phone
    */
   const handleFieldChange = (field: keyof CompanyFormData, value: string) => {
     // Apply CNPJ formatting
     if (field === 'cnpj') {
       value = formatCNPJ(value);
+    }
+
+    // Apply phone formatting
+    if (field === 'contact_person_phone') {
+      value = formatPhone(value);
     }
 
     handleChange(field, value);
@@ -162,6 +167,12 @@ export default function CompanyRegister() {
     !!formData.confirmPassword &&
     formData.password === formData.confirmPassword &&
     !allErrors.confirmPassword;
+
+  // Check if phone is valid and fully formatted for success indicator
+  const phoneValid =
+    !!formData.contact_person_phone &&
+    (formData.contact_person_phone.length === 14 || formData.contact_person_phone.length === 15) && // (11) 3333-4444 or (11) 99999-9999
+    !allErrors.contact_person_phone;
 
   return (
     <AuthLayout>
@@ -274,6 +285,8 @@ export default function CompanyRegister() {
               value={formData.contact_person_phone}
               onChange={(e) => handleFieldChange('contact_person_phone', e.target.value)}
               error={allErrors.contact_person_phone}
+              showSuccess={phoneValid}
+              successMessage="Telefone válido"
               helperText={HELPER_TEXT.PHONE_FORMAT}
               placeholder="(11) 99999-9999"
               autoComplete="tel"
