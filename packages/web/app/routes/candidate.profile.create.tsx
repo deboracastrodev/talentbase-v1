@@ -23,6 +23,7 @@
  */
 
 import { useNavigate, Link } from '@remix-run/react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   MultiStepWizard,
   Input,
@@ -31,7 +32,6 @@ import {
   Alert,
   Logo,
 } from '@talentbase/design-system';
-import { useState, useEffect } from 'react';
 
 import { DepartmentsSelector } from '~/components/candidate/DepartmentsSelector';
 import { ExperienceEditor, Experience } from '~/components/candidate/ExperienceEditor';
@@ -112,21 +112,20 @@ export default function CandidateProfileCreate() {
   }, []);
 
   // Auto-save draft every 30s
+  const handleSaveDraft = useCallback(() => {
+    localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(formData));
+  }, [formData]);
+
   useEffect(() => {
     const interval = setInterval(() => {
       handleSaveDraft();
     }, 30000);
 
     return () => clearInterval(interval);
-  }, [formData]);
+  }, [handleSaveDraft]);
 
   const updateFormData = (updates: Partial<FormData>) => {
     setFormData((prev) => ({ ...prev, ...updates }));
-  };
-
-  const handleSaveDraft = () => {
-    localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(formData));
-    console.log('Draft saved to localStorage');
   };
 
   const handleNext = () => {
@@ -155,8 +154,8 @@ export default function CandidateProfileCreate() {
       navigate('/candidate/profile', {
         state: { message: 'Perfil criado! Gere seu link compartilhável.' },
       });
-    } catch (err: any) {
-      setError(err.message || 'Erro ao criar perfil');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao criar perfil');
       setIsSubmitting(false);
     }
   };
