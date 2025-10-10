@@ -198,7 +198,9 @@ CORS_ALLOW_HEADERS = [
 # AWS S3 Configuration (Story 3.1 - Profile Photos Upload)
 AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID", default="")
 AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY", default="")
-AWS_STORAGE_BUCKET_NAME = config("AWS_STORAGE_BUCKET_NAME", default="")  # 'talentbase-dev-uploads' or 'talentbase-prod-uploads'
+AWS_STORAGE_BUCKET_NAME = config(
+    "AWS_STORAGE_BUCKET_NAME", default=""
+)  # 'talentbase-dev-uploads' or 'talentbase-prod-uploads'
 AWS_S3_REGION_NAME = config("AWS_S3_REGION_NAME", default="us-east-1")
 AWS_S3_SIGNATURE_VERSION = "s3v4"
 AWS_S3_FILE_OVERWRITE = False  # Prevent accidental overwrites
@@ -221,5 +223,7 @@ VIDEO_PRESIGNED_EXPIRY = 600  # 10 minutes (in seconds) - videos take longer to 
 
 # Story 3.2: Public Profile Sharing Configuration
 BASE_URL = config("BASE_URL", default="http://localhost:8000")  # Backend URL
-FRONTEND_URL = config("FRONTEND_URL", default="http://localhost:3000")  # Frontend URL for share links
+FRONTEND_URL = config(
+    "FRONTEND_URL", default="http://localhost:3000"
+)  # Frontend URL for share links
 ADMIN_EMAIL = config("ADMIN_EMAIL", default="admin@localhost")  # Admin email for contact requests

@@ -50,16 +50,12 @@ if EMAIL_PROVIDER == "sendgrid":
     EMAIL_USE_TLS = True
     EMAIL_HOST_USER = "apikey"
     EMAIL_HOST_PASSWORD = config("SENDGRID_API_KEY")
-    DEFAULT_FROM_EMAIL = config(
-        "DEFAULT_FROM_EMAIL", default="noreply@salesdog.click"
-    )
+    DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="noreply@salesdog.click")
 else:
     # MailHog (default) - Captura emails localmente sem enviar reais
     # MailHog UI: http://localhost:8025
     EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-    EMAIL_HOST = config(
-        "EMAIL_HOST", default="mailhog"
-    )  # "mailhog" no Docker, "localhost" local
+    EMAIL_HOST = config("EMAIL_HOST", default="mailhog")  # "mailhog" no Docker, "localhost" local
     EMAIL_PORT = config("EMAIL_PORT", default=1025, cast=int)
     EMAIL_USE_TLS = False
     EMAIL_USE_SSL = False
