@@ -33,4 +33,6 @@ urlpatterns = [
     path(
         "admin/import/<str:task_id>/error-log", views.download_error_log, name="download-error-log"
     ),
+    # Story 3.3: List all candidates (admin only) - AC10
+    path("admin/candidates", views.list_candidates, name="list-candidates"),
 ]

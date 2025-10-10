@@ -923,3 +923,116 @@ def download_error_log(request, task_id):
         return Response(
             {"error": "Erro ao baixar log de erros"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def list_candidates(request):
+    """
+    List all candidates with pagination and filters (admin only).
+    Story 3.3 - AC10: Candidatos importados visíveis na lista admin.
+
+    Query params:
+        search (str): Search by name, email, or city
+        status (str): Filter by status (available, hired, inactive)
+        page (int): Page number (default: 1)
+        page_size (int): Items per page (default: 20, max: 100)
+
+    Returns:
+        200: {
+            'count': Total number of candidates,
+            'next': URL to next page,
+            'previous': URL to previous page,
+            'results': List of candidates
+        }
+    """
+    from django.db.models import Q
+    from django.core.paginator import Paginator
+
+    # Check if user is admin
+    if request.user.role != "admin":
+        return Response(
+            {"error": "Acesso negado. Apenas administradores podem listar candidatos."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    try:
+        # Get query params
+        search = request.query_params.get("search", "").strip()
+        status_filter = request.query_params.get("status", "").strip()
+        page_number = int(request.query_params.get("page", 1))
+        page_size = min(int(request.query_params.get("page_size", 20)), 100)
+
+        # Build queryset
+        queryset = CandidateProfile.objects.select_related("user").all()
+
+        # Apply search filter
+        if search:
+            queryset = queryset.filter(
+                Q(full_name__icontains=search)
+                | Q(user__email__icontains=search)
+                | Q(city__icontains=search)
+            )
+
+        # Apply status filter
+        if status_filter and status_filter != "all":
+            queryset = queryset.filter(status=status_filter)
+
+        # Order by creation date (newest first)
+        queryset = queryset.order_by("-created_at")
+
+        # Paginate
+        paginator = Paginator(queryset, page_size)
+        page_obj = paginator.get_page(page_number)
+
+        # Serialize results
+        results = []
+        for candidate in page_obj.object_list:
+            results.append(
+                {
+                    "id": str(candidate.user.id),
+                    "full_name": candidate.full_name,
+                    "email": candidate.user.email if candidate.user else None,
+                    "phone": candidate.phone,
+                    "city": candidate.city,
+                    "current_position": candidate.current_position,
+                    "years_of_experience": candidate.years_of_experience,
+                    "status": candidate.status,
+                    "profile_photo_url": candidate.profile_photo_url,
+                    "created_at": candidate.created_at.isoformat(),
+                    "import_source": getattr(candidate, "import_source", None),
+                }
+            )
+
+        # Build response
+        base_url = request.build_absolute_uri(request.path)
+        response_data = {
+            "count": paginator.count,
+            "next": (
+                f"{base_url}?page={page_obj.next_page_number()}&page_size={page_size}"
+                if page_obj.has_next()
+                else None
+            ),
+            "previous": (
+                f"{base_url}?page={page_obj.previous_page_number()}&page_size={page_size}"
+                if page_obj.has_previous()
+                else None
+            ),
+            "results": results,
+        }
+
+        logger.info(
+            f"Admin {request.user.id} listed {len(results)} candidates (page {page_number})"
+        )
+
+        return Response(response_data, status=status.HTTP_200_OK)
+
+    except ValueError as e:
+        return Response(
+            {"error": "Parâmetros inválidos"}, status=status.HTTP_400_BAD_REQUEST
+        )
+    except Exception as e:
+        logger.error(f"Error listing candidates: {e}")
+        return Response(
+            {"error": "Erro ao listar candidatos"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
