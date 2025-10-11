@@ -76,40 +76,38 @@ export const queryKeys = {
   // Authentication
   auth: {
     all: ['auth'] as const,
-    currentUser: () => [...queryKeys.auth.all, 'current-user'] as const,
+    currentUser: () => ['auth', 'current-user'] as const,
   },
 
   // Admin domain
   admin: {
     all: ['admin'] as const,
     users: {
-      all: [...queryKeys.admin.all, 'users'] as const,
-      list: (filters?: Record<string, any>) =>
-        [...queryKeys.admin.users.all, 'list', filters] as const,
-      detail: (id: string) => [...queryKeys.admin.users.all, 'detail', id] as const,
+      all: ['admin', 'users'] as const,
+      list: (filters?: Record<string, any>) => ['admin', 'users', 'list', filters] as const,
+      detail: (id: string) => ['admin', 'users', 'detail', id] as const,
     },
     candidates: {
-      all: [...queryKeys.admin.all, 'candidates'] as const,
-      list: (filters?: Record<string, any>) =>
-        [...queryKeys.admin.candidates.all, 'list', filters] as const,
-      detail: (id: string) => [...queryKeys.admin.candidates.all, 'detail', id] as const,
+      all: ['admin', 'candidates'] as const,
+      list: (filters?: Record<string, any>) => ['admin', 'candidates', 'list', filters] as const,
+      detail: (id: string) => ['admin', 'candidates', 'detail', id] as const,
     },
-    stats: () => [...queryKeys.admin.all, 'stats'] as const,
+    stats: () => ['admin', 'stats'] as const,
   },
 
   // Candidate domain
   candidate: {
     all: ['candidate'] as const,
     profile: {
-      all: [...queryKeys.candidate.all, 'profile'] as const,
-      current: () => [...queryKeys.candidate.profile.all, 'current'] as const,
+      all: ['candidate', 'profile'] as const,
+      current: () => ['candidate', 'profile', 'current'] as const,
     },
-    dashboard: () => [...queryKeys.candidate.all, 'dashboard'] as const,
+    dashboard: () => ['candidate', 'dashboard'] as const,
   },
 
   // Public/Share domain
   share: {
     all: ['share'] as const,
-    candidateProfile: (token: string) => [...queryKeys.share.all, 'candidate', token] as const,
+    candidateProfile: (token: string) => ['share', 'candidate', token] as const,
   },
 } as const;
