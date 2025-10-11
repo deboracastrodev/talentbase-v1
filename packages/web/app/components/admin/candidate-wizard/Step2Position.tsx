@@ -3,7 +3,7 @@
  * Admin Candidate Creation Wizard
  */
 
-import { Input, Select, Textarea } from '@talentbase/design-system';
+import { FormField, Input, Select, Textarea } from '@talentbase/design-system';
 
 import { POSITION_OPTIONS, SALES_TYPE_OPTIONS } from '~/lib/constants/admin-candidate';
 import type { AdminCandidateFormData } from '~/lib/types/admin-candidate';
@@ -19,13 +19,7 @@ export function Step2Position({ formData, onUpdate }: Step2PositionProps) {
       <h3 className="text-lg font-semibold text-gray-900">Posição & Experiência</h3>
 
       <div className="space-y-4">
-        <div>
-          <label
-            htmlFor="current_position"
-            className="block text-sm font-medium text-gray-700 mb-2"
-          >
-            Posição Atual <span className="text-red-500">*</span>
-          </label>
+        <FormField label="Posição Atual" required>
           <Select
             id="current_position"
             value={formData.current_position}
@@ -33,29 +27,21 @@ export function Step2Position({ formData, onUpdate }: Step2PositionProps) {
             options={POSITION_OPTIONS}
             required
           />
-        </div>
+        </FormField>
 
-        <div>
-          <label
-            htmlFor="years_of_experience"
-            className="block text-sm font-medium text-gray-700 mb-2"
-          >
-            Anos de Experiência <span className="text-red-500">*</span>
-          </label>
+        <FormField label="Anos de Experiência" required>
           <Input
             id="years_of_experience"
             type="number"
             min="0"
+            max="50"
             value={formData.years_of_experience}
             onChange={(e) => onUpdate({ years_of_experience: parseInt(e.target.value) || 0 })}
             required
           />
-        </div>
+        </FormField>
 
-        <div>
-          <label htmlFor="sales_type" className="block text-sm font-medium text-gray-700 mb-2">
-            Tipo de Vendas <span className="text-red-500">*</span>
-          </label>
+        <FormField label="Tipo de Vendas" required>
           <Select
             id="sales_type"
             value={formData.sales_type}
@@ -63,48 +49,36 @@ export function Step2Position({ formData, onUpdate }: Step2PositionProps) {
             options={SALES_TYPE_OPTIONS}
             required
           />
-        </div>
+        </FormField>
 
-        <div>
-          <label htmlFor="sales_cycle" className="block text-sm font-medium text-gray-700 mb-2">
-            Ciclo de Vendas (opcional)
-          </label>
+        <FormField label="Ciclo de Vendas" hint="Informe o tempo médio do ciclo de vendas">
           <Input
             id="sales_cycle"
             placeholder="Ex: 30-60 dias"
             value={formData.sales_cycle || ''}
             onChange={(e) => onUpdate({ sales_cycle: e.target.value })}
           />
-        </div>
+        </FormField>
 
-        <div>
-          <label htmlFor="avg_ticket" className="block text-sm font-medium text-gray-700 mb-2">
-            Ticket Médio (opcional)
-          </label>
+        <FormField label="Ticket Médio" hint="Valor médio das vendas realizadas">
           <Input
             id="avg_ticket"
             placeholder="Ex: R$ 10k-50k MRR"
             value={formData.avg_ticket || ''}
             onChange={(e) => onUpdate({ avg_ticket: e.target.value })}
           />
-        </div>
+        </FormField>
 
-        <div>
-          <label htmlFor="academic_degree" className="block text-sm font-medium text-gray-700 mb-2">
-            Formação Acadêmica (opcional)
-          </label>
+        <FormField label="Formação Acadêmica">
           <Input
             id="academic_degree"
             placeholder="Ex: Ensino Superior Completo, MBA"
             value={formData.academic_degree || ''}
             onChange={(e) => onUpdate({ academic_degree: e.target.value })}
           />
-        </div>
+        </FormField>
 
-        <div>
-          <label htmlFor="bio" className="block text-sm font-medium text-gray-700 mb-2">
-            Bio Profissional (opcional)
-          </label>
+        <FormField label="Bio Profissional" hint="Resumo da experiência e trajetória profissional">
           <Textarea
             id="bio"
             placeholder="Descreva brevemente a experiência profissional do candidato..."
@@ -112,7 +86,7 @@ export function Step2Position({ formData, onUpdate }: Step2PositionProps) {
             onChange={(e) => onUpdate({ bio: e.target.value })}
             rows={4}
           />
-        </div>
+        </FormField>
       </div>
     </div>
   );

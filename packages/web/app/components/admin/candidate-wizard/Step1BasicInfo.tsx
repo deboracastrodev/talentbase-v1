@@ -1,13 +1,17 @@
 /**
  * Step 1: Basic Information
  * Admin Candidate Creation Wizard
+ *
+ * Collects essential candidate information including:
+ * - Required: email, full name, phone, city
+ * - Optional: LinkedIn, CPF, CEP, profile photo
  */
 
-import { Alert, Input } from '@talentbase/design-system';
+import { Alert, FormField, Input } from '@talentbase/design-system';
 
 import { PhotoUpload } from '~/components/candidate/PhotoUpload';
 import type { AdminCandidateFormData } from '~/lib/types/admin-candidate';
-import { formatPhone } from '~/utils/formatting';
+import { formatCPF, formatPhone, formatCEP } from '~/utils/formatting';
 
 interface Step1BasicInfoProps {
   formData: AdminCandidateFormData;
@@ -28,10 +32,7 @@ export function Step1BasicInfo({ formData, onUpdate, emailError }: Step1BasicInf
         )}
 
         <div className="space-y-4">
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-              Email <span className="text-red-500">*</span>
-            </label>
+          <FormField label="Email" required>
             <Input
               id="email"
               type="email"
@@ -40,12 +41,9 @@ export function Step1BasicInfo({ formData, onUpdate, emailError }: Step1BasicInf
               onChange={(e) => onUpdate({ email: e.target.value })}
               required
             />
-          </div>
+          </FormField>
 
-          <div>
-            <label htmlFor="full_name" className="block text-sm font-medium text-gray-700 mb-2">
-              Nome Completo <span className="text-red-500">*</span>
-            </label>
+          <FormField label="Nome Completo" required>
             <Input
               id="full_name"
               placeholder="João Silva"
@@ -53,12 +51,9 @@ export function Step1BasicInfo({ formData, onUpdate, emailError }: Step1BasicInf
               onChange={(e) => onUpdate({ full_name: e.target.value })}
               required
             />
-          </div>
+          </FormField>
 
-          <div>
-            <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
-              Telefone <span className="text-red-500">*</span>
-            </label>
+          <FormField label="Telefone" required hint="Formato: (11) 99999-9999">
             <Input
               id="phone"
               type="tel"
@@ -67,12 +62,9 @@ export function Step1BasicInfo({ formData, onUpdate, emailError }: Step1BasicInf
               onChange={(e) => onUpdate({ phone: formatPhone(e.target.value) })}
               required
             />
-          </div>
+          </FormField>
 
-          <div>
-            <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-2">
-              Cidade <span className="text-red-500">*</span>
-            </label>
+          <FormField label="Cidade" required>
             <Input
               id="city"
               placeholder="São Paulo, SP"
@@ -80,7 +72,7 @@ export function Step1BasicInfo({ formData, onUpdate, emailError }: Step1BasicInf
               onChange={(e) => onUpdate({ city: e.target.value })}
               required
             />
-          </div>
+          </FormField>
         </div>
       </div>
 
@@ -90,10 +82,7 @@ export function Step1BasicInfo({ formData, onUpdate, emailError }: Step1BasicInf
         </h3>
 
         <div className="space-y-4">
-          <div>
-            <label htmlFor="linkedin" className="block text-sm font-medium text-gray-700 mb-2">
-              LinkedIn
-            </label>
+          <FormField label="LinkedIn" hint="Cole o link completo do perfil">
             <Input
               id="linkedin"
               type="url"
@@ -101,32 +90,27 @@ export function Step1BasicInfo({ formData, onUpdate, emailError }: Step1BasicInf
               value={formData.linkedin || ''}
               onChange={(e) => onUpdate({ linkedin: e.target.value })}
             />
-          </div>
+          </FormField>
 
-          <div>
-            <label htmlFor="cpf" className="block text-sm font-medium text-gray-700 mb-2">
-              CPF
-            </label>
+          <FormField label="CPF" hint="Será criptografado no banco de dados">
             <Input
               id="cpf"
               placeholder="000.000.000-00"
               value={formData.cpf || ''}
-              onChange={(e) => onUpdate({ cpf: e.target.value })}
+              onChange={(e) => onUpdate({ cpf: formatCPF(e.target.value) })}
+              maxLength={14}
             />
-            <p className="text-xs text-gray-500 mt-1">Será criptografado no banco de dados</p>
-          </div>
+          </FormField>
 
-          <div>
-            <label htmlFor="zip_code" className="block text-sm font-medium text-gray-700 mb-2">
-              CEP
-            </label>
+          <FormField label="CEP" hint="Formato: 00000-000">
             <Input
               id="zip_code"
               placeholder="00000-000"
               value={formData.zip_code || ''}
-              onChange={(e) => onUpdate({ zip_code: e.target.value })}
+              onChange={(e) => onUpdate({ zip_code: formatCEP(e.target.value) })}
+              maxLength={9}
             />
-          </div>
+          </FormField>
 
           <div>
             <p className="block text-sm font-medium text-gray-700 mb-2">Foto de Perfil</p>

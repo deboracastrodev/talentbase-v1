@@ -163,3 +163,79 @@ export function formatRelativeDate(date: string | Date | number): string {
 
   return formatDate(dateObj);
 }
+
+/**
+ * Format CEP (Brazilian postal code) as user types: XXXXX-XXX
+ * @param value - Raw CEP string (formatted or unformatted)
+ * @returns Formatted CEP string
+ * @example
+ * formatCEP('01310100') // '01310-100'
+ * formatCEP('01310-100') // '01310-100'
+ */
+export function formatCEP(value: string): string {
+  const numbers = value.replace(/\D/g, '');
+
+  if (numbers.length <= 8) {
+    return numbers.replace(/^(\d{5})(\d)/, '$1-$2');
+  }
+
+  return value;
+}
+
+/**
+ * Format currency as user types: R$ 1.234,56
+ * Converts numeric input to Brazilian currency format
+ * @param value - Raw string with numbers
+ * @returns Formatted currency string
+ * @example
+ * formatCurrency('123456') // '1.234,56'
+ * formatCurrency('1000') // '10,00'
+ */
+export function formatCurrency(value: string): string {
+  // Remove tudo exceto números
+  const numbers = value.replace(/\D/g, '');
+
+  if (!numbers) return '';
+
+  // Converte para número com 2 casas decimais
+  const amount = parseFloat(numbers) / 100;
+
+  // Formata como moeda brasileira
+  return amount.toLocaleString('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
+
+/**
+ * Parse formatted currency back to number string
+ * @param formatted - Formatted currency string
+ * @returns Number string with 2 decimal places
+ * @example
+ * parseCurrency('1.234,56') // '1234.56'
+ * parseCurrency('10,00') // '10.00'
+ */
+export function parseCurrency(formatted: string): string {
+  const numbers = formatted.replace(/\D/g, '');
+  if (!numbers) return '';
+  return (parseFloat(numbers) / 100).toFixed(2);
+}
+
+/**
+ * Format value as Brazilian currency with R$ prefix
+ * @param value - Number or string value
+ * @returns Formatted currency with R$ prefix
+ * @example
+ * formatCurrencyDisplay(1234.56) // 'R$ 1.234,56'
+ * formatCurrencyDisplay('1234.56') // 'R$ 1.234,56'
+ */
+export function formatCurrencyDisplay(value: number | string): string {
+  const numValue = typeof value === 'string' ? parseFloat(value) : value;
+
+  if (isNaN(numValue)) return 'R$ 0,00';
+
+  return numValue.toLocaleString('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  });
+}
