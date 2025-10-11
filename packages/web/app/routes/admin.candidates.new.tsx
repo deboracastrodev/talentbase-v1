@@ -16,7 +16,7 @@
 import { json, redirect } from '@remix-run/node';
 import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node';
 import { useNavigate, useActionData } from '@remix-run/react';
-import { MultiStepWizard, Button, Alert, Logo } from '@talentbase/design-system';
+import { MultiStepWizard, Button, Alert } from '@talentbase/design-system';
 import { ArrowLeft } from 'lucide-react';
 import { useState, useEffect } from 'react';
 

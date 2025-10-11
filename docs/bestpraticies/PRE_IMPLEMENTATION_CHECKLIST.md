@@ -7,6 +7,20 @@
 
 Este checklist DEVE ser lido e seguido antes de iniciar a implementação de qualquer story. Ignorar estas diretrizes resultará em retrabalho e code review negado.
 
+## REGRAS
+- FRONTEND:
+ * Nunca permitir que paginas e componentes contenham regras de negócio
+ * Nunca incluir em páginas funções genéricas e reutilizaveis, sempre manter em locais apropriados como utils, lib, hooks etc
+ * SEMPRE executar o LINT após desenvolvimento de uma tarefa docs/bestpraticies/LINTING.md
+ * SEMPRE que identificar algo que não esteja de acordo com as boas praticas e não pertercer ao desenvolvimento atual, informar na documentação e incluir um TODO
+ * SEMPRE componetizar quando alguma pagina estiver ficando muito grande.
+ * SEMPRE utilize o ambiente docker DOCKER.md
+ * SEMPRE que for criar componentes, consultar sua existencia no design system antes, se não existir e se for um componente genérico, de contexto reutilizavel criar no design system e depois utilizar. Detalhes packages/web/CLAUDE.md, se atulizar algo, atualize essa documentação também
+
+ - BACKEND:
+ * Nunca criar migrations manualmente
+ * SEMPRE utilize o ambiente docker DOCKER.md
+
 ## 📋 Antes de Começar
 
 ### 1. Documentação (OBRIGATÓRIO)
