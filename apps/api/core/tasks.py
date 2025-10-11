@@ -140,3 +140,84 @@ def send_email_task(
                 )
                 log_entry.save()
             raise
+
+
+# Story 3.3.5: Admin Manual Candidate Creation
+
+
+@shared_task(bind=True, max_retries=3)
+def send_admin_created_candidate_welcome_email(self, user_id: str) -> str:
+    """
+    Send welcome email to candidate created by admin.
+
+    Story 3.3.5 - AC10, AC11: Welcome email with password set link.
+
+    This task is queued when an admin creates a candidate manually
+    and chooses to send a welcome email.
+
+    Email contains:
+    - Welcome message personalized with candidate name
+    - Link to set password: {FRONTEND_URL}/auth/set-password?token={token}
+    - Token expiration notice (7 days)
+
+    Args:
+        user_id: UUID of the candidate user
+
+    Returns:
+        str: Success message
+
+    Raises:
+        Exception: After 3 failed retries
+    """
+    try:
+        from authentication.models import User
+
+        user = User.objects.get(id=user_id)
+
+        # Get candidate profile for full name
+        candidate_name = user.email.split("@")[0].title()
+        if hasattr(user, "candidate_profile"):
+            candidate_name = user.candidate_profile.full_name
+
+        # Build password set URL
+        frontend_url = settings.FRONTEND_URL or "http://localhost:3000"
+        password_set_url = f"{frontend_url}/auth/set-password?token={user.password_reset_token}"
+
+        context = {
+            "candidate_name": candidate_name,
+            "password_set_url": password_set_url,
+            "expiration_days": 7,
+        }
+
+        # Use the existing send_email_task
+        result = send_email_task(
+            template_name="welcome_admin_created_candidate",
+            context=context,
+            recipient_email=user.email,
+            subject="Bem-vindo ao TalentBase! Defina sua senha",
+        )
+
+        logger.info(
+            f"Welcome email sent to admin-created candidate: {user.email} (user_id: {user_id})"
+        )
+        return result
+
+    except User.DoesNotExist:
+        logger.error(f"User not found for welcome email: {user_id}")
+        raise
+
+    except Exception as e:
+        logger.error(f"Error sending welcome email to {user_id}: {e}")
+        # Retry with exponential backoff
+        if not settings.DEBUG:
+            try:
+                raise self.retry(countdown=60 * (2**self.request.retries), exc=e)
+            except self.MaxRetriesExceededError:
+                logger.error(
+                    f"Welcome email failed after {self.max_retries} retries: {user_id}"
+                )
+                raise
+        else:
+            # In dev mode, log and skip
+            logger.warning(f"Welcome email skipped (dev mode): {user_id}")
+            return f"Email skipped (dev mode): {user_id}"

@@ -1,6 +1,6 @@
 # Story 3.3.5: Admin Manual Candidate Creation
 
-Status: ContextReadyDraft
+Status: Approved
 
 **⚠️ IMPORTANTE: Antes de iniciar esta story, leia:**
 - [Code Quality Standards](../bestpraticies/CODE_QUALITY.md)
@@ -86,13 +86,13 @@ Para que **eu possa adicionar candidatos descobertos através de networking, ind
 
 ## Tasks / Subtasks
 
-- [ ] **Task 1: Estender User model com campos de password reset (AC: 8, 22)**
-  - [ ] Adicionar campos ao User model:
+- [x] **Task 1: Estender User model com campos de password reset (AC: 8, 22)**
+  - [x] Adicionar campos ao User model:
     - `password_reset_required` (BooleanField, default=False)
     - `password_reset_token` (UUIDField, null=True, blank=True, unique=True)
     - `password_reset_token_expires` (DateTimeField, null=True, blank=True)
-  - [ ] Criar migração: `add_user_password_reset_fields`
-  - [ ] Executar migração
+  - [x] Criar migração: `add_user_password_reset_fields`
+  - [x] Executar migração
 
 - [ ] **Task 2: Criar API endpoint de criação de candidato pelo admin (AC: 7, 8, 9, 10, 15)**
   - [ ] Criar serializer `AdminCreateCandidateSerializer` com validação de campos + campo `send_welcome_email` (boolean, optional, default=False)
@@ -381,3 +381,69 @@ poetry run celery -A talentbase worker -l info
 
 ### Deployment Notes
 <!-- Deployment steps and verification will be recorded here -->
+
+## Implementation Log - Backend Complete
+
+### Completed (2025-10-10)
+
+**Backend Implementation - ALL COMPLETE ✅**
+
+1. **Task 1**: Extended User model with password reset fields ✅
+   - Added `password_reset_required`, `password_reset_token`, `password_reset_token_expires`
+   - Migration created and applied: `0003_add_user_password_reset_fields`
+
+2. **Task 2**: Created admin candidate creation API endpoint ✅
+   - Serializer: `AdminCreateCandidateSerializer` with email validation
+   - View: `admin_create_candidate` with admin permission check
+   - Conditional email sending based on `send_welcome_email` flag
+   - Returns 201 with candidate data + `email_sent` flag
+
+3. **Task 3**: Created Celery task and email templates (OPTIONAL) ✅
+   - Task: `send_admin_created_candidate_welcome_email` in `core/tasks.py`
+   - HTML template: `templates/emails/welcome_admin_created_candidate.html`
+   - Text template: `templates/emails/welcome_admin_created_candidate.txt`
+
+4. **Task 4**: Created set password API endpoint ✅
+   - Serializer: `SetPasswordSerializer` with token and password validation
+   - View: `set_password_with_token` validates token expiration
+   - Returns JWT access token on success
+
+5. **Task 5**: Added Django routes ✅
+   - `/api/v1/candidates/admin/candidates/create` (admin create)
+   - `/api/v1/auth/set-password` (set password with token)
+
+6. **Task 9**: Backend tests complete - 8/8 passing ✅
+   - `test_admin_creates_candidate_without_email` ✅
+   - `test_admin_creates_candidate_with_email` ✅
+   - `test_admin_creates_duplicate_email_fails` ✅
+   - `test_non_admin_cannot_create_candidate` ✅
+   - `test_set_password_with_valid_token` ✅
+   - `test_set_password_with_expired_token` ✅
+   - `test_set_password_with_invalid_token` ✅
+   - `test_set_password_short_password_fails` ✅
+
+### Files Modified
+- `apps/api/authentication/models.py` - Added password reset fields
+- `apps/api/authentication/serializers.py` - Added SetPasswordSerializer
+- `apps/api/authentication/views.py` - Added set_password_with_token view
+- `apps/api/candidates/serializers.py` - Added AdminCreateCandidateSerializer
+- `apps/api/candidates/views.py` - Added admin_create_candidate view
+- `apps/api/candidates/urls.py` - Added admin create route
+- `apps/api/talentbase/urls.py` - Added set-password route
+- `apps/api/core/tasks.py` - Added welcome email Celery task
+- `apps/api/templates/emails/welcome_admin_created_candidate.html` - Email template
+- `apps/api/templates/emails/welcome_admin_created_candidate.txt` - Text email template
+- `apps/api/candidates/tests/test_admin_creation.py` - Complete test suite (8 tests)
+
+### Remaining Work - Frontend
+- **Task 6**: Frontend form for creating candidate (needs implementation)
+- **Task 7**: Add "Create Candidate" button to admin page (needs implementation)
+- **Task 8**: Frontend set password page (needs implementation)
+- **Task 10**: E2E tests (needs implementation)
+
+### Notes
+- MVP approach: Email sending is OPTIONAL via checkbox (default unchecked)
+- Backend fully implements conditional logic for email vs no-email flows
+- All backend tests passing - ready for frontend integration
+- Fields `import_source` and `import_date` deferred (not in current CandidateProfile model)
+

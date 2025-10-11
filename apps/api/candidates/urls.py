@@ -35,4 +35,6 @@ urlpatterns = [
     ),
     # Story 3.3: List all candidates (admin only) - AC10
     path("admin/candidates", views.list_candidates, name="list-candidates"),
+    # Story 3.3.5: Admin manual candidate creation
+    path("admin/candidates/create", views.admin_create_candidate, name="admin-create-candidate"),
 ]

@@ -3,6 +3,8 @@ Authentication views.
 Thin controllers that coordinate serializers and services.
 """
 
+import logging
+
 from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import IntegrityError
@@ -17,6 +19,9 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework_simplejwt.tokens import RefreshToken
+
+logger = logging.getLogger(__name__)
 
 from authentication.serializers import (
     CandidateRegistrationSerializer,
@@ -384,28 +389,41 @@ def login(request):
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
-    # AC4: Get or create token (DRF Token Authentication)
-    token, created = Token.objects.get_or_create(user=user)
+    # AC4: Generate JWT tokens (access + refresh)
+    refresh = RefreshToken.for_user(user)
+    access_token = str(refresh.access_token)
+    refresh_token = str(refresh)
 
     # AC6: Determine redirect URL based on role and status
     redirect_url = get_redirect_url(user.role, user.is_active)
 
     # Prepare response data
     response_serializer = LoginResponseSerializer(
-        {"user": user, "token": token.key, "redirect_url": redirect_url}
+        {"user": user, "token": access_token, "redirect_url": redirect_url}
     )
 
     # Create response
     response = Response(response_serializer.data, status=status.HTTP_200_OK)
 
-    # AC5: Set token as httpOnly cookie (reuse pattern from registration)
-    # Same security settings: httpOnly, secure in production, sameSite
+    # AC5: Set access token as httpOnly cookie
+    # JWT has built-in expiration, so we use a shorter max_age
     response.set_cookie(
         key="auth_token",
-        value=token.key,
-        max_age=604800,  # 7 days
+        value=access_token,
+        max_age=3600,  # 1 hour (matches JWT access token expiration)
         httponly=True,
         secure=not settings.DEBUG,  # True in production, False in development
+        samesite="Strict" if not settings.DEBUG else "Lax",
+        path="/",
+    )
+
+    # Also set refresh token as httpOnly cookie for token refresh
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh_token,
+        max_age=604800,  # 7 days (refresh token lives longer)
+        httponly=True,
+        secure=not settings.DEBUG,
         samesite="Strict" if not settings.DEBUG else "Lax",
         path="/",
     )
@@ -497,3 +515,92 @@ def get_current_user(request):
         user_data["name"] = user.email.split("@")[0].title()
 
     return Response(user_data, status=status.HTTP_200_OK)
+
+
+# Story 3.3.5: Admin Manual Candidate Creation
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def set_password_with_token(request):
+    """
+    Set password using password reset token.
+
+    Story 3.3.5 - AC 21, 22, 23: Candidate sets password after admin creates account.
+
+    POST /api/v1/auth/set-password
+    Body: {
+        token: str (UUID),
+        password: str (min 8 chars)
+    }
+
+    Returns:
+        200: {
+            access_token: str (JWT),
+            user: { id, email, role }
+        }
+        400: { error: 'Invalid or expired token' } or validation errors
+    """
+    from django.utils import timezone
+    from rest_framework_simplejwt.tokens import RefreshToken
+
+    from .models import User
+    from .serializers import SetPasswordSerializer
+
+    serializer = SetPasswordSerializer(data=request.data)
+
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        token = serializer.validated_data["token"]
+        password = serializer.validated_data["password"]
+
+        # Find user with this token
+        try:
+            user = User.objects.get(password_reset_token=token)
+        except User.DoesNotExist:
+            return Response(
+                {"error": "Invalid or expired token"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Check if token is expired
+        if not user.password_reset_token_expires:
+            return Response(
+                {"error": "Invalid or expired token"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if timezone.now() > user.password_reset_token_expires:
+            return Response(
+                {"error": "Invalid or expired token"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Set password and clear reset fields
+        user.set_password(password)
+        user.password_reset_required = False
+        user.password_reset_token = None
+        user.password_reset_token_expires = None
+        user.save()
+
+        # Generate JWT token
+        refresh = RefreshToken.for_user(user)
+        access_token = str(refresh.access_token)
+
+        logger.info(
+            f"User {user.id} set password via token",
+            extra={"user_id": str(user.id), "email": user.email},
+        )
+
+        return Response(
+            {
+                "access_token": access_token,
+                "user": {"id": str(user.id), "email": user.email, "role": user.role},
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    except Exception as e:
+        logger.error(f"Error setting password with token: {e}")
+        return Response(
+            {"error": "Erro ao definir senha"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )

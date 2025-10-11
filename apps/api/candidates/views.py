@@ -1036,3 +1036,151 @@ def list_candidates(request):
         return Response(
             {"error": "Erro ao listar candidatos"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+
+
+# Story 3.3.5: Admin Manual Candidate Creation
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def admin_create_candidate(request):
+    """
+    Create candidate manually (admin only).
+
+    Story 3.3.5 - AC 7, 8, 9, 10, 12, 15: Admin creates candidate with minimal fields.
+
+    POST /api/v1/admin/candidates/create
+    Body: {
+        email: str (required),
+        full_name: str (required),
+        phone: str (required),
+        city: str (optional),
+        current_position: str (optional),
+        send_welcome_email: bool (optional, default=False)
+    }
+
+    Returns:
+        201: {
+            success: true,
+            candidate: { id, email, full_name },
+            email_sent: bool
+        }
+        400: { error: 'Email already exists' } or validation errors
+        403: Not admin user
+    """
+    import secrets
+    import uuid
+    from datetime import timedelta
+
+    from django.db import transaction
+    from django.utils import timezone
+
+    from authentication.models import User
+    from core.permissions import IsAdmin
+
+    # Check admin permission
+    if not (request.user.is_authenticated and request.user.role == "admin"):
+        return Response(
+            {"error": "Apenas administradores podem criar candidatos"},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    from candidates.serializers import AdminCreateCandidateSerializer
+
+    serializer = AdminCreateCandidateSerializer(data=request.data)
+
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        validated_data = serializer.validated_data
+        email = validated_data["email"]
+        full_name = validated_data["full_name"]
+        phone = validated_data["phone"]
+        city = validated_data.get("city", "")
+        current_position = validated_data.get("current_position", "")
+        send_welcome_email = validated_data.get("send_welcome_email", False)
+
+        # Generate temporary password
+        temp_password = secrets.token_urlsafe(32)
+
+        # Prepare token fields
+        password_reset_token = None
+        password_reset_token_expires = None
+        password_reset_required = False
+
+        if send_welcome_email:
+            # Generate password reset token and expiration
+            password_reset_token = uuid.uuid4()
+            password_reset_token_expires = timezone.now() + timedelta(days=7)
+            password_reset_required = True
+
+        with transaction.atomic():
+            # Create User
+            user = User.objects.create_user(
+                email=email,
+                password=temp_password,
+                role="candidate",
+            )
+
+            # Set password reset fields if email will be sent
+            if send_welcome_email:
+                user.password_reset_required = password_reset_required
+                user.password_reset_token = password_reset_token
+                user.password_reset_token_expires = password_reset_token_expires
+                user.save()
+
+            # Create CandidateProfile
+            profile = CandidateProfile.objects.create(
+                user=user,
+                full_name=full_name,
+                phone=phone,
+                city=city,
+                current_position=current_position,
+            )
+
+            # Queue welcome email if requested
+            email_sent = False
+            if send_welcome_email:
+                try:
+                    from core.tasks import send_admin_created_candidate_welcome_email
+
+                    send_admin_created_candidate_welcome_email.delay(str(user.id))
+                    email_sent = True
+                except Exception as e:
+                    logger.warning(
+                        f"Failed to queue welcome email for user {user.id}: {e}",
+                        extra={"user_id": str(user.id)},
+                    )
+                    # Don't fail the request if email fails to queue
+
+            logger.info(
+                f"Admin {request.user.id} created candidate {user.id} (email_sent={email_sent})",
+                extra={
+                    "admin_id": str(request.user.id),
+                    "candidate_id": str(user.id),
+                    "email_sent": email_sent,
+                },
+            )
+
+            return Response(
+                {
+                    "success": True,
+                    "candidate": {
+                        "id": str(user.id),
+                        "email": user.email,
+                        "full_name": full_name,
+                    },
+                    "email_sent": email_sent,
+                },
+                status=status.HTTP_201_CREATED,
+            )
+
+    except Exception as e:
+        logger.error(
+            f"Error creating candidate by admin {request.user.id}: {e}",
+            extra={"admin_id": str(request.user.id)},
+        )
+        return Response(
+            {"error": "Erro ao criar candidato"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )

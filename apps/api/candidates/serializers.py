@@ -546,3 +546,73 @@ class ImportResultSerializer(serializers.Serializer):
     skipped = serializers.IntegerField(read_only=True)
     errors = serializers.ListField(child=serializers.DictField(), read_only=True)
     error_file_url = serializers.URLField(read_only=True, required=False, allow_null=True)
+
+
+# Story 3.3.5: Admin Manual Candidate Creation
+
+
+class AdminCreateCandidateSerializer(serializers.Serializer):
+    """
+    Serializer for admin manual candidate creation.
+
+    Story 3.3.5: Admin creates candidate with minimal fields.
+
+    Fields:
+        email (required): Candidate email (must be unique)
+        full_name (required): Candidate full name
+        phone (required): Phone number
+        city (optional): City name
+        current_position (optional): One of: SDR/BDR, Account Executive, Customer Success, Inside Sales, Field Sales
+        send_welcome_email (optional): Boolean flag to send welcome email (default: False)
+
+    Validates:
+        - Email format
+        - Email uniqueness
+        - Phone format (Brazilian format)
+        - current_position is one of allowed choices
+    """
+
+    email = serializers.EmailField(required=True, help_text="Email único do candidato")
+    full_name = serializers.CharField(
+        required=True, max_length=255, help_text="Nome completo do candidato"
+    )
+    phone = serializers.CharField(required=True, max_length=20, help_text="Telefone do candidato")
+    city = serializers.CharField(
+        required=False, allow_blank=True, max_length=255, help_text="Cidade (opcional)"
+    )
+    current_position = serializers.ChoiceField(
+        choices=[
+            ("SDR/BDR", "SDR/BDR"),
+            ("Account Executive", "Account Executive"),
+            ("Customer Success", "Customer Success"),
+            ("Inside Sales", "Inside Sales"),
+            ("Field Sales", "Field Sales"),
+        ],
+        required=False,
+        allow_blank=True,
+        help_text="Posição atual (opcional)",
+    )
+    send_welcome_email = serializers.BooleanField(
+        required=False,
+        default=False,
+        help_text="Enviar email de boas-vindas com link para definir senha",
+    )
+
+    def validate_email(self, value):
+        """Check if email already exists."""
+        from authentication.models import User
+
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("Email already exists")
+        return value
+
+    def validate_phone(self, value):
+        """Basic phone validation (allow Brazilian formats)."""
+        # Remove non-digit characters
+        cleaned = re.sub(r"\D", "", value)
+
+        # Brazilian phone: 10-11 digits
+        if len(cleaned) < 10 or len(cleaned) > 11:
+            raise serializers.ValidationError("Telefone deve ter 10 ou 11 dígitos")
+
+        return value

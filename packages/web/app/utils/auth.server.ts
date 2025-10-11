@@ -9,7 +9,7 @@
 
 import { redirect } from '@remix-run/node';
 
-import { getApiBaseUrl } from '~/config/api';
+import { apiServer } from '~/lib/apiServer';
 
 export interface AuthUser {
   id: string;
@@ -50,42 +50,10 @@ export function getAuthToken(request: Request): string | null {
  */
 export async function getUserFromToken(token: string): Promise<AuthUser | null> {
   try {
-    const apiUrl = getApiBaseUrl();
-    console.log('[getUserFromToken] Calling API:', `${apiUrl}/api/v1/auth/me`);
-    console.log('[getUserFromToken] Token (first 20 chars):', token.substring(0, 20) + '...');
-
-    const response = await fetch(`${apiUrl}/api/v1/auth/me`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    console.log('[getUserFromToken] Response status:', response.status);
-
-    if (!response.ok) {
-      // Token is invalid or expired
-      const errorText = await response.text();
-      console.error('[getUserFromToken] API returned error:', response.status, errorText);
-      return null;
-    }
-
-    const data = await response.json();
-    console.log('[getUserFromToken] User data:', {
-      id: data.id,
-      email: data.email,
-      role: data.role,
-    });
-
-    return {
-      id: data.id,
-      email: data.email,
-      role: data.role as 'admin' | 'candidate' | 'company',
-      name: data.name,
-    };
+    const data = await apiServer.get<AuthUser>('/api/v1/auth/me', { token });
+    return data;
   } catch (error) {
-    console.error('[getUserFromToken] Error:', error);
+    // apiServer already logs errors
     return null;
   }
 }
