@@ -11,7 +11,6 @@ import { useLoaderData, useRouteError } from '@remix-run/react';
 import { Card, CardHeader, CardTitle, CardContent, Badge } from '@talentbase/design-system';
 import { User, Mail, Shield } from 'lucide-react';
 
-import { AdminLayout } from '~/components/layouts/AdminLayout';
 import { requireAdmin } from '~/utils/auth.server';
 
 interface UserProfile {
@@ -71,6 +70,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 /**
  * Admin Profile Component
+ * Note: AdminLayout is applied by parent route (admin.tsx)
  */
 export default function AdminProfile() {
   const { profile, user } = useLoaderData<typeof loader>();
@@ -89,130 +89,126 @@ export default function AdminProfile() {
   };
 
   return (
-    <AdminLayout pageTitle="My Profile" activeItem="profile" user={user}>
-      <div className="space-y-6 max-w-4xl">
-        {/* Page Header */}
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Meu Perfil</h2>
-          <p className="text-gray-600 mt-1">Visualize suas informações de conta</p>
-        </div>
-
-        {/* Profile Card */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>Informações Pessoais</CardTitle>
-              <Badge variant={profile.is_active ? 'success' : 'default'}>
-                {profile.is_active ? 'Ativo' : 'Inativo'}
-              </Badge>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
-              {/* Avatar and Name */}
-              <div className="flex items-center gap-4">
-                <div className="flex items-center justify-center w-20 h-20 rounded-full bg-primary-500 text-white text-2xl font-semibold">
-                  {profile.name.charAt(0).toUpperCase()}
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900">{profile.name}</h3>
-                  <p className="text-sm text-gray-600">{getRoleName(profile.role)}</p>
-                </div>
-              </div>
-
-              {/* Profile Details */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-gray-200">
-                {/* Email */}
-                <div className="flex items-start gap-3">
-                  <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100">
-                    <Mail size={20} className="text-gray-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Email</p>
-                    <p className="text-sm text-gray-900">{profile.email}</p>
-                  </div>
-                </div>
-
-                {/* User ID */}
-                <div className="flex items-start gap-3">
-                  <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100">
-                    <User size={20} className="text-gray-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">ID do Usuário</p>
-                    <p className="text-sm text-gray-900 font-mono">{profile.id}</p>
-                  </div>
-                </div>
-
-                {/* Role */}
-                <div className="flex items-start gap-3">
-                  <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100">
-                    <Shield size={20} className="text-gray-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Função</p>
-                    <p className="text-sm text-gray-900">{getRoleName(profile.role)}</p>
-                  </div>
-                </div>
-
-                {/* Status */}
-                <div className="flex items-start gap-3">
-                  <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100">
-                    <User size={20} className="text-gray-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Status da Conta</p>
-                    <p className="text-sm text-gray-900">
-                      {profile.is_active ? 'Ativa' : 'Inativa'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Security Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Informações de Segurança</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between py-3 border-b border-gray-200">
-                <div>
-                  <p className="text-sm font-medium text-gray-900">Senha</p>
-                  <p className="text-xs text-gray-600">
-                    Última atualização: Contate o suporte para alterar
-                  </p>
-                </div>
-                <button
-                  disabled
-                  className="px-4 py-2 text-sm text-gray-400 bg-gray-100 rounded-md cursor-not-allowed"
-                >
-                  Em breve
-                </button>
-              </div>
-
-              <div className="flex items-center justify-between py-3">
-                <div>
-                  <p className="text-sm font-medium text-gray-900">Autenticação de dois fatores</p>
-                  <p className="text-xs text-gray-600">
-                    Adicione uma camada extra de segurança à sua conta
-                  </p>
-                </div>
-                <button
-                  disabled
-                  className="px-4 py-2 text-sm text-gray-400 bg-gray-100 rounded-md cursor-not-allowed"
-                >
-                  Em breve
-                </button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+    <div className="space-y-6 max-w-4xl">
+      {/* Page Header */}
+      <div>
+        <h2 className="text-2xl font-bold text-gray-900">Meu Perfil</h2>
+        <p className="text-gray-600 mt-1">Visualize suas informações de conta</p>
       </div>
-    </AdminLayout>
+
+      {/* Profile Card */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>Informações Pessoais</CardTitle>
+            <Badge variant={profile.is_active ? 'success' : 'default'}>
+              {profile.is_active ? 'Ativo' : 'Inativo'}
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-6">
+            {/* Avatar and Name */}
+            <div className="flex items-center gap-4">
+              <div className="flex items-center justify-center w-20 h-20 rounded-full bg-primary-500 text-white text-2xl font-semibold">
+                {profile.name.charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900">{profile.name}</h3>
+                <p className="text-sm text-gray-600">{getRoleName(profile.role)}</p>
+              </div>
+            </div>
+
+            {/* Profile Details */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-gray-200">
+              {/* Email */}
+              <div className="flex items-start gap-3">
+                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100">
+                  <Mail size={20} className="text-gray-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-700">Email</p>
+                  <p className="text-sm text-gray-900">{profile.email}</p>
+                </div>
+              </div>
+
+              {/* User ID */}
+              <div className="flex items-start gap-3">
+                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100">
+                  <User size={20} className="text-gray-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-700">ID do Usuário</p>
+                  <p className="text-sm text-gray-900 font-mono">{profile.id}</p>
+                </div>
+              </div>
+
+              {/* Role */}
+              <div className="flex items-start gap-3">
+                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100">
+                  <Shield size={20} className="text-gray-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-700">Função</p>
+                  <p className="text-sm text-gray-900">{getRoleName(profile.role)}</p>
+                </div>
+              </div>
+
+              {/* Status */}
+              <div className="flex items-start gap-3">
+                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100">
+                  <User size={20} className="text-gray-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-700">Status da Conta</p>
+                  <p className="text-sm text-gray-900">{profile.is_active ? 'Ativa' : 'Inativa'}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Security Information */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Informações de Segurança</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between py-3 border-b border-gray-200">
+              <div>
+                <p className="text-sm font-medium text-gray-900">Senha</p>
+                <p className="text-xs text-gray-600">
+                  Última atualização: Contate o suporte para alterar
+                </p>
+              </div>
+              <button
+                disabled
+                className="px-4 py-2 text-sm text-gray-400 bg-gray-100 rounded-md cursor-not-allowed"
+              >
+                Em breve
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between py-3">
+              <div>
+                <p className="text-sm font-medium text-gray-900">Autenticação de dois fatores</p>
+                <p className="text-xs text-gray-600">
+                  Adicione uma camada extra de segurança à sua conta
+                </p>
+              </div>
+              <button
+                disabled
+                className="px-4 py-2 text-sm text-gray-400 bg-gray-100 rounded-md cursor-not-allowed"
+              >
+                Em breve
+              </button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 

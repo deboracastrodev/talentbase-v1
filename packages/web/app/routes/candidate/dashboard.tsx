@@ -20,7 +20,6 @@ import {
 import { Share2, Copy, Eye, EyeOff, CheckCircle, ExternalLink } from 'lucide-react';
 import { useState } from 'react';
 
-import { CandidateLayout } from '~/components/layouts/CandidateLayout';
 import { getAppBaseUrl } from '~/config/api';
 import { formatDateTime } from '~/utils/formatting';
 import { apiClient, ApiError } from '~/lib/apiClient';
@@ -138,190 +137,183 @@ export default function CandidateDashboard() {
       ? `${appBaseUrl}/share/candidate/${profile.public_token}`
       : null);
 
+  // Layout is provided by parent route (candidate.tsx)
   return (
-    <CandidateLayout pageTitle="Dashboard" activeItem="dashboard" user={user}>
-      <div className="max-w-4xl mx-auto">
-        {/* Content wrapped by CandidateLayout */}
+    <div className="max-w-4xl mx-auto">
+      {/* Share Link Card */}
+      <Card className="mb-6">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Share2 className="h-5 w-5" />
+                Compartilhar Perfil Público
+              </CardTitle>
+              <CardDescription>
+                Gere um link público para compartilhar seu perfil com recrutadores
+              </CardDescription>
+            </div>
 
-        {/* Share Link Card */}
-        <Card className="mb-6">
-          <CardHeader>
-            <div className="flex items-center justify-between">
+            {/* Toggle Sharing */}
+            {currentShareLink && (
+              <Button
+                variant={sharingEnabled ? 'default' : 'outline'}
+                size="sm"
+                onClick={handleToggleSharing}
+                disabled={isToggling}
+                className="flex items-center gap-2"
+              >
+                {sharingEnabled ? (
+                  <>
+                    <Eye className="h-4 w-4" />
+                    Ativo
+                  </>
+                ) : (
+                  <>
+                    <EyeOff className="h-4 w-4" />
+                    Desativado
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent>
+          {error && (
+            <Alert variant="error" className="mb-4">
+              <p>{error}</p>
+            </Alert>
+          )}
+
+          {!profile.pitch_video_url && (
+            <Alert variant="warning" className="mb-4">
+              <p>
+                Complete seu perfil com vídeo pitch antes de gerar o link público.{' '}
+                <Link to="/candidate/profile/create" className="underline font-medium">
+                  Completar perfil →
+                </Link>
+              </p>
+            </Alert>
+          )}
+
+          {currentShareLink ? (
+            <div className="space-y-4">
+              {/* Share Link Display */}
               <div>
-                <CardTitle className="flex items-center gap-2">
-                  <Share2 className="h-5 w-5" />
-                  Compartilhar Perfil Público
-                </CardTitle>
-                <CardDescription>
-                  Gere um link público para compartilhar seu perfil com recrutadores
-                </CardDescription>
+                <label
+                  htmlFor="share-link"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  Link de compartilhamento
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    id="share-link"
+                    type="text"
+                    value={currentShareLink}
+                    readOnly
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-sm"
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCopyLink}
+                    className="flex items-center gap-2"
+                  >
+                    {copySuccess ? (
+                      <>
+                        <CheckCircle className="h-4 w-4 text-green-600" />
+                        Copiado!
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-4 w-4" />
+                        Copiar
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
 
-              {/* Toggle Sharing */}
-              {currentShareLink && (
-                <Button
-                  variant={sharingEnabled ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={handleToggleSharing}
-                  disabled={isToggling}
-                  className="flex items-center gap-2"
-                >
-                  {sharingEnabled ? (
-                    <>
-                      <Eye className="h-4 w-4" />
-                      Ativo
-                    </>
-                  ) : (
-                    <>
-                      <EyeOff className="h-4 w-4" />
-                      Desativado
-                    </>
-                  )}
+              {/* Actions */}
+              <div className="flex gap-3">
+                <Button variant="outline" onClick={handleGenerateLink} disabled={isGenerating}>
+                  {isGenerating ? 'Gerando...' : 'Gerar Novo Link'}
                 </Button>
-              )}
+
+                {sharingEnabled && (
+                  <Link
+                    to={`/share/candidate/${profile.public_token}`}
+                    target="_blank"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-md hover:bg-gray-50 text-sm font-medium"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    Visualizar Perfil Público
+                  </Link>
+                )}
+              </div>
+
+              {/* Status Info */}
+              <div className="pt-4 border-t">
+                <p className="text-sm text-gray-500">
+                  Status:{' '}
+                  <span className={sharingEnabled ? 'text-green-600 font-medium' : 'text-gray-600'}>
+                    {sharingEnabled ? 'Compartilhamento ativo' : 'Compartilhamento desativado'}
+                  </span>
+                </p>
+                {profile.share_link_generated_at && (
+                  <p className="text-sm text-gray-500 mt-1">
+                    Gerado em: {formatDateTime(profile.share_link_generated_at)}
+                  </p>
+                )}
+              </div>
             </div>
+          ) : (
+            <div className="text-center py-8">
+              <Share2 className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+              <p className="text-gray-600 mb-4">Você ainda não gerou um link de compartilhamento</p>
+              <Button
+                onClick={handleGenerateLink}
+                disabled={isGenerating || !profile.pitch_video_url}
+                size="lg"
+              >
+                {isGenerating ? 'Gerando...' : 'Gerar Link de Compartilhamento'}
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Completar Perfil</CardTitle>
+            <CardDescription>Adicione mais informações ao seu perfil</CardDescription>
           </CardHeader>
           <CardContent>
-            {error && (
-              <Alert variant="error" className="mb-4">
-                <p>{error}</p>
-              </Alert>
-            )}
-
-            {!profile.pitch_video_url && (
-              <Alert variant="warning" className="mb-4">
-                <p>
-                  Complete seu perfil com vídeo pitch antes de gerar o link público.{' '}
-                  <Link to="/candidate/profile/create" className="underline font-medium">
-                    Completar perfil →
-                  </Link>
-                </p>
-              </Alert>
-            )}
-
-            {currentShareLink ? (
-              <div className="space-y-4">
-                {/* Share Link Display */}
-                <div>
-                  <label
-                    htmlFor="share-link"
-                    className="block text-sm font-medium text-gray-700 mb-2"
-                  >
-                    Link de compartilhamento
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      id="share-link"
-                      type="text"
-                      value={currentShareLink}
-                      readOnly
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-sm"
-                    />
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleCopyLink}
-                      className="flex items-center gap-2"
-                    >
-                      {copySuccess ? (
-                        <>
-                          <CheckCircle className="h-4 w-4 text-green-600" />
-                          Copiado!
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="h-4 w-4" />
-                          Copiar
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div className="flex gap-3">
-                  <Button variant="outline" onClick={handleGenerateLink} disabled={isGenerating}>
-                    {isGenerating ? 'Gerando...' : 'Gerar Novo Link'}
-                  </Button>
-
-                  {sharingEnabled && (
-                    <Link
-                      to={`/share/candidate/${profile.public_token}`}
-                      target="_blank"
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-md hover:bg-gray-50 text-sm font-medium"
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                      Visualizar Perfil Público
-                    </Link>
-                  )}
-                </div>
-
-                {/* Status Info */}
-                <div className="pt-4 border-t">
-                  <p className="text-sm text-gray-500">
-                    Status:{' '}
-                    <span
-                      className={sharingEnabled ? 'text-green-600 font-medium' : 'text-gray-600'}
-                    >
-                      {sharingEnabled ? 'Compartilhamento ativo' : 'Compartilhamento desativado'}
-                    </span>
-                  </p>
-                  {profile.share_link_generated_at && (
-                    <p className="text-sm text-gray-500 mt-1">
-                      Gerado em: {formatDateTime(profile.share_link_generated_at)}
-                    </p>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <Share2 className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                <p className="text-gray-600 mb-4">
-                  Você ainda não gerou um link de compartilhamento
-                </p>
-                <Button
-                  onClick={handleGenerateLink}
-                  disabled={isGenerating || !profile.pitch_video_url}
-                  size="lg"
-                >
-                  {isGenerating ? 'Gerando...' : 'Gerar Link de Compartilhamento'}
-                </Button>
-              </div>
-            )}
+            <Link to="/candidate/profile/create">
+              <Button variant="outline" className="w-full">
+                Editar Perfil
+              </Button>
+            </Link>
           </CardContent>
         </Card>
 
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Completar Perfil</CardTitle>
-              <CardDescription>Adicione mais informações ao seu perfil</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Link to="/candidate/profile/create">
-                <Button variant="outline" className="w-full">
-                  Editar Perfil
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Buscar Vagas</CardTitle>
-              <CardDescription>Encontre oportunidades que combinam com você</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Link to="/jobs">
-                <Button variant="outline" className="w-full">
-                  Ver Vagas
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Buscar Vagas</CardTitle>
+            <CardDescription>Encontre oportunidades que combinam com você</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link to="/jobs">
+              <Button variant="outline" className="w-full">
+                Ver Vagas
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
       </div>
-    </CandidateLayout>
+    </div>
   );
 }
