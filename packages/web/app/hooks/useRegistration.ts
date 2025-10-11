@@ -7,7 +7,7 @@
 
 import { useState } from 'react';
 
-import { buildApiUrl, defaultFetchOptions } from '~/config/api';
+import { apiClient, ApiError } from '~/lib/apiClient';
 import { ERROR_MESSAGES } from '~/utils/constants';
 
 export interface RegistrationResponse {
@@ -65,21 +65,20 @@ export function useRegistration(): UseRegistrationReturn {
     setFieldErrors({});
 
     try {
-      const response = await fetch(buildApiUrl(endpoint), {
-        ...defaultFetchOptions,
-        method: 'POST',
-        body: JSON.stringify(data),
-      });
+      const responseData = await apiClient.post<RegistrationResponse>(endpoint, data);
 
-      const responseData = await response.json();
+      setIsLoading(false);
+      return responseData;
+    } catch (err) {
+      setIsLoading(false);
 
-      if (!response.ok) {
-        // Handle validation errors from backend
-        if (responseData.errors) {
-          // Check for field-specific errors
+      if (err instanceof ApiError) {
+        const errorData = err.data as any;
+
+        if (errorData?.errors) {
           const errors: Record<string, string> = {};
-          Object.keys(responseData.errors).forEach((key) => {
-            const errorValue = responseData.errors[key];
+          Object.keys(errorData.errors).forEach((key) => {
+            const errorValue = errorData.errors[key];
             if (Array.isArray(errorValue)) {
               errors[key] = errorValue[0];
             } else if (typeof errorValue === 'string') {
@@ -87,41 +86,30 @@ export function useRegistration(): UseRegistrationReturn {
             }
           });
 
-          // If we have field errors, set them
           if (Object.keys(errors).length > 0) {
             setFieldErrors(errors);
           }
 
-          // Set general error if exists
-          if (responseData.errors.detail) {
-            const detailError = Array.isArray(responseData.errors.detail)
-              ? responseData.errors.detail[0]
-              : responseData.errors.detail;
+          if (errorData.errors.detail) {
+            const detailError = Array.isArray(errorData.errors.detail)
+              ? errorData.errors.detail[0]
+              : errorData.errors.detail;
             setError(detailError);
           } else if (Object.keys(errors).length === 0) {
             setError(ERROR_MESSAGES.SERVER_ERROR);
           }
-        } else if (responseData.detail) {
-          // Handle DRF's standard error format
-          const detailError = Array.isArray(responseData.detail)
-            ? responseData.detail[0]
-            : responseData.detail;
+        } else if (errorData?.detail) {
+          const detailError = Array.isArray(errorData.detail)
+            ? errorData.detail[0]
+            : errorData.detail;
           setError(detailError);
         } else {
           setError(ERROR_MESSAGES.SERVER_ERROR);
         }
-
-        setIsLoading(false);
-        return null;
+      } else {
+        setError(ERROR_MESSAGES.NETWORK_ERROR);
       }
 
-      // Success!
-      setIsLoading(false);
-      return responseData as RegistrationResponse;
-    } catch (err) {
-      console.error('Registration error:', err);
-      setError(ERROR_MESSAGES.NETWORK_ERROR);
-      setIsLoading(false);
       return null;
     }
   };

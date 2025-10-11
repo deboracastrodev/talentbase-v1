@@ -169,6 +169,52 @@ class ApiClient {
   async delete<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
     return this.request<T>('DELETE', endpoint, options);
   }
+
+  /**
+   * POST FormData (for file uploads)
+   */
+  async postFormData<T>(
+    endpoint: string,
+    formData: FormData,
+    options: RequestOptions = {}
+  ): Promise<T> {
+    const url = this.buildUrl(endpoint, options.params);
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        // Don't set Content-Type for FormData - browser will set it with boundary
+        ...options.headers,
+      },
+      credentials: 'include',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      let errorData: unknown;
+      const contentType = response.headers.get('content-type');
+
+      if (contentType?.includes('application/json')) {
+        errorData = await response.json();
+      } else {
+        errorData = await response.text();
+      }
+
+      const error = new ApiError(response.status, response.statusText, errorData);
+
+      if (this.config.onError) {
+        this.config.onError(error);
+      }
+
+      throw error;
+    }
+
+    if (response.status === 204) {
+      return null as T;
+    }
+
+    return response.json();
+  }
 }
 
 /**

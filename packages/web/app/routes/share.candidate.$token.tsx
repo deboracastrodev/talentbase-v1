@@ -26,7 +26,9 @@ import {
 } from '@talentbase/design-system';
 import { useState } from 'react';
 
-import { getApiBaseUrl, getAppBaseUrl } from '~/config/api';
+import { getAppBaseUrl } from '~/config/api';
+import { apiServer } from '~/lib/apiServer';
+import { apiClient, ApiError } from '~/lib/apiClient';
 
 // Types
 interface PublicProfile {
@@ -94,16 +96,8 @@ export async function loader({ params }: LoaderFunctionArgs) {
     throw new Response('Token not found', { status: 404 });
   }
 
-  const apiBaseUrl = getApiBaseUrl();
-
   try {
-    const response = await fetch(`${apiBaseUrl}/api/v1/candidates/public/${token}`);
-
-    if (!response.ok) {
-      throw new Response('Profile not found or sharing is disabled', { status: 404 });
-    }
-
-    const profile: PublicProfile = await response.json();
+    const profile = await apiServer.get<PublicProfile>(`/api/v1/candidates/public/${token}`);
 
     return json({ profile, token });
   } catch (error) {
@@ -163,19 +157,7 @@ export default function ShareCandidateProfile() {
     setContactError(null);
 
     try {
-      const apiBaseUrl = getApiBaseUrl();
-      const response = await fetch(`${apiBaseUrl}/api/v1/candidates/public/${token}/contact`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Erro ao enviar mensagem');
-      }
+      await apiClient.post(`/api/v1/candidates/public/${token}/contact`, formData);
 
       setContactSuccess(true);
       setFormData({ name: '', email: '', message: '' });
@@ -185,8 +167,13 @@ export default function ShareCandidateProfile() {
         setIsContactModalOpen(false);
         setContactSuccess(false);
       }, 2000);
-    } catch (error) {
-      setContactError(error instanceof Error ? error.message : 'Erro ao enviar mensagem');
+    } catch (err) {
+      if (err instanceof ApiError) {
+        const errorData = err.data as any;
+        setContactError(errorData?.error || 'Erro ao enviar mensagem');
+      } else {
+        setContactError('Erro ao enviar mensagem');
+      }
     } finally {
       setIsSubmitting(false);
     }

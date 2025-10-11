@@ -43,6 +43,7 @@ import { useState, useCallback } from 'react';
 
 import { AdminLayout } from '~/components/layouts/AdminLayout';
 import { requireAdmin, getUserFromToken } from '~/utils/auth.server';
+import { apiClient, ApiError } from '~/lib/apiClient';
 
 /**
  * Loader - Ensure admin access and fetch user data
@@ -138,27 +139,23 @@ export default function AdminImportCandidatesPage() {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch('/api/v1/candidates/admin/parse-csv', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: formData,
-      });
+      const data = await apiClient.postFormData<ParseResult>(
+        '/api/v1/candidates/admin/parse-csv',
+        formData
+      );
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Erro ao processar CSV');
-      }
-
-      const data: ParseResult = await response.json();
       setParseResult(data);
       setColumnMapping(data.suggested_mapping);
 
       // Move to next step
       setCurrentStep(1);
-    } catch (error: any) {
-      setUploadError(error.message);
+    } catch (err) {
+      if (err instanceof ApiError) {
+        const errorData = err.data as any;
+        setUploadError(errorData?.error || 'Erro ao processar CSV');
+      } else {
+        setUploadError('Erro ao processar CSV');
+      }
     } finally {
       setIsUploading(false);
     }
@@ -181,32 +178,24 @@ export default function AdminImportCandidatesPage() {
     if (!parseResult) return;
 
     try {
-      const response = await fetch('/api/v1/candidates/admin/import', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify({
-          file_id: parseResult.file_id,
-          column_mapping: columnMapping,
-          duplicate_strategy: duplicateStrategy,
-        }),
+      const data = await apiClient.post<{ task_id: string }>('/api/v1/candidates/admin/import', {
+        file_id: parseResult.file_id,
+        column_mapping: columnMapping,
+        duplicate_strategy: duplicateStrategy,
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Erro ao iniciar importação');
-      }
-
-      const data = await response.json();
       setTaskId(data.task_id);
       setCurrentStep(2);
 
       // Start polling for progress
       startProgressPolling(data.task_id);
-    } catch (error: any) {
-      alert(error.message);
+    } catch (err) {
+      if (err instanceof ApiError) {
+        const errorData = err.data as any;
+        alert(errorData?.error || 'Erro ao iniciar importação');
+      } else {
+        alert('Erro ao iniciar importação');
+      }
     }
   }, [parseResult, columnMapping, duplicateStrategy]);
 
@@ -216,17 +205,10 @@ export default function AdminImportCandidatesPage() {
   const startProgressPolling = (task_id: string) => {
     const interval = setInterval(async () => {
       try {
-        const response = await fetch(`/api/v1/candidates/admin/import/${task_id}/status`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        });
+        const status = await apiClient.get<ImportStatus>(
+          `/api/v1/candidates/admin/import/${task_id}/status`
+        );
 
-        if (!response.ok) {
-          throw new Error('Erro ao buscar status');
-        }
-
-        const status: ImportStatus = await response.json();
         setImportStatus(status);
 
         // If completed, fetch results and stop polling
@@ -252,17 +234,10 @@ export default function AdminImportCandidatesPage() {
    */
   const fetchImportResult = async (task_id: string) => {
     try {
-      const response = await fetch(`/api/v1/candidates/admin/import/${task_id}/result`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
+      const result = await apiClient.get<ImportResult>(
+        `/api/v1/candidates/admin/import/${task_id}/result`
+      );
 
-      if (!response.ok) {
-        throw new Error('Erro ao buscar resultado');
-      }
-
-      const result: ImportResult = await response.json();
       setImportResult(result);
       setCurrentStep(3);
     } catch (error: any) {

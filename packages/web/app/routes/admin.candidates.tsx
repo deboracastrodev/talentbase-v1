@@ -26,13 +26,13 @@ import {
   TableCell,
   Avatar,
 } from '@talentbase/design-system';
-import { Search, Upload, Eye, User } from 'lucide-react';
+import { Search, Upload, Eye, User, UserPlus } from 'lucide-react';
 import { useState } from 'react';
 
 import { AdminLayout } from '~/components/layouts/AdminLayout';
-import { getApiBaseUrl } from '~/config/api';
 import { requireAdmin, getUserFromToken } from '~/utils/auth.server';
 import { formatDate } from '~/utils/formatting';
+import { apiServer } from '~/lib/apiServer';
 
 interface Candidate {
   id: string;
@@ -81,31 +81,22 @@ export async function loader({ request }: LoaderFunctionArgs) {
   };
 
   try {
-    const apiBaseUrl = getApiBaseUrl();
-
     // Build query params
-    const params = new URLSearchParams();
-    if (filters.search) params.append('search', filters.search);
-    if (filters.status !== 'all') params.append('status', filters.status);
-    params.append('page', filters.page.toString());
-    params.append('page_size', '20');
+    const params: Record<string, string> = {
+      page: filters.page.toString(),
+      page_size: '20',
+    };
+
+    if (filters.search) params.search = filters.search;
+    if (filters.status !== 'all') params.status = filters.status;
 
     // Fetch candidates from API
-    const response = await fetch(
-      `${apiBaseUrl}/api/v1/candidates/admin/candidates?${params.toString()}`,
-      {
-        headers: {
-          Authorization: `Token ${token}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch candidates');
-    }
-
-    const data = await response.json();
+    const data = await apiServer.get<{
+      results: Candidate[];
+      count: number;
+      next: string | null;
+      previous: string | null;
+    }>('/api/v1/candidates/admin/candidates', { token, params });
 
     // Get user info
     const userData = await getUserFromToken(token);
@@ -193,9 +184,40 @@ export default function AdminCandidatesPage() {
     }
   };
 
+  // Check for success message in URL params (reuse existing searchParams)
+  const showSuccess = searchParams.get('created') === 'true';
+  const emailSent = searchParams.get('email_sent') === 'true';
+
   return (
     <AdminLayout pageTitle="Candidatos" activeItem="candidates" user={user}>
       <div className="space-y-6">
+        {/* Success Alert */}
+        {showSuccess && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-sm font-medium text-green-900">
+                  Candidato criado com sucesso!
+                </h3>
+                <p className="mt-1 text-sm text-green-700">
+                  {emailSent
+                    ? 'Um email de boas-vindas foi enviado com instruções para definir a senha.'
+                    : 'O candidato foi registrado no sistema. Nenhum email foi enviado.'}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Header with actions */}
         <div className="flex items-center justify-between">
           <div>
@@ -204,12 +226,20 @@ export default function AdminCandidatesPage() {
               {totalCount} candidato{totalCount !== 1 ? 's' : ''} no sistema
             </p>
           </div>
-          <Link to="/admin/import/candidates">
-            <Button variant="default">
-              <Upload className="h-4 w-4 mr-2" />
-              Importar CSV
-            </Button>
-          </Link>
+          <div className="flex gap-3">
+            <Link to="/admin/candidates/new">
+              <Button variant="default">
+                <UserPlus className="h-4 w-4 mr-2" />
+                Criar Candidato
+              </Button>
+            </Link>
+            <Link to="/admin/import/candidates">
+              <Button variant="outline">
+                <Upload className="h-4 w-4 mr-2" />
+                Importar CSV
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {/* Filters Card */}

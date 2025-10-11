@@ -21,8 +21,9 @@ import { Share2, Copy, Eye, EyeOff, CheckCircle, ExternalLink } from 'lucide-rea
 import { useState } from 'react';
 
 import { CandidateLayout } from '~/components/layouts/CandidateLayout';
-import { getApiBaseUrl, getAppBaseUrl } from '~/config/api';
+import { getAppBaseUrl } from '~/config/api';
 import { formatDateTime } from '~/utils/formatting';
+import { apiClient, ApiError } from '~/lib/apiClient';
 
 // Types
 interface CandidateProfile {
@@ -71,35 +72,26 @@ export default function CandidateDashboard() {
   const [sharingEnabled, setSharingEnabled] = useState(profile.public_sharing_enabled);
 
   const appBaseUrl = getAppBaseUrl();
-  const apiBaseUrl = getApiBaseUrl();
 
   const handleGenerateLink = async () => {
     setIsGenerating(true);
     setError(null);
 
     try {
-      const response = await fetch(
-        `${apiBaseUrl}/api/v1/candidates/${profile.id}/generate-share-token`,
-        {
-          method: 'POST',
-          headers: {
-            // TODO: Add actual auth token
-            Authorization: 'Token mock-token',
-            'Content-Type': 'application/json',
-          },
-        }
+      const data = await apiClient.post<{ share_url: string; public_sharing_enabled: boolean }>(
+        `/api/v1/candidates/${profile.id}/generate-share-token`,
+        {}
       );
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Erro ao gerar link');
-      }
-
-      const data = await response.json();
       setShareLink(data.share_url);
       setSharingEnabled(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao gerar link');
+      if (err instanceof ApiError) {
+        const errorData = err.data as any;
+        setError(errorData?.error || 'Erro ao gerar link');
+      } else {
+        setError('Erro ao gerar link');
+      }
     } finally {
       setIsGenerating(false);
     }
@@ -110,24 +102,18 @@ export default function CandidateDashboard() {
     setError(null);
 
     try {
-      const response = await fetch(`${apiBaseUrl}/api/v1/candidates/${profile.id}/toggle-sharing`, {
-        method: 'PATCH',
-        headers: {
-          // TODO: Add actual auth token
-          Authorization: 'Token mock-token',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ enabled: !sharingEnabled }),
-      });
+      const data = await apiClient.patch<{ public_sharing_enabled: boolean }>(
+        `/api/v1/candidates/${profile.id}/toggle-sharing`,
+        { enabled: !sharingEnabled }
+      );
 
-      if (!response.ok) {
-        throw new Error('Erro ao alterar compartilhamento');
-      }
-
-      const data = await response.json();
       setSharingEnabled(data.public_sharing_enabled);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao alterar compartilhamento');
+      if (err instanceof ApiError) {
+        setError('Erro ao alterar compartilhamento');
+      } else {
+        setError('Erro ao alterar compartilhamento');
+      }
     } finally {
       setIsToggling(false);
     }
