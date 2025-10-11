@@ -14,7 +14,7 @@
  * - "Forgot password" placeholder link (AC9)
  */
 
-import { useNavigate, Link, useSearchParams } from '@remix-run/react';
+import { Link, useSearchParams } from '@remix-run/react';
 import { Button, AuthLayout, AuthCard, Alert, AuthFormField } from '@talentbase/design-system';
 import { Loader2 } from 'lucide-react';
 import { FormEvent } from 'react';
@@ -33,7 +33,6 @@ interface LoginFormData {
 }
 
 export default function Login() {
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirectTo = searchParams.get('redirectTo');
 
@@ -87,27 +86,9 @@ export default function Login() {
         console.log('[Login] Redirecting to:', targetUrl);
       }
 
-      try {
-        // Try Remix navigate first (with replace to avoid back button issues)
-        navigate(targetUrl, { replace: true });
-
-        // Add a small timeout as fallback
-        setTimeout(() => {
-          // If still on login page after 500ms, force redirect
-          if (window.location.pathname === '/auth/login') {
-            if (process.env.NODE_ENV === 'development') {
-              console.warn('[Login] Navigate timeout, forcing redirect with window.location');
-            }
-            window.location.href = targetUrl;
-          }
-        }, 500);
-      } catch (navError) {
-        // Fallback to window.location if navigate fails immediately
-        if (process.env.NODE_ENV === 'development') {
-          console.error('[Login] Navigate failed:', navError);
-        }
-        window.location.href = targetUrl;
-      }
+      // Use direct window.location for more reliable redirect
+      // This ensures redirect works even with hydration issues
+      window.location.href = targetUrl;
     }
   };
 

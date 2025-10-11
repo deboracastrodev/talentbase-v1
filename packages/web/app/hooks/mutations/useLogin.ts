@@ -20,7 +20,6 @@
  * ```
  */
 
-import { useNavigate } from '@remix-run/react';
 import { useMutation } from '@tanstack/react-query';
 
 import { API_ENDPOINTS } from '~/config/api';
@@ -44,8 +43,6 @@ export interface LoginResponse {
 }
 
 export function useLogin() {
-  const navigate = useNavigate();
-
   return useMutation({
     mutationFn: async (credentials: LoginCredentials): Promise<LoginResponse> => {
       return apiClient.post<LoginResponse>(API_ENDPOINTS.auth.login, credentials);
@@ -58,22 +55,9 @@ export function useLogin() {
       // Store user data in localStorage (non-sensitive info only)
       localStorage.setItem('user', JSON.stringify(data.user));
 
-      // Redirect to the appropriate page with fallback
-      const targetUrl = data.redirect_url;
-
-      try {
-        navigate(targetUrl, { replace: true });
-
-        // Fallback: if still on same page after 500ms, force redirect
-        setTimeout(() => {
-          if (window.location.pathname === '/auth/login') {
-            window.location.href = targetUrl;
-          }
-        }, 500);
-      } catch (error) {
-        // If navigate fails, use window.location
-        window.location.href = targetUrl;
-      }
+      // Redirect to the appropriate page
+      // Using window.location for reliable redirect
+      window.location.href = data.redirect_url;
     },
 
     onError: (error: ApiError) => {
