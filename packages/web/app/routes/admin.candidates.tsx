@@ -227,18 +227,18 @@ export default function AdminCandidatesPage() {
             </p>
           </div>
           <div className="flex gap-3">
-            <Button variant="default" asChild>
-              <Link to="/admin/candidates/new">
+            <Link to="/admin/candidates/new">
+              <Button variant="default">
                 <UserPlus className="h-4 w-4 mr-2" />
                 Criar Candidato
-              </Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link to="/admin/import/candidates">
+              </Button>
+            </Link>
+            <Link to="/admin/import/candidates">
+              <Button variant="outline">
                 <Upload className="h-4 w-4 mr-2" />
                 Importar CSV
-              </Link>
-            </Button>
+              </Button>
+            </Link>
           </div>
         </div>
 
