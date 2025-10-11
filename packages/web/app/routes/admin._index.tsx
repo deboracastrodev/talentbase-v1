@@ -13,12 +13,15 @@
 import { json } from '@remix-run/node';
 import type { LoaderFunctionArgs } from '@remix-run/node';
 import { useLoaderData, Link } from '@remix-run/react';
-import { AdminLayout } from '~/components/layouts/AdminLayout';
-import { StatCard } from '~/components/admin/StatCard';
-import { getAdminStats, type AdminStats } from '~/lib/api/admin';
-import { Users, AlertCircle, Briefcase, UserCheck, Activity } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@talentbase/design-system';
-import { requireAdmin } from '~/utils/auth.server';
+import { Users, AlertCircle, Briefcase, UserCheck, Activity } from 'lucide-react';
+
+import { StatCard } from '~/components/admin/StatCard';
+import { AdminLayout } from '~/components/layouts/AdminLayout';
+import { ROUTES, QUICK_ROUTES } from '~/config/routes';
+import { getAdminStats, type AdminStats } from '~/lib/api/admin';
+import { requireAdmin, getUserFromToken } from '~/utils/auth.server';
+import { formatDateTime } from '~/utils/formatting';
 
 interface LoaderData {
   stats: AdminStats;
@@ -32,7 +35,7 @@ interface LoaderData {
 /**
  * Loader - Fetch admin dashboard stats
  * Requires admin authentication (AC13)
- * Story 2.6: Updated to use requireAdmin utility
+ * Story 2.6: Updated to use requireAdmin utility and fetch real user data
  */
 export async function loader({ request }: LoaderFunctionArgs) {
   // Story 2.6: Require admin role (checks auth + role)
@@ -42,11 +45,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
     // Fetch dashboard stats
     const stats = await getAdminStats(token);
 
-    // Get user from localStorage (set during login)
-    // TODO: Future improvement - fetch from API /api/v1/auth/me
+    // Fetch real user data from API
+    const userData = await getUserFromToken(token);
     const user = {
-      name: 'Admin User',
-      email: 'admin@talentbase.com',
+      name: userData?.name || 'Admin User',
+      email: userData?.email || 'admin@talentbase.com',
     };
 
     return json<LoaderData>({
@@ -72,11 +75,9 @@ export default function AdminDashboard() {
       <div className="space-y-6">
         {/* Welcome message */}
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">
-            Welcome back, {user.name}!
-          </h2>
+          <h2 className="text-2xl font-bold text-gray-900">Welcome back, {user.name}!</h2>
           <p className="text-gray-600 mt-1">
-            Here's what's happening with your platform today.
+            Here&apos;s what&apos;s happening with your platform today.
           </p>
         </div>
 
@@ -143,12 +144,7 @@ export default function AdminDashboard() {
                       <p className="text-xs text-gray-600">{activity.user_email}</p>
                     </div>
                     <span className="text-xs text-gray-500">
-                      {new Date(activity.timestamp).toLocaleDateString('pt-BR', {
-                        day: '2-digit',
-                        month: 'short',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
+                      {formatDateTime(activity.timestamp)}
                     </span>
                   </div>
                 ))}
@@ -166,19 +162,17 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Link to="/admin/users">
+              <Link to={ROUTES.admin.users}>
                 <button className="w-full px-4 py-3 text-left bg-primary-50 hover:bg-primary-100 rounded-lg transition-colors">
                   <p className="font-medium text-primary-700">Manage Users</p>
                   <p className="text-sm text-primary-600">View and manage all users</p>
                 </button>
               </Link>
 
-              <Link to="/admin/users?status=pending&role=company">
+              <Link to={QUICK_ROUTES.pendingCompanyApprovals}>
                 <button className="w-full px-4 py-3 text-left bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors">
                   <p className="font-medium text-orange-700">Review Approvals</p>
-                  <p className="text-sm text-orange-600">
-                    {stats.pending_approvals} pending
-                  </p>
+                  <p className="text-sm text-orange-600">{stats.pending_approvals} pending</p>
                 </button>
               </Link>
 
@@ -211,7 +205,7 @@ export function ErrorBoundary() {
           <p className="text-gray-600 mb-4">
             Failed to load dashboard statistics. Please try again.
           </p>
-          <Link to="/admin/users">
+          <Link to={ROUTES.admin.users}>
             <button className="w-full px-4 py-2 bg-primary-500 text-white rounded-md hover:bg-primary-600">
               Go to User Management
             </button>

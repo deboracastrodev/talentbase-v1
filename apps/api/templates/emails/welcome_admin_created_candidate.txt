@@ -1,0 +1,25 @@
+Bem-vindo ao TalentBase!
+
+Olá {{ candidate_name }},
+
+Sua conta foi criada em nossa plataforma! Para começar a usar o TalentBase, você precisa definir sua senha.
+
+⚠️ Atenção: Este link é válido por {{ expiration_days }} dias.
+
+Defina sua senha acessando: {{ password_set_url }}
+
+Próximos passos:
+1. Clique no link acima para definir sua senha
+2. Complete seu perfil profissional com suas experiências
+3. Adicione suas habilidades e competências
+4. Comece a buscar oportunidades que combinam com você
+
+💡 Dica: Escolha uma senha forte com pelo menos 8 caracteres para proteger sua conta.
+
+Se você não solicitou esta conta ou tiver alguma dúvida, entre em contato com nossa equipe.
+
+Atenciosamente,
+Equipe TalentBase
+
+📧 contato@salesdog.click
+🌐 www.salesdog.click

@@ -3,61 +3,9 @@
  * Story 3.1: Profile creation and management.
  */
 
-import type {
-  CandidateProfile,
-  PresignedUrlResponse,
-  ApiError,
-} from '../types/candidate';
+import type { CandidateProfile, PresignedUrlResponse, ApiError } from '../types/candidate';
 
-const API_BASE = process.env.API_URL || 'http://localhost:8000';
-
-/**
- * Get authentication token from cookie/session.
- * TODO: Implement proper token retrieval based on auth strategy.
- */
-function getAuthToken(): string | null {
-  // This will be implemented with actual auth integration
-  if (typeof document !== 'undefined') {
-    const cookies = document.cookie.split(';');
-    for (const cookie of cookies) {
-      const [name, value] = cookie.trim().split('=');
-      if (name === 'auth_token') {
-        return value;
-      }
-    }
-  }
-  return null;
-}
-
-/**
- * Make authenticated API request.
- */
-async function apiRequest<T>(
-  endpoint: string,
-  options: RequestInit = {}
-): Promise<T> {
-  const token = getAuthToken();
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-    ...options.headers,
-  };
-
-  if (token) {
-    headers['Authorization'] = `Token ${token}`;
-  }
-
-  const response = await fetch(`${API_BASE}${endpoint}`, {
-    ...options,
-    headers,
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(JSON.stringify(error));
-  }
-
-  return response.json();
-}
+import { apiClient } from '~/lib/apiClient';
 
 /**
  * Get presigned URL for S3 upload.
@@ -72,15 +20,13 @@ export async function getUploadUrl(
   contentType: string,
   type: 'photo' | 'video'
 ): Promise<PresignedUrlResponse> {
-  const params = new URLSearchParams({
+  const params = {
     filename,
     content_type: contentType,
     type,
-  });
+  };
 
-  return apiRequest<PresignedUrlResponse>(
-    `/api/v1/candidates/upload-url?${params}`
-  );
+  return apiClient.get<PresignedUrlResponse>('/api/v1/candidates/upload-url', { params });
 }
 
 /**
@@ -144,10 +90,7 @@ export async function uploadToS3(
 export async function createCandidateProfile(
   data: Partial<CandidateProfile>
 ): Promise<CandidateProfile> {
-  return apiRequest<CandidateProfile>('/api/v1/candidates/', {
-    method: 'POST',
-    body: JSON.stringify(data),
-  });
+  return apiClient.post<CandidateProfile>('/api/v1/candidates/', data);
 }
 
 /**
@@ -161,10 +104,7 @@ export async function saveDraft(
   profileId: number,
   data: Partial<CandidateProfile>
 ): Promise<CandidateProfile> {
-  return apiRequest<CandidateProfile>(`/api/v1/candidates/${profileId}/draft`, {
-    method: 'PATCH',
-    body: JSON.stringify(data),
-  });
+  return apiClient.patch<CandidateProfile>(`/api/v1/candidates/${profileId}/draft`, data);
 }
 
 /**
@@ -178,9 +118,8 @@ export async function updateProfilePhoto(
   profileId: number,
   photoUrl: string
 ): Promise<CandidateProfile> {
-  return apiRequest<CandidateProfile>(`/api/v1/candidates/${profileId}/photo`, {
-    method: 'PUT',
-    body: JSON.stringify({ profile_photo_url: photoUrl }),
+  return apiClient.put<CandidateProfile>(`/api/v1/candidates/${profileId}/photo`, {
+    profile_photo_url: photoUrl,
   });
 }
 
@@ -197,11 +136,8 @@ export async function updatePitchVideo(
   videoUrl: string,
   videoType: 's3' | 'youtube'
 ): Promise<CandidateProfile> {
-  return apiRequest<CandidateProfile>(`/api/v1/candidates/${profileId}/video`, {
-    method: 'PUT',
-    body: JSON.stringify({
-      pitch_video_url: videoUrl,
-      pitch_video_type: videoType,
-    }),
+  return apiClient.put<CandidateProfile>(`/api/v1/candidates/${profileId}/video`, {
+    pitch_video_url: videoUrl,
+    pitch_video_type: videoType,
   });
 }

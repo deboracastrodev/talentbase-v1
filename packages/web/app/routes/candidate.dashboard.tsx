@@ -8,7 +8,6 @@
 
 import { json, type LoaderFunctionArgs } from '@remix-run/node';
 import { useLoaderData, Link } from '@remix-run/react';
-import { useState } from 'react';
 import {
   Card,
   CardHeader,
@@ -19,6 +18,12 @@ import {
   Alert,
 } from '@talentbase/design-system';
 import { Share2, Copy, Eye, EyeOff, CheckCircle, ExternalLink } from 'lucide-react';
+import { useState } from 'react';
+
+import { CandidateLayout } from '~/components/layouts/CandidateLayout';
+import { getAppBaseUrl } from '~/config/api';
+import { formatDateTime } from '~/utils/formatting';
+import { apiClient, ApiError } from '~/lib/apiClient';
 
 // Types
 interface CandidateProfile {
@@ -32,15 +37,10 @@ interface CandidateProfile {
 }
 
 // Loader: Fetch candidate profile data
-export async function loader({ request }: LoaderFunctionArgs) {
-  // TODO: Get token from session/cookie
-  const candidateToken = 'mock-candidate-token';
-
-  const apiBaseUrl = process.env.VITE_API_BASE_URL || 'http://localhost:8000';
-
+export async function loader({ request: _request }: LoaderFunctionArgs) {
+  // TODO: Get token from session/cookie and fetch candidate profile via API
+  // For now, return mock data
   try {
-    // TODO: Fetch candidate profile via API
-    // For now, return mock data
     const profile: CandidateProfile = {
       id: '1',
       full_name: 'João Silva',
@@ -51,14 +51,19 @@ export async function loader({ request }: LoaderFunctionArgs) {
       share_link_generated_at: undefined,
     };
 
-    return json({ profile });
+    const user = {
+      name: profile.full_name,
+      email: 'joao@email.com', // TODO: Get from API
+    };
+
+    return json({ profile, user });
   } catch (error) {
     throw new Response('Failed to load profile', { status: 500 });
   }
 }
 
 export default function CandidateDashboard() {
-  const { profile } = useLoaderData<typeof loader>();
+  const { profile, user } = useLoaderData<typeof loader>();
   const [shareLink, setShareLink] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isToggling, setIsToggling] = useState(false);
@@ -66,33 +71,27 @@ export default function CandidateDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [sharingEnabled, setSharingEnabled] = useState(profile.public_sharing_enabled);
 
-  const appBaseUrl = process.env.VITE_APP_BASE_URL || 'http://localhost:3000';
-  const apiBaseUrl = process.env.VITE_API_BASE_URL || 'http://localhost:8000';
+  const appBaseUrl = getAppBaseUrl();
 
   const handleGenerateLink = async () => {
     setIsGenerating(true);
     setError(null);
 
     try {
-      const response = await fetch(`${apiBaseUrl}/api/v1/candidates/${profile.id}/generate-share-token`, {
-        method: 'POST',
-        headers: {
-          // TODO: Add actual auth token
-          'Authorization': 'Token mock-token',
-          'Content-Type': 'application/json',
-        },
-      });
+      const data = await apiClient.post<{ share_url: string; public_sharing_enabled: boolean }>(
+        `/api/v1/candidates/${profile.id}/generate-share-token`,
+        {}
+      );
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Erro ao gerar link');
-      }
-
-      const data = await response.json();
       setShareLink(data.share_url);
       setSharingEnabled(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao gerar link');
+      if (err instanceof ApiError) {
+        const errorData = err.data as any;
+        setError(errorData?.error || 'Erro ao gerar link');
+      } else {
+        setError('Erro ao gerar link');
+      }
     } finally {
       setIsGenerating(false);
     }
@@ -103,24 +102,18 @@ export default function CandidateDashboard() {
     setError(null);
 
     try {
-      const response = await fetch(`${apiBaseUrl}/api/v1/candidates/${profile.id}/toggle-sharing`, {
-        method: 'PATCH',
-        headers: {
-          // TODO: Add actual auth token
-          'Authorization': 'Token mock-token',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ enabled: !sharingEnabled }),
-      });
+      const data = await apiClient.patch<{ public_sharing_enabled: boolean }>(
+        `/api/v1/candidates/${profile.id}/toggle-sharing`,
+        { enabled: !sharingEnabled }
+      );
 
-      if (!response.ok) {
-        throw new Error('Erro ao alterar compartilhamento');
-      }
-
-      const data = await response.json();
       setSharingEnabled(data.public_sharing_enabled);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao alterar compartilhamento');
+      if (err instanceof ApiError) {
+        setError('Erro ao alterar compartilhamento');
+      } else {
+        setError('Erro ao alterar compartilhamento');
+      }
     } finally {
       setIsToggling(false);
     }
@@ -139,20 +132,16 @@ export default function CandidateDashboard() {
   };
 
   // Build share link from token if already generated
-  const currentShareLink = shareLink || (profile.share_link_generated_at
-    ? `${appBaseUrl}/share/candidate/${profile.public_token}`
-    : null);
+  const currentShareLink =
+    shareLink ||
+    (profile.share_link_generated_at
+      ? `${appBaseUrl}/share/candidate/${profile.public_token}`
+      : null);
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="mt-2 text-gray-600">
-            Bem-vindo, {profile.full_name}!
-          </p>
-        </div>
+    <CandidateLayout pageTitle="Dashboard" activeItem="dashboard" user={user}>
+      <div className="max-w-4xl mx-auto">
+        {/* Content wrapped by CandidateLayout */}
 
         {/* Share Link Card */}
         <Card className="mb-6">
@@ -214,11 +203,15 @@ export default function CandidateDashboard() {
               <div className="space-y-4">
                 {/* Share Link Display */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="share-link"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     Link de compartilhamento
                   </label>
                   <div className="flex gap-2">
                     <input
+                      id="share-link"
                       type="text"
                       value={currentShareLink}
                       readOnly
@@ -247,11 +240,7 @@ export default function CandidateDashboard() {
 
                 {/* Actions */}
                 <div className="flex gap-3">
-                  <Button
-                    variant="outline"
-                    onClick={handleGenerateLink}
-                    disabled={isGenerating}
-                  >
+                  <Button variant="outline" onClick={handleGenerateLink} disabled={isGenerating}>
                     {isGenerating ? 'Gerando...' : 'Gerar Novo Link'}
                   </Button>
 
@@ -271,13 +260,15 @@ export default function CandidateDashboard() {
                 <div className="pt-4 border-t">
                   <p className="text-sm text-gray-500">
                     Status:{' '}
-                    <span className={sharingEnabled ? 'text-green-600 font-medium' : 'text-gray-600'}>
+                    <span
+                      className={sharingEnabled ? 'text-green-600 font-medium' : 'text-gray-600'}
+                    >
                       {sharingEnabled ? 'Compartilhamento ativo' : 'Compartilhamento desativado'}
                     </span>
                   </p>
                   {profile.share_link_generated_at && (
                     <p className="text-sm text-gray-500 mt-1">
-                      Gerado em: {new Date(profile.share_link_generated_at).toLocaleString('pt-BR')}
+                      Gerado em: {formatDateTime(profile.share_link_generated_at)}
                     </p>
                   )}
                 </div>
@@ -305,9 +296,7 @@ export default function CandidateDashboard() {
           <Card>
             <CardHeader>
               <CardTitle>Completar Perfil</CardTitle>
-              <CardDescription>
-                Adicione mais informações ao seu perfil
-              </CardDescription>
+              <CardDescription>Adicione mais informações ao seu perfil</CardDescription>
             </CardHeader>
             <CardContent>
               <Link to="/candidate/profile/create">
@@ -321,9 +310,7 @@ export default function CandidateDashboard() {
           <Card>
             <CardHeader>
               <CardTitle>Buscar Vagas</CardTitle>
-              <CardDescription>
-                Encontre oportunidades que combinam com você
-              </CardDescription>
+              <CardDescription>Encontre oportunidades que combinam com você</CardDescription>
             </CardHeader>
             <CardContent>
               <Link to="/jobs">
@@ -335,6 +322,6 @@ export default function CandidateDashboard() {
           </Card>
         </div>
       </div>
-    </div>
+    </CandidateLayout>
   );
 }

@@ -14,22 +14,18 @@
  * AC15: Navegação entre páginas admin funcional (sidebar active highlighting)
  */
 
-import { useState } from 'react';
 import { json } from '@remix-run/node';
 import type { LoaderFunctionArgs } from '@remix-run/node';
-import { useLoaderData, useSearchParams, useRevalidator } from '@remix-run/react';
-import {
-  Card,
-  Input,
-  Select,
-  Button,
-} from '@talentbase/design-system';
-import { AdminLayout } from '~/components/layouts/AdminLayout';
-import { UserTable } from '~/components/admin/UserTable';
+import { useLoaderData, useSearchParams } from '@remix-run/react';
+import { Card, Input, Select, Button, useToast } from '@talentbase/design-system';
+import { useState } from 'react';
+
 import { UserDetailModal } from '~/components/admin/UserDetailModal';
+import { UserTable } from '~/components/admin/UserTable';
+import { AdminLayout } from '~/components/layouts/AdminLayout';
 import { fetchUsers, fetchUserDetail, updateUserStatus } from '~/lib/api/admin';
 import type { User, UserDetail, UsersFilters } from '~/lib/api/admin';
-import { requireAdmin } from '~/utils/auth.server';
+import { requireAdmin, getUserFromToken } from '~/utils/auth.server';
 
 interface LoaderData {
   users: User[];
@@ -65,10 +61,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   const response = await fetchUsers(filters, token);
 
-  // TODO: Get actual user info from token/session
+  // Get actual user info from token
+  const userData = await getUserFromToken(token);
   const user = {
-    name: 'Admin User',
-    email: 'admin@talentbase.com',
+    name: userData?.name || 'Admin User',
+    email: userData?.email || 'admin@talentbase.com',
   };
 
   return json<LoaderData>({
@@ -87,12 +84,12 @@ export default function AdminUsersPage() {
   const { users, totalCount, currentPage, hasNext, hasPrevious, filters, user, token } =
     useLoaderData<typeof loader>();
 
+  const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [selectedUser, setSelectedUser] = useState<UserDetail | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
-  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   // Local state for filters (controlled inputs)
   const [localSearch, setLocalSearch] = useState(filters.search || '');
@@ -151,10 +148,10 @@ export default function AdminUsersPage() {
   /**
    * Handle status change (AC7, AC8)
    * Story 2.5 - AC5, AC7: Adiciona suporte para campo motivo
+   * Story 3.3.5 - Atualizado para usar Toast notifications
    */
   const handleStatusChange = async (userId: string, isActive: boolean, reason?: string) => {
     setIsUpdatingStatus(true);
-    setFeedback(null);
 
     try {
       const updatedUser = await updateUserStatus(userId, isActive, token, reason);
@@ -162,26 +159,27 @@ export default function AdminUsersPage() {
       // Update the selected user with new data
       setSelectedUser(updatedUser);
 
-      // Show success feedback
+      // Show success toast notification
       const statusText = isActive
-        ? (updatedUser.role === 'company' ? 'aprovada' : 'ativado')
-        : (updatedUser.role === 'company' ? 'rejeitada' : 'desativado');
-      setFeedback({
-        type: 'success',
-        message: `Usuário ${statusText} com sucesso! Uma notificação foi enviada por email.`
-      });
+        ? updatedUser.role === 'company'
+          ? 'aprovada'
+          : 'ativado'
+        : updatedUser.role === 'company'
+          ? 'rejeitada'
+          : 'desativado';
+
+      toast.success(
+        `Usuário ${statusText} com sucesso! Uma notificação foi enviada por email.`,
+        'Status Atualizado'
+      );
 
       // Refresh the user list after a short delay
       setTimeout(() => {
         window.location.reload();
       }, 2000);
-
     } catch (error) {
       console.error('Error updating user status:', error);
-      setFeedback({
-        type: 'error',
-        message: 'Erro ao atualizar status do usuário. Tente novamente.'
-      });
+      toast.error('Erro ao atualizar status do usuário. Tente novamente.', 'Erro');
     } finally {
       setIsUpdatingStatus(false);
     }
@@ -198,127 +196,108 @@ export default function AdminUsersPage() {
           </p>
         </div>
 
-      {/* Feedback Messages */}
-      {feedback && (
-        <div
-          className={`mb-6 p-4 rounded-lg ${
-            feedback.type === 'success'
-              ? 'bg-green-50 border border-green-200 text-green-800'
-              : 'bg-red-50 border border-red-200 text-red-800'
-          }`}
-        >
-          <p className="text-sm font-medium">{feedback.message}</p>
-        </div>
-      )}
-
-      {/* Filters */}
-      <Card className="mb-6">
-        <div className="p-6">
-          <form onSubmit={handleSearchSubmit} className="space-y-4">
-            {/* Search */}
-            <div>
-              <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-2">
-                Buscar por nome ou email
-              </label>
-              <div className="flex gap-2">
-                <Input
-                  id="search"
-                  type="text"
-                  placeholder="Digite o nome ou email..."
-                  value={localSearch}
-                  onChange={(e) => setLocalSearch(e.target.value)}
-                  className="flex-1"
-                />
-                <Button type="submit" variant="default">
-                  Buscar
-                </Button>
-              </div>
-            </div>
-
-            {/* Filters Row */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Filters */}
+        <Card className="mb-6">
+          <div className="p-6">
+            <form onSubmit={handleSearchSubmit} className="space-y-4">
+              {/* Search */}
               <div>
-                <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-2">
-                  Filtrar por função
+                <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-2">
+                  Buscar por nome ou email
                 </label>
-                <Select
-                  id="role"
-                  value={filters.role || 'all'}
-                  onChange={(e) => handleFilterChange('role', e.target.value)}
-                  options={[
-                    { value: 'all', label: 'Todas' },
-                    { value: 'admin', label: 'Admin' },
-                    { value: 'candidate', label: 'Candidato' },
-                    { value: 'company', label: 'Empresa' },
-                  ]}
-                />
+                <div className="flex gap-2">
+                  <Input
+                    id="search"
+                    type="text"
+                    placeholder="Digite o nome ou email..."
+                    value={localSearch}
+                    onChange={(e) => setLocalSearch(e.target.value)}
+                    className="flex-1"
+                  />
+                  <Button type="submit" variant="default">
+                    Buscar
+                  </Button>
+                </div>
               </div>
 
-              <div>
-                <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-2">
-                  Filtrar por status
-                </label>
-                <Select
-                  id="status"
-                  value={filters.status || 'all'}
-                  onChange={(e) => handleFilterChange('status', e.target.value)}
-                  options={[
-                    { value: 'all', label: 'Todos' },
-                    { value: 'active', label: 'Ativo' },
-                    { value: 'pending', label: 'Pendente' },
-                    { value: 'inactive', label: 'Inativo' },
-                  ]}
-                />
+              {/* Filters Row */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-2">
+                    Filtrar por função
+                  </label>
+                  <Select
+                    id="role"
+                    value={filters.role || 'all'}
+                    onChange={(e) => handleFilterChange('role', e.target.value)}
+                    options={[
+                      { value: 'all', label: 'Todas' },
+                      { value: 'admin', label: 'Admin' },
+                      { value: 'candidate', label: 'Candidato' },
+                      { value: 'company', label: 'Empresa' },
+                    ]}
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-2">
+                    Filtrar por status
+                  </label>
+                  <Select
+                    id="status"
+                    value={filters.status || 'all'}
+                    onChange={(e) => handleFilterChange('status', e.target.value)}
+                    options={[
+                      { value: 'all', label: 'Todos' },
+                      { value: 'active', label: 'Ativo' },
+                      { value: 'pending', label: 'Pendente' },
+                      { value: 'inactive', label: 'Inativo' },
+                    ]}
+                  />
+                </div>
               </div>
-            </div>
-          </form>
-        </div>
-      </Card>
-
-      {/* Users Table */}
-      <Card>
-        <UserTable
-          users={users}
-          onUserClick={handleUserClick}
-        />
-
-        {/* Pagination */}
-        {(hasNext || hasPrevious) && (
-          <div className="flex items-center justify-between px-6 py-4 border-t">
-            <Button
-              variant="secondary"
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={!hasPrevious}
-            >
-              Anterior
-            </Button>
-            <span className="text-sm text-gray-600">
-              Página {currentPage}
-            </span>
-            <Button
-              variant="secondary"
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={!hasNext}
-            >
-              Próxima
-            </Button>
+            </form>
           </div>
-        )}
-      </Card>
+        </Card>
 
-      {/* User Detail Modal */}
-      <UserDetailModal
-        isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setSelectedUser(null);
-          setSelectedUserId(null);
-          setFeedback(null);
-        }}
-        user={selectedUser}
-        onStatusChange={handleStatusChange}
-        isUpdating={isUpdatingStatus}
-      />
+        {/* Users Table */}
+        <Card>
+          <UserTable users={users} onUserClick={handleUserClick} />
+
+          {/* Pagination */}
+          {(hasNext || hasPrevious) && (
+            <div className="flex items-center justify-between px-6 py-4 border-t">
+              <Button
+                variant="secondary"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={!hasPrevious}
+              >
+                Anterior
+              </Button>
+              <span className="text-sm text-gray-600">Página {currentPage}</span>
+              <Button
+                variant="secondary"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={!hasNext}
+              >
+                Próxima
+              </Button>
+            </div>
+          )}
+        </Card>
+
+        {/* User Detail Modal */}
+        <UserDetailModal
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false);
+            setSelectedUser(null);
+            setSelectedUserId(null);
+          }}
+          user={selectedUser}
+          onStatusChange={handleStatusChange}
+          isUpdating={isUpdatingStatus}
+        />
       </div>
     </AdminLayout>
   );

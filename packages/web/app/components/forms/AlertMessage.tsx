@@ -5,8 +5,8 @@
  * Provides consistent styling and accessibility across the application.
  */
 
-import { ReactNode } from 'react';
 import { AlertCircle, CheckCircle, Info, AlertTriangle } from 'lucide-react';
+import { ReactNode } from 'react';
 
 export type AlertVariant = 'success' | 'error' | 'info' | 'warning';
 

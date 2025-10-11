@@ -1,5 +1,5 @@
-import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
+import { useState } from 'react';
 
 interface AccordionItemProps {
   question: string;
@@ -23,15 +23,9 @@ function AccordionItem({ question, answer, isOpen, onClick }: AccordionItemProps
         aria-expanded={isOpen}
       >
         <span>{question}</span>
-        <ChevronDown
-          className={`h-5 w-5 transition-transform ${isOpen ? 'rotate-180' : ''}`}
-        />
+        <ChevronDown className={`h-5 w-5 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
-      {isOpen && (
-        <div className="px-6 pb-4 pt-2 text-gray-600 animate-fade-in">
-          {answer}
-        </div>
-      )}
+      {isOpen && <div className="px-6 pb-4 pt-2 text-gray-600 animate-fade-in">{answer}</div>}
     </div>
   );
 }

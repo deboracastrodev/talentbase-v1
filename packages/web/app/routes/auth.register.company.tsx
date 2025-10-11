@@ -14,13 +14,21 @@
  * - DRY principle applied
  */
 
-import { useState, FormEvent } from 'react';
 import { useNavigate, Link } from '@remix-run/react';
 import { Button, AuthLayout, AuthCard, Alert, AuthFormField } from '@talentbase/design-system';
 import { Loader2 } from 'lucide-react';
+import { useState, FormEvent } from 'react';
 
 // Utilities
-import { formatCNPJ } from '~/utils/formatting';
+import { API_ENDPOINTS } from '~/config/api';
+import { useFormValidation } from '~/hooks/useFormValidation';
+import { useRegistration } from '~/hooks/useRegistration';
+import { SUCCESS_MESSAGES, HELPER_TEXT } from '~/utils/constants';
+
+// Hooks
+
+// API
+import { formatCNPJ, formatPhone } from '~/utils/formatting';
 import {
   validateEmail,
   validatePassword,
@@ -30,14 +38,6 @@ import {
   validatePhone,
   validateURL,
 } from '~/utils/validation';
-import { SUCCESS_MESSAGES, HELPER_TEXT } from '~/utils/constants';
-
-// Hooks
-import { useFormValidation } from '~/hooks/useFormValidation';
-import { useRegistration } from '~/hooks/useRegistration';
-
-// API
-import { API_ENDPOINTS } from '~/config/api';
 
 interface CompanyFormData {
   company_name: string;
@@ -55,7 +55,13 @@ export default function CompanyRegister() {
   const [successMessage, setSuccessMessage] = useState<string>('');
 
   // Form validation hook (without confirmPassword validator to avoid circular reference)
-  const { formData, errors, handleChange, validateForm: baseValidateForm, setErrors } = useFormValidation<CompanyFormData>(
+  const {
+    formData,
+    errors,
+    handleChange,
+    validateForm: baseValidateForm,
+    setErrors,
+  } = useFormValidation<CompanyFormData>(
     {
       company_name: '',
       cnpj: '',
@@ -88,7 +94,7 @@ export default function CompanyRegister() {
     const confirmResult = validatePasswordConfirmation(formData.password, formData.confirmPassword);
 
     if (!confirmResult.isValid) {
-      setErrors(prev => ({ ...prev, confirmPassword: confirmResult.error }));
+      setErrors((prev) => ({ ...prev, confirmPassword: confirmResult.error }));
       return false;
     }
 
@@ -139,19 +145,26 @@ export default function CompanyRegister() {
       // Redirect to login after 3 seconds
       setTimeout(() => {
         navigate('/auth/login', {
-          state: { message: 'Cadastro realizado! Você receberá um email quando sua conta for aprovada.' },
+          state: {
+            message: 'Cadastro realizado! Você receberá um email quando sua conta for aprovada.',
+          },
         });
       }, 3000);
     }
   };
 
   /**
-   * Handle input change with formatting for CNPJ
+   * Handle input change with formatting for CNPJ and phone
    */
   const handleFieldChange = (field: keyof CompanyFormData, value: string) => {
     // Apply CNPJ formatting
     if (field === 'cnpj') {
       value = formatCNPJ(value);
+    }
+
+    // Apply phone formatting
+    if (field === 'contact_person_phone') {
+      value = formatPhone(value);
     }
 
     handleChange(field, value);
@@ -162,6 +175,12 @@ export default function CompanyRegister() {
     !!formData.confirmPassword &&
     formData.password === formData.confirmPassword &&
     !allErrors.confirmPassword;
+
+  // Check if phone is valid and fully formatted for success indicator
+  const phoneValid =
+    !!formData.contact_person_phone &&
+    (formData.contact_person_phone.length === 14 || formData.contact_person_phone.length === 15) && // (11) 3333-4444 or (11) 99999-9999
+    !allErrors.contact_person_phone;
 
   return (
     <AuthLayout>
@@ -274,6 +293,8 @@ export default function CompanyRegister() {
               value={formData.contact_person_phone}
               onChange={(e) => handleFieldChange('contact_person_phone', e.target.value)}
               error={allErrors.contact_person_phone}
+              showSuccess={phoneValid}
+              successMessage="Telefone válido"
               helperText={HELPER_TEXT.PHONE_FORMAT}
               placeholder="(11) 99999-9999"
               autoComplete="tel"

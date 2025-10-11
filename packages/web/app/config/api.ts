@@ -34,24 +34,32 @@ declare global {
  * In Remix, we expose server env vars via window.ENV in root.tsx.
  */
 export function getApiBaseUrl(): string {
-  // 1. Check window.ENV (set by root.tsx loader) - Client side
-  if (typeof window !== 'undefined' && window.ENV?.API_URL) {
+  const isServer = typeof window === 'undefined';
+
+  // SERVER-SIDE: Use Docker internal network (api:8000)
+  if (isServer) {
+    // Check process.env.API_URL first (from Docker env)
+    if (typeof process !== 'undefined' && process.env?.API_URL) {
+      // Remove /api/v1 suffix if present
+      return process.env.API_URL.replace(/\/api\/v1$/, '');
+    }
+
+    // Development fallback for server-side
+    return 'http://api:8000';
+  }
+
+  // CLIENT-SIDE: Use localhost (browser accessible)
+  // 1. Check window.ENV (set by root.tsx loader)
+  if (window.ENV?.API_URL) {
     return window.ENV.API_URL;
   }
 
-  // 2. Check process.env.API_URL (Server side - for loaders)
-  if (typeof process !== 'undefined' && process.env?.API_URL) {
-    // Remove /api/v1 suffix if present (env var includes it but endpoints already have it)
-    return process.env.API_URL.replace(/\/api\/v1$/, '');
-  }
-
-  // 3. Check Vite env var (build-time)
+  // 2. Check Vite env var (build-time)
   if (import.meta.env.VITE_API_URL) {
     return import.meta.env.VITE_API_URL;
   }
 
-  // 4. Development fallback
-  // In production, this will fail fast and tell us env var is missing
+  // 3. Development fallback for client-side
   const isDevelopment = import.meta.env.DEV;
   if (isDevelopment) {
     return 'http://localhost:8000';
@@ -100,6 +108,31 @@ export const API_ENDPOINTS = {
 export function buildApiUrl(endpoint: string): string {
   const baseUrl = getApiBaseUrl();
   return `${baseUrl}${endpoint}`;
+}
+
+/**
+ * Get the App base URL (frontend URL for share links, etc)
+ * Returns URL without trailing slash
+ */
+export function getAppBaseUrl(): string {
+  // 1. Check import.meta.env.VITE_APP_BASE_URL (Client side)
+  if (typeof window !== 'undefined' && import.meta.env.VITE_APP_BASE_URL) {
+    return import.meta.env.VITE_APP_BASE_URL.replace(/\/$/, '');
+  }
+
+  // 2. Check process.env.VITE_APP_BASE_URL (Server side)
+  if (typeof process !== 'undefined' && process.env.VITE_APP_BASE_URL) {
+    return process.env.VITE_APP_BASE_URL.replace(/\/$/, '');
+  }
+
+  // 3. Development fallback
+  const isDevelopment = import.meta.env.DEV;
+  if (isDevelopment) {
+    return 'http://localhost:3000';
+  }
+
+  // Production without env var - fail fast with helpful error
+  throw new Error('APP_BASE_URL not configured! Set VITE_APP_BASE_URL environment variable');
 }
 
 /**

@@ -1,6 +1,6 @@
+import { Link } from '@remix-run/react';
 import { Card, CardHeader, CardTitle, CardContent } from '@talentbase/design-system';
 import { LucideIcon } from 'lucide-react';
-import { Link } from '@remix-run/react';
 
 export interface StatCardProps {
   title: string;
@@ -11,21 +11,12 @@ export interface StatCardProps {
   breakdown?: Array<{ label: string; value: number }>;
 }
 
-export function StatCard({
-  title,
-  value,
-  subtitle,
-  icon: Icon,
-  href,
-  breakdown,
-}: StatCardProps) {
+export function StatCard({ title, value, subtitle, icon: Icon, href, breakdown }: StatCardProps) {
   const content = (
     <Card className={href ? 'cursor-pointer hover:shadow-lg transition-shadow' : ''}>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base font-medium text-gray-600">
-            {title}
-          </CardTitle>
+          <CardTitle className="text-base font-medium text-gray-600">{title}</CardTitle>
           {Icon && <Icon className="text-gray-400" size={24} />}
         </div>
       </CardHeader>

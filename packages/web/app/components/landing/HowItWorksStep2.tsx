@@ -126,9 +126,9 @@ export function HowItWorksStep2() {
             </div>
             <h3 className="text-2xl font-semibold">2. IA faz o matching perfeito</h3>
             <p className="text-lg text-gray-600">
-              Nossa inteligência artificial analisa seu perfil e conecta você com as
-              oportunidades mais relevantes. Algoritmos avançados garantem matches precisos
-              baseados em suas habilidades, experiências e objetivos de carreira.
+              Nossa inteligência artificial analisa seu perfil e conecta você com as oportunidades
+              mais relevantes. Algoritmos avançados garantem matches precisos baseados em suas
+              habilidades, experiências e objetivos de carreira.
             </p>
             <div className="space-y-4">
               <div className="flex items-start space-x-3">

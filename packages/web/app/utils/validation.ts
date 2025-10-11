@@ -6,6 +6,7 @@
  */
 
 import { cnpj as cnpjValidator } from 'cpf-cnpj-validator';
+
 import { VALIDATION_PATTERNS, VALIDATION_RULES, ERROR_MESSAGES } from './constants';
 import { stripFormatting } from './formatting';
 

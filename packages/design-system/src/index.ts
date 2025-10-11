@@ -46,6 +46,12 @@ export type { VideoPlayerProps } from './components/VideoPlayer';
 export { Alert } from './components/Alert';
 export type { AlertProps, AlertVariant } from './components/Alert';
 
+export { Toast } from './components/Toast';
+export type { ToastProps, ToastVariant } from './components/Toast';
+
+export { ToastProvider, useToast } from './components/ToastProvider';
+export type { ToastProviderProps } from './components/ToastProvider';
+
 export { AuthLayout } from './components/AuthLayout';
 export type { AuthLayoutProps } from './components/AuthLayout';
 
@@ -62,9 +68,15 @@ export {
   TableRow,
   TableHead,
   TableCell,
+  TableActionCell,
+  TableEmpty,
+  TableLoading,
+  TableCaption,
 } from './components/Table';
+export type { TableProps, TableHeaderProps, TableBodyProps, TableRowProps, TableHeadProps, TableCellProps, TableEmptyProps, TableLoadingProps, TableCaptionProps } from './components/Table';
 
-export { Modal, ModalFooter } from './components/Modal';
+export { Modal, ModalHeader, ModalBody, ModalFooter } from './components/Modal';
+export type { ModalProps, ModalVariant, ModalHeaderProps, ModalBodyProps, ModalFooterProps } from './components/Modal';
 
 export { Sidebar, sidebarVariants, menuItemVariants } from './components/Sidebar';
 export type { SidebarProps, MenuItem } from './components/Sidebar';

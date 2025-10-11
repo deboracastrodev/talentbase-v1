@@ -14,18 +14,18 @@
  * - "Forgot password" placeholder link (AC9)
  */
 
-import { FormEvent } from 'react';
 import { useNavigate, Link } from '@remix-run/react';
 import { Button, AuthLayout, AuthCard, Alert, AuthFormField } from '@talentbase/design-system';
 import { Loader2 } from 'lucide-react';
+import { FormEvent } from 'react';
 
 // Hooks
 import { useFormValidation } from '~/hooks/useFormValidation';
 import { useLogin } from '~/hooks/useLogin';
 
 // Utilities
-import { validateEmail } from '~/utils/validation';
 import { ERROR_MESSAGES } from '~/utils/constants';
+import { validateEmail } from '~/utils/validation';
 
 interface LoginFormData {
   email: string;
@@ -84,10 +84,7 @@ export default function Login() {
 
   return (
     <AuthLayout>
-      <AuthCard
-        title="Login"
-        subtitle="Entre com seu email e senha para acessar sua conta"
-      >
+      <AuthCard title="Login" subtitle="Entre com seu email e senha para acessar sua conta">
         {/* Server Error Alert (AC7, AC8) */}
         {serverError && <Alert variant="error" message={serverError} />}
 

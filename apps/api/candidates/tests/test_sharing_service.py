@@ -17,9 +17,7 @@ from authentication.models import User
 def candidate_user(db):
     """Create a candidate user."""
     return User.objects.create_user(
-        email='candidate@test.com',
-        password='testpass123',
-        role='candidate'
+        email="candidate@test.com", password="testpass123", role="candidate"
     )
 
 
@@ -28,13 +26,13 @@ def complete_candidate_profile(candidate_user):
     """Create a complete candidate profile with required fields."""
     return CandidateProfile.objects.create(
         user=candidate_user,
-        full_name='João Silva',
-        phone='11999999999',
-        city='São Paulo',
-        current_position='SDR/BDR',
+        full_name="João Silva",
+        phone="11999999999",
+        city="São Paulo",
+        current_position="SDR/BDR",
         years_of_experience=3,
-        pitch_video_url='https://youtube.com/watch?v=test123',
-        pitch_video_type='youtube'
+        pitch_video_url="https://youtube.com/watch?v=test123",
+        pitch_video_type="youtube",
     )
 
 
@@ -43,11 +41,11 @@ def incomplete_candidate_profile(candidate_user):
     """Create an incomplete candidate profile without pitch video."""
     return CandidateProfile.objects.create(
         user=candidate_user,
-        full_name='Maria Santos',
-        phone='11988888888',
-        city='Rio de Janeiro',
-        current_position='AE/Closer',
-        years_of_experience=5
+        full_name="Maria Santos",
+        phone="11988888888",
+        city="Rio de Janeiro",
+        current_position="AE/Closer",
+        years_of_experience=5,
     )
 
 
@@ -59,10 +57,10 @@ class TestSharingServiceGenerateToken:
         """Test that generate_share_token creates a UUID token."""
         result = SharingService.generate_share_token(complete_candidate_profile)
 
-        assert 'share_token' in result
-        assert 'share_url' in result
-        assert 'generated_at' in result
-        assert len(result['share_token']) == 36  # UUID format
+        assert "share_token" in result
+        assert "share_url" in result
+        assert "generated_at" in result
+        assert len(result["share_token"]) == 36  # UUID format
 
     def test_generate_token_enables_sharing(self, complete_candidate_profile):
         """Test that generate_share_token enables public sharing."""
@@ -87,20 +85,20 @@ class TestSharingServiceGenerateToken:
 
     def test_generate_token_returns_valid_url(self, complete_candidate_profile, settings):
         """Test that generate_share_token returns a valid share URL."""
-        settings.FRONTEND_URL = 'https://app.talentbase.com'
+        settings.FRONTEND_URL = "https://app.talentbase.com"
 
         result = SharingService.generate_share_token(complete_candidate_profile)
 
-        assert result['share_url'].startswith('https://app.talentbase.com/share/candidate/')
-        assert result['share_token'] in result['share_url']
+        assert result["share_url"].startswith("https://app.talentbase.com/share/candidate/")
+        assert result["share_token"] in result["share_url"]
 
     def test_regenerate_token_creates_new_token(self, complete_candidate_profile):
         """Test that regenerating token creates a new UUID."""
         result1 = SharingService.generate_share_token(complete_candidate_profile)
-        old_token = result1['share_token']
+        old_token = result1["share_token"]
 
         result2 = SharingService.generate_share_token(complete_candidate_profile)
-        new_token = result2['share_token']
+        new_token = result2["share_token"]
 
         assert old_token != new_token
 
@@ -109,17 +107,17 @@ class TestSharingServiceGenerateToken:
         with pytest.raises(ValidationError) as exc_info:
             SharingService.generate_share_token(incomplete_candidate_profile)
 
-        assert 'Perfil deve estar completo' in str(exc_info.value)
-        assert 'Vídeo pitch é obrigatório' in str(exc_info.value)
+        assert "Perfil deve estar completo" in str(exc_info.value)
+        assert "Vídeo pitch é obrigatório" in str(exc_info.value)
 
     def test_generate_token_uses_base_url_fallback(self, complete_candidate_profile, settings):
         """Test that BASE_URL is used when FRONTEND_URL is not set."""
         settings.FRONTEND_URL = None
-        settings.BASE_URL = 'https://api.talentbase.com'
+        settings.BASE_URL = "https://api.talentbase.com"
 
         result = SharingService.generate_share_token(complete_candidate_profile)
 
-        assert result['share_url'].startswith('https://api.talentbase.com/share/candidate/')
+        assert result["share_url"].startswith("https://api.talentbase.com/share/candidate/")
 
 
 @pytest.mark.django_db
@@ -172,16 +170,17 @@ class TestSharingServiceGetPublicProfile:
 
         assert result is not None
         assert result.id == complete_candidate_profile.id
-        assert result.full_name == 'João Silva'
+        assert result.full_name == "João Silva"
 
     def test_get_public_profile_with_invalid_token(self, complete_candidate_profile):
         """Test that get_public_profile returns None with invalid token."""
         # Test with malformed UUID string
-        result = SharingService.get_public_profile('invalid-token-123')
+        result = SharingService.get_public_profile("invalid-token-123")
         assert result is None
 
         # Test with valid UUID format but non-existent token
         import uuid
+
         non_existent_token = str(uuid.uuid4())
         result = SharingService.get_public_profile(non_existent_token)
         assert result is None
@@ -210,17 +209,19 @@ class TestSharingServiceGetPublicProfile:
 
         assert result is None
 
-    def test_get_public_profile_prefetches_relations(self, complete_candidate_profile, django_assert_num_queries):
+    def test_get_public_profile_prefetches_relations(
+        self, complete_candidate_profile, django_assert_num_queries
+    ):
         """Test that get_public_profile optimizes queries with prefetch."""
         from candidates.models import Experience
 
         # Create experiences
         Experience.objects.create(
             candidate=complete_candidate_profile,
-            company_name='Company A',
-            position='SDR',
-            start_date='2020-01-01',
-            end_date='2022-01-01'
+            company_name="Company A",
+            position="SDR",
+            start_date="2020-01-01",
+            end_date="2022-01-01",
         )
 
         SharingService.generate_share_token(complete_candidate_profile)
@@ -238,69 +239,71 @@ class TestSharingServiceGetPublicProfile:
 class TestSharingServiceSendContactRequest:
     """Tests for send_contact_request method."""
 
-    @patch('candidates.services.sharing.send_email_task')
+    @patch("candidates.services.sharing.send_email_task")
     def test_send_contact_request_calls_email_task(
         self, mock_send_email, complete_candidate_profile, settings
     ):
         """Test that send_contact_request triggers email task."""
-        settings.ADMIN_EMAIL = 'admin@talentbase.com'
+        settings.ADMIN_EMAIL = "admin@talentbase.com"
 
         SharingService.send_contact_request(
             candidate=complete_candidate_profile,
-            contact_name='João Recrutador',
-            contact_email='joao@empresa.com',
-            message='Gostaria de conversar sobre uma oportunidade...'
+            contact_name="João Recrutador",
+            contact_email="joao@empresa.com",
+            message="Gostaria de conversar sobre uma oportunidade...",
         )
 
         mock_send_email.delay.assert_called_once()
         call_args = mock_send_email.delay.call_args
 
         # Verify email parameters
-        assert call_args.kwargs['to_email'] == 'admin@talentbase.com'
-        assert 'João Silva' in call_args.kwargs['subject']
-        assert call_args.kwargs['template_name'] == 'emails/candidate_contact_request.html'
+        assert call_args.kwargs["to_email"] == "admin@talentbase.com"
+        assert "João Silva" in call_args.kwargs["subject"]
+        assert call_args.kwargs["template_name"] == "emails/candidate_contact_request.html"
 
-    @patch('candidates.services.sharing.send_email_task')
+    @patch("candidates.services.sharing.send_email_task")
     def test_send_contact_request_includes_context(
         self, mock_send_email, complete_candidate_profile
     ):
         """Test that send_contact_request includes all context data."""
         SharingService.send_contact_request(
             candidate=complete_candidate_profile,
-            contact_name='João Recrutador',
-            contact_email='joao@empresa.com',
-            message='Gostaria de conversar...'
+            contact_name="João Recrutador",
+            contact_email="joao@empresa.com",
+            message="Gostaria de conversar...",
         )
 
         call_args = mock_send_email.delay.call_args
-        context = call_args.kwargs['context']
+        context = call_args.kwargs["context"]
 
-        assert context['candidate_name'] == 'João Silva'
-        assert context['candidate_position'] == 'SDR/BDR'
-        assert context['contact_name'] == 'João Recrutador'
-        assert context['contact_email'] == 'joao@empresa.com'
-        assert context['message'] == 'Gostaria de conversar...'
-        assert 'profile_admin_url' in context
+        assert context["candidate_name"] == "João Silva"
+        assert context["candidate_position"] == "SDR/BDR"
+        assert context["contact_name"] == "João Recrutador"
+        assert context["contact_email"] == "joao@empresa.com"
+        assert context["message"] == "Gostaria de conversar..."
+        assert "profile_admin_url" in context
 
-    @patch('candidates.services.sharing.send_email_task')
+    @patch("candidates.services.sharing.send_email_task")
     def test_send_contact_request_admin_url_format(
         self, mock_send_email, complete_candidate_profile, settings
     ):
         """Test that admin URL is correctly formatted."""
-        settings.BASE_URL = 'https://api.talentbase.com'
+        settings.BASE_URL = "https://api.talentbase.com"
 
         SharingService.send_contact_request(
             candidate=complete_candidate_profile,
-            contact_name='Test',
-            contact_email='test@test.com',
-            message='Test message'
+            contact_name="Test",
+            contact_email="test@test.com",
+            message="Test message",
         )
 
         call_args = mock_send_email.delay.call_args
-        context = call_args.kwargs['context']
+        context = call_args.kwargs["context"]
 
-        assert context['profile_admin_url'].startswith('https://api.talentbase.com/admin/candidate/')
-        assert str(complete_candidate_profile.id) in context['profile_admin_url']
+        assert context["profile_admin_url"].startswith(
+            "https://api.talentbase.com/admin/candidate/"
+        )
+        assert str(complete_candidate_profile.id) in context["profile_admin_url"]
 
 
 @pytest.mark.django_db
@@ -311,7 +314,7 @@ class TestSharingServiceIntegration:
         """Test the complete flow: generate → get → disable → get."""
         # Generate token
         result = SharingService.generate_share_token(complete_candidate_profile)
-        token = result['share_token']
+        token = result["share_token"]
 
         # Verify profile is accessible
         profile = SharingService.get_public_profile(token)
@@ -336,7 +339,7 @@ class TestSharingServiceIntegration:
         """Test that regenerating token invalidates the old one."""
         # Generate first token
         result1 = SharingService.generate_share_token(complete_candidate_profile)
-        old_token = result1['share_token']
+        old_token = result1["share_token"]
 
         # Verify old token works
         profile = SharingService.get_public_profile(old_token)
@@ -344,7 +347,7 @@ class TestSharingServiceIntegration:
 
         # Regenerate token
         result2 = SharingService.generate_share_token(complete_candidate_profile)
-        new_token = result2['share_token']
+        new_token = result2["share_token"]
 
         # Old token should not work
         profile = SharingService.get_public_profile(old_token)

@@ -94,6 +94,17 @@ class User(AbstractBaseUser, PermissionsMixin):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    # Password reset fields (Story 3.3.5)
+    password_reset_required = models.BooleanField(
+        default=False, help_text="Usuário precisa redefinir senha no próximo login?"
+    )
+    password_reset_token = models.UUIDField(
+        null=True, blank=True, unique=True, help_text="Token único para redefinir senha"
+    )
+    password_reset_token_expires = models.DateTimeField(
+        null=True, blank=True, help_text="Data de expiração do token de redefinição"
+    )
+
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["role"]
 

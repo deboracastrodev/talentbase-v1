@@ -1,11 +1,12 @@
 /**
  * Admin API Client
  *
- * Handles API calls for admin user management.
+ * Handles API calls for admin user management using centralized apiServer.
  * Story 2.4 - Task 3
  */
 
-import { buildApiUrl, API_ENDPOINTS } from '~/config/api';
+import { apiServer } from '~/lib/apiServer';
+import { API_ENDPOINTS } from '~/config/api';
 
 export interface User {
   id: string;
@@ -51,80 +52,29 @@ export async function fetchUsers(
   filters: UsersFilters = {},
   token: string
 ): Promise<UsersListResponse> {
-  const params = new URLSearchParams();
+  const params: Record<string, string | number> = {};
 
   if (filters.role && filters.role !== 'all') {
-    params.append('role', filters.role);
+    params.role = filters.role;
   }
   if (filters.status && filters.status !== 'all') {
-    params.append('status', filters.status);
+    params.status = filters.status;
   }
   if (filters.search) {
-    params.append('search', filters.search);
+    params.search = filters.search;
   }
   if (filters.page) {
-    params.append('page', filters.page.toString());
+    params.page = filters.page;
   }
 
-  const url = buildApiUrl(`${API_ENDPOINTS.admin.users}${params.toString() ? `?${params.toString()}` : ''}`);
-
-  const response = await fetch(url, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Token ${token}`,
-    },
-    credentials: 'include',
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error(`API Error: ${response.status} - ${errorText}`);
-
-    if (response.status === 401) {
-      throw new Error('Unauthorized');
-    }
-    if (response.status === 403) {
-      throw new Error('Forbidden: Admin access required');
-    }
-    throw new Error(`Failed to fetch users: ${response.status} - ${errorText}`);
-  }
-
-  return response.json();
+  return apiServer.get<UsersListResponse>(API_ENDPOINTS.admin.users, { token, params });
 }
 
 /**
  * Fetch user detail by ID
  */
-export async function fetchUserDetail(
-  userId: string,
-  token: string
-): Promise<UserDetail> {
-  const url = buildApiUrl(API_ENDPOINTS.admin.userDetail(userId));
-
-  const response = await fetch(url, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Token ${token}`,
-    },
-    credentials: 'include',
-  });
-
-  if (!response.ok) {
-    if (response.status === 404) {
-      throw new Error('User not found');
-    }
-    if (response.status === 401) {
-      throw new Error('Unauthorized');
-    }
-    if (response.status === 403) {
-      throw new Error('Forbidden: Admin access required');
-    }
-    throw new Error('Failed to fetch user detail');
-  }
-
-  return response.json();
+export async function fetchUserDetail(userId: string, token: string): Promise<UserDetail> {
+  return apiServer.get<UserDetail>(API_ENDPOINTS.admin.userDetail(userId), { token });
 }
 
 /**
@@ -137,28 +87,14 @@ export async function updateUserStatus(
   token: string,
   reason?: string
 ): Promise<UserDetail> {
-  const url = buildApiUrl(API_ENDPOINTS.admin.updateUserStatus(userId));
-
   const body: { is_active: boolean; reason?: string } = { is_active: isActive };
   if (reason) {
     body.reason = reason;
   }
 
-  const response = await fetch(url, {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Token ${token}`,
-    },
-    credentials: 'include',
-    body: JSON.stringify(body),
+  return apiServer.patch<UserDetail>(API_ENDPOINTS.admin.updateUserStatus(userId), body, {
+    token,
   });
-
-  if (!response.ok) {
-    throw new Error('Failed to update user status');
-  }
-
-  return response.json();
 }
 
 /**
@@ -166,25 +102,9 @@ export async function updateUserStatus(
  * Story 2.5 - AC1: Count empresas pendentes
  */
 export async function fetchPendingApprovalsCount(token: string): Promise<number> {
-  const url = buildApiUrl(API_ENDPOINTS.admin.pendingCount);
-
-  const response = await fetch(url, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Token ${token}`,
-    },
-    credentials: 'include',
+  const data = await apiServer.get<{ count: number }>(API_ENDPOINTS.admin.pendingCount, {
+    token,
   });
-
-  if (!response.ok) {
-    if (response.status === 401 || response.status === 403) {
-      throw new Error('Unauthorized');
-    }
-    throw new Error('Failed to fetch pending approvals count');
-  }
-
-  const data = await response.json();
   return data.count;
 }
 
@@ -209,29 +129,5 @@ export interface AdminStats {
 }
 
 export async function getAdminStats(token: string): Promise<AdminStats> {
-  const url = buildApiUrl(API_ENDPOINTS.admin.stats);
-
-  const response = await fetch(url, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Token ${token}`,
-    },
-    credentials: 'include',
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error(`API Error: ${response.status} - ${errorText}`);
-
-    if (response.status === 401) {
-      throw new Error('Unauthorized');
-    }
-    if (response.status === 403) {
-      throw new Error('Forbidden: Admin access required');
-    }
-    throw new Error(`Failed to fetch admin stats: ${response.status} - ${errorText}`);
-  }
-
-  return response.json();
+  return apiServer.get<AdminStats>(API_ENDPOINTS.admin.stats, { token });
 }

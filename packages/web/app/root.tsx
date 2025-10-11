@@ -1,16 +1,10 @@
-import {
-  Links,
-  Meta,
-  Outlet,
-  Scripts,
-  ScrollRestoration,
-} from '@remix-run/react';
 import type { LinksFunction } from '@remix-run/node';
+import { Links, Meta, Outlet, Scripts, ScrollRestoration } from '@remix-run/react';
+import { ToastProvider } from '@talentbase/design-system';
+
 import globals from './globals.css?url';
 
-export const links: LinksFunction = () => [
-  { rel: 'stylesheet', href: globals },
-];
+export const links: LinksFunction = () => [{ rel: 'stylesheet', href: globals }];
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -31,5 +25,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  return <Outlet />;
+  return (
+    <ToastProvider>
+      <Outlet />
+    </ToastProvider>
+  );
 }

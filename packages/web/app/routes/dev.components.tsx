@@ -1,4 +1,13 @@
-import { Button, Input, FormField, Card, Badge, Select, Checkbox, VideoPlayer } from '@talentbase/design-system';
+import {
+  Button,
+  Input,
+  FormField,
+  Card,
+  Badge,
+  Select,
+  Checkbox,
+  VideoPlayer,
+} from '@talentbase/design-system';
 
 export default function ComponentsPage() {
   return (
@@ -25,11 +34,13 @@ export default function ComponentsPage() {
             <Input type="password" />
           </FormField>
           <FormField label="Posição">
-            <Select options={[
-              { value: 'SDR/BDR', label: 'SDR/BDR' },
-              { value: 'AE/Closer', label: 'Account Executive/Closer' },
-              { value: 'CSM', label: 'Customer Success Manager' },
-            ]} />
+            <Select
+              options={[
+                { value: 'SDR/BDR', label: 'SDR/BDR' },
+                { value: 'AE/Closer', label: 'Account Executive/Closer' },
+                { value: 'CSM', label: 'Customer Success Manager' },
+              ]}
+            />
           </FormField>
         </div>
       </section>
@@ -39,7 +50,9 @@ export default function ComponentsPage() {
         <Card className="max-w-md">
           <h3 className="text-xl font-semibold mb-2">Candidate Profile</h3>
           <p className="text-gray-600">João Silva - SDR/BDR</p>
-          <Badge variant="success" className="mt-4">Disponível</Badge>
+          <Badge variant="success" className="mt-4">
+            Disponível
+          </Badge>
         </Card>
       </section>
 

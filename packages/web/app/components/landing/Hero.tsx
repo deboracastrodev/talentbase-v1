@@ -2,6 +2,8 @@ import { Link } from '@remix-run/react';
 import { Button } from '@talentbase/design-system';
 import { ArrowRight } from 'lucide-react';
 
+import { ROUTES } from '~/config/routes';
+
 /**
  * Hero section component for landing page
  * Premium design with gradient background, social proof, and animations
@@ -30,8 +32,7 @@ export function Hero() {
         <div className="max-w-4xl mx-auto">
           {/* Main Heading */}
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6 animate-fade-in-up leading-tight">
-            O parceiro de IA para sua{' '}
-            <span className="text-cyan-400">próxima oportunidade</span>
+            O parceiro de IA para sua <span className="text-cyan-400">próxima oportunidade</span>
           </h1>
 
           {/* Subtitle */}
@@ -39,13 +40,13 @@ export function Hero() {
             className="text-lg sm:text-xl text-gray-300 mb-8 max-w-2xl mx-auto animate-fade-in"
             style={{ animationDelay: '0.2s' }}
           >
-            Encontre oportunidades de carreira com o apoio de um parceiro de IA que
-            entende seu perfil e conecta você às vagas certas em menos tempo.
+            Encontre oportunidades de carreira com o apoio de um parceiro de IA que entende seu
+            perfil e conecta você às vagas certas em menos tempo.
           </p>
 
           {/* CTA Button */}
           <div className="animate-scale-in" style={{ animationDelay: '0.4s' }}>
-            <Link to="/auth/register?type=candidate">
+            <Link to={`${ROUTES.auth.candidateRegister}?type=candidate`}>
               <Button
                 size="lg"
                 className="bg-white text-gray-900 hover:bg-gray-100 text-lg px-8 py-6 h-auto shadow-xl transition-all duration-300 hover:scale-105"

@@ -14,6 +14,7 @@ export interface DashboardLayoutProps {
   user: User;
   pageTitle: string;
   onLogout: () => void;
+  onProfileClick?: () => void;
   children: React.ReactNode;
   className?: string;
 }
@@ -25,6 +26,7 @@ const DashboardLayout = React.forwardRef<HTMLDivElement, DashboardLayoutProps>(
       user,
       pageTitle,
       onLogout,
+      onProfileClick,
       children,
       className,
     },
@@ -61,8 +63,8 @@ const DashboardLayout = React.forwardRef<HTMLDivElement, DashboardLayoutProps>(
           <Navbar
             pageTitle={pageTitle}
             user={user}
-            logo={sidebarConfig.logo}
             onLogout={onLogout}
+            onProfileClick={onProfileClick}
             onMenuToggle={handleMenuToggle}
           />
 

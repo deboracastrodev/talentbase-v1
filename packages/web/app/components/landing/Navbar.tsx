@@ -1,8 +1,10 @@
-import { useState } from 'react';
 import { Link } from '@remix-run/react';
 import { Button } from '@talentbase/design-system';
 import { Menu, X } from 'lucide-react';
+import { useState } from 'react';
+
 import logoFull from '~/assets/logo-full.svg';
+import { ROUTES } from '~/config/routes';
 
 /**
  * Navbar component for landing page
@@ -39,7 +41,7 @@ export function Navbar() {
                 {item.label}
               </a>
             ))}
-            <Link to="/auth/register">
+            <Link to={ROUTES.auth.register}>
               <Button variant="outline" size="default">
                 Começar agora
               </Button>
@@ -73,7 +75,7 @@ export function Navbar() {
                   {item.label}
                 </a>
               ))}
-              <Link to="/auth/register" onClick={() => setIsOpen(false)}>
+              <Link to={ROUTES.auth.register} onClick={() => setIsOpen(false)}>
                 <Button variant="outline" size="default" className="w-full">
                   Começar agora
                 </Button>

@@ -123,6 +123,17 @@ jobs:
           docker push ${{ env.ECR_REGISTRY }}/talentbase-api:${{ github.sha }}
           docker push ${{ env.ECR_REGISTRY }}/talentbase-api:latest
 
+      - name: Set Environment URLs
+        id: set-urls
+        run: |
+          if [ "${{ github.ref }}" == "refs/heads/master" ]; then
+            echo "API_URL=https://api.salesdog.click" >> $GITHUB_OUTPUT
+            echo "APP_URL=https://www.salesdog.click" >> $GITHUB_OUTPUT
+          else
+            echo "API_URL=https://api-dev.salesdog.click" >> $GITHUB_OUTPUT
+            echo "APP_URL=https://dev.salesdog.click" >> $GITHUB_OUTPUT
+          fi
+
       - name: Build and Push Web Docker Image
         if: steps.check-cluster.outputs.exists == 'true'
         run: |
@@ -132,7 +143,8 @@ jobs:
             --target production \
             --cache-from ${{ env.ECR_REGISTRY }}/talentbase-web:latest \
             --build-arg BUILDKIT_INLINE_CACHE=1 \
-            --build-arg VITE_API_URL=https://api-dev.salesdog.click \
+            --build-arg VITE_API_URL=${{ steps.set-urls.outputs.API_URL }} \
+            --build-arg VITE_APP_BASE_URL=${{ steps.set-urls.outputs.APP_URL }} \
             --build-arg NODE_ENV=production \
             -t ${{ env.ECR_REGISTRY }}/talentbase-web:${{ github.sha }} \
             -t ${{ env.ECR_REGISTRY }}/talentbase-web:latest \

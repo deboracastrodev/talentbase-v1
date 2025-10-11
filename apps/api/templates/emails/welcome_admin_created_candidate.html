@@ -1,0 +1,33 @@
+{% extends 'emails/base.html' %}
+
+{% block content %}
+<h2>Bem-vindo ao TalentBase!</h2>
+
+<p>Olá <strong>{{ candidate_name }}</strong>,</p>
+
+<p>Sua conta foi criada em nossa plataforma! Para começar a usar o TalentBase, você precisa definir sua senha.</p>
+
+<div class="info-box">
+    <p><strong>Atenção:</strong> Este link é válido por {{ expiration_days }} dias.</p>
+</div>
+
+<center>
+    <a href="{{ password_set_url }}" class="button">Definir Minha Senha</a>
+</center>
+
+<p><strong>Próximos passos:</strong></p>
+<ol>
+    <li>Clique no botão acima para definir sua senha</li>
+    <li>Complete seu perfil profissional com suas experiências</li>
+    <li>Adicione suas habilidades e competências</li>
+    <li>Comece a buscar oportunidades que combinam com você</li>
+</ol>
+
+<div class="divider"></div>
+
+<div class="info-box">
+    <p><strong>Dica:</strong> Escolha uma senha forte com pelo menos 8 caracteres para proteger sua conta.</p>
+</div>
+
+<p>Se você não solicitou esta conta ou tiver alguma dúvida, entre em contato com nossa equipe.</p>
+{% endblock %}

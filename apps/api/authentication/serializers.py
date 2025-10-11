@@ -221,3 +221,32 @@ class CompanyRegistrationSerializer(serializers.Serializer):
             raise serializers.ValidationError("Telefone deve conter entre 10 e 15 dígitos")
 
         return value
+
+
+# Story 3.3.5: Admin Manual Candidate Creation
+
+
+class SetPasswordSerializer(serializers.Serializer):
+    """
+    Serializer for setting password with reset token.
+
+    Story 3.3.5: Candidate sets password after admin creates account.
+
+    Fields:
+        token (required): UUID password reset token
+        password (required): New password (min 8 characters)
+
+    Validates:
+        - Password minimum length (8 characters)
+    """
+
+    token = serializers.UUIDField(required=True, help_text="Token de redefinição de senha")
+    password = serializers.CharField(
+        required=True, min_length=8, help_text="Nova senha (mínimo 8 caracteres)"
+    )
+
+    def validate_password(self, value):
+        """Validate password strength."""
+        if len(value) < 8:
+            raise serializers.ValidationError("Senha deve ter no mínimo 8 caracteres")
+        return value

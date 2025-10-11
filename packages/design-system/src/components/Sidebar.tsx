@@ -121,15 +121,20 @@ const Sidebar = React.forwardRef<HTMLDivElement, SidebarProps>(
 
                 return (
                   <li key={item.id}>
-                    <div
+                    <a
+                      href={item.disabled ? undefined : item.href}
                       className={cn(
                         menuItemVariants({
                           active: isActive,
                           disabled: item.disabled,
                         })
                       )}
-                      onClick={() => {
-                        if (!item.disabled && onItemClick) {
+                      onClick={(e) => {
+                        if (item.disabled) {
+                          e.preventDefault();
+                          return;
+                        }
+                        if (onItemClick) {
                           onItemClick(item);
                         }
                       }}
@@ -153,7 +158,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, SidebarProps>(
                           {item.badge}
                         </span>
                       )}
-                    </div>
+                    </a>
                   </li>
                 );
               })}

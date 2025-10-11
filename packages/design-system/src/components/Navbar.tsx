@@ -30,9 +30,10 @@ export interface NavbarProps
     VariantProps<typeof navbarVariants> {
   pageTitle: string;
   user: User;
-  logo: React.ReactNode;
+  logo?: React.ReactNode;
   onLogout: () => void;
   onMenuToggle?: () => void;
+  onProfileClick?: () => void;
 }
 
 const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
@@ -44,6 +45,7 @@ const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
       logo,
       onLogout,
       onMenuToggle,
+      onProfileClick,
       shadow,
       ...props
     },
@@ -56,6 +58,13 @@ const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
       onLogout();
     };
 
+    const handleProfileClick = () => {
+      setIsUserMenuOpen(false);
+      if (onProfileClick) {
+        onProfileClick();
+      }
+    };
+
     return (
       <nav
         ref={ref}
@@ -63,7 +72,7 @@ const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
         {...props}
       >
         <div className="flex items-center justify-between h-16 px-4 lg:px-6">
-          {/* Left section: Hamburger (mobile) + Logo + Page title */}
+          {/* Left section: Hamburger (mobile) + Page title */}
           <div className="flex items-center gap-4">
             {onMenuToggle && (
               <button
@@ -74,8 +83,6 @@ const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
                 <Menu size={20} />
               </button>
             )}
-
-            <div className="hidden lg:flex items-center">{logo}</div>
 
             <h1 className="text-lg font-semibold text-gray-900">{pageTitle}</h1>
           </div>
@@ -141,16 +148,15 @@ const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
                   </div>
 
                   {/* Menu items */}
-                  <button
-                    onClick={() => {
-                      setIsUserMenuOpen(false);
-                      // Navigate to profile (to be implemented by consumer)
-                    }}
-                    className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    <UserIcon size={16} />
-                    <span>Profile</span>
-                  </button>
+                  {onProfileClick && (
+                    <button
+                      onClick={handleProfileClick}
+                      className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <UserIcon size={16} />
+                      <span>Profile</span>
+                    </button>
+                  )}
 
                   <div className="border-t border-gray-200 my-1" />
 

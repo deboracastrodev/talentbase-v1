@@ -8,7 +8,9 @@
  */
 
 import { useState } from 'react';
-import { buildApiUrl, defaultFetchOptions, API_ENDPOINTS } from '~/config/api';
+
+import { apiClient, ApiError } from '~/lib/apiClient';
+import { API_ENDPOINTS } from '~/config/api';
 import { ERROR_MESSAGES } from '~/utils/constants';
 
 export interface LoginResponse {
@@ -55,37 +57,34 @@ export function useLogin(): UseLoginReturn {
     setFieldErrors({});
   };
 
-  const login = async (
-    email: string,
-    password: string
-  ): Promise<LoginResponse | null> => {
+  const login = async (email: string, password: string): Promise<LoginResponse | null> => {
     setIsLoading(true);
     setError(null);
     setFieldErrors({});
 
     try {
-      const response = await fetch(buildApiUrl(API_ENDPOINTS.auth.login), {
-        ...defaultFetchOptions,
-        method: 'POST',
-        body: JSON.stringify({ email, password }),
+      const responseData = await apiClient.post<LoginResponse>(API_ENDPOINTS.auth.login, {
+        email,
+        password,
       });
 
-      const responseData = await response.json();
+      setIsLoading(false);
+      return responseData;
+    } catch (err) {
+      setIsLoading(false);
 
-      if (!response.ok) {
-        // Handle 401 errors (invalid credentials, inactive account)
-        if (response.status === 401) {
-          // Use error message from backend (AC7, AC8)
-          setError(responseData.error || ERROR_MESSAGES.INVALID_CREDENTIALS);
-        } else if (response.status === 429) {
-          // Rate limit exceeded
+      if (err instanceof ApiError) {
+        const errorData = err.data as any;
+
+        if (err.status === 401) {
+          setError(errorData?.error || ERROR_MESSAGES.INVALID_CREDENTIALS);
+        } else if (err.status === 429) {
           setError(ERROR_MESSAGES.RATE_LIMIT_EXCEEDED);
-        } else if (responseData.errors) {
-          // Handle field-level validation errors
+        } else if (errorData?.errors) {
           const errors: Record<string, string> = {};
-          Object.keys(responseData.errors).forEach((key) => {
-            if (Array.isArray(responseData.errors[key])) {
-              errors[key] = responseData.errors[key][0];
+          Object.keys(errorData.errors).forEach((key) => {
+            if (Array.isArray(errorData.errors[key])) {
+              errors[key] = errorData.errors[key][0];
             }
           });
 
@@ -93,26 +92,18 @@ export function useLogin(): UseLoginReturn {
             setFieldErrors(errors);
           }
 
-          if (responseData.errors.detail) {
-            setError(responseData.errors.detail);
+          if (errorData.errors.detail) {
+            setError(errorData.errors.detail);
           } else if (Object.keys(errors).length === 0) {
             setError(ERROR_MESSAGES.SERVER_ERROR);
           }
         } else {
           setError(ERROR_MESSAGES.SERVER_ERROR);
         }
-
-        setIsLoading(false);
-        return null;
+      } else {
+        setError(ERROR_MESSAGES.NETWORK_ERROR);
       }
 
-      // Success! Token is now stored in httpOnly cookie by backend
-      setIsLoading(false);
-      return responseData as LoginResponse;
-    } catch (err) {
-      console.error('Login error:', err);
-      setError(ERROR_MESSAGES.NETWORK_ERROR);
-      setIsLoading(false);
       return null;
     }
   };

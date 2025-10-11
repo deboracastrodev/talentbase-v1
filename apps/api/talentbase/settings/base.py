@@ -2,6 +2,7 @@
 Base settings for talentbase project.
 """
 
+from datetime import timedelta
 from pathlib import Path
 
 from decouple import config
@@ -151,7 +152,7 @@ REST_FRAMEWORK = {
         "rest_framework.parsers.JSONParser",
     ],
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework.authentication.TokenAuthentication",
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
         "rest_framework.authentication.SessionAuthentication",
     ],
     # Desabilita CSRF para views públicas (@api_view com AllowAny)
@@ -159,6 +160,22 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],
+}
+
+# Simple JWT Configuration
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=1),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ROTATE_REFRESH_TOKENS": False,
+    "BLACKLIST_AFTER_ROTATION": False,
+    "UPDATE_LAST_LOGIN": True,
+    "ALGORITHM": "HS256",
+    "SIGNING_KEY": SECRET_KEY,
+    "VERIFYING_KEY": None,
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
+    "USER_ID_FIELD": "id",
+    "USER_ID_CLAIM": "user_id",
 }
 
 # Redis Cache
@@ -198,7 +215,9 @@ CORS_ALLOW_HEADERS = [
 # AWS S3 Configuration (Story 3.1 - Profile Photos Upload)
 AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID", default="")
 AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY", default="")
-AWS_STORAGE_BUCKET_NAME = config("AWS_STORAGE_BUCKET_NAME", default="")  # 'talentbase-dev-uploads' or 'talentbase-prod-uploads'
+AWS_STORAGE_BUCKET_NAME = config(
+    "AWS_STORAGE_BUCKET_NAME", default=""
+)  # 'talentbase-dev-uploads' or 'talentbase-prod-uploads'
 AWS_S3_REGION_NAME = config("AWS_S3_REGION_NAME", default="us-east-1")
 AWS_S3_SIGNATURE_VERSION = "s3v4"
 AWS_S3_FILE_OVERWRITE = False  # Prevent accidental overwrites
@@ -221,5 +240,7 @@ VIDEO_PRESIGNED_EXPIRY = 600  # 10 minutes (in seconds) - videos take longer to 
 
 # Story 3.2: Public Profile Sharing Configuration
 BASE_URL = config("BASE_URL", default="http://localhost:8000")  # Backend URL
-FRONTEND_URL = config("FRONTEND_URL", default="http://localhost:3000")  # Frontend URL for share links
+FRONTEND_URL = config(
+    "FRONTEND_URL", default="http://localhost:3000"
+)  # Frontend URL for share links
 ADMIN_EMAIL = config("ADMIN_EMAIL", default="admin@localhost")  # Admin email for contact requests

@@ -17,9 +17,8 @@ export function HowItWorksStep3() {
             </div>
             <h3 className="text-2xl font-semibold">3. Apresentamos você</h3>
             <p className="text-lg text-gray-600">
-              Sua apresentação vai além do currículo. Com vídeo-entrevistas e perfis
-              detalhados, as empresas conhecem o profissional real por trás dos números e
-              metas batidas.
+              Sua apresentação vai além do currículo. Com vídeo-entrevistas e perfis detalhados, as
+              empresas conhecem o profissional real por trás dos números e metas batidas.
             </p>
             <div className="space-y-3">
               <div className="flex items-center space-x-2">
@@ -52,15 +51,9 @@ export function HowItWorksStep3() {
 
                 {/* Experience Badges */}
                 <div className="flex flex-wrap gap-2 mb-4">
-                  <Badge className="bg-gray-800 text-white hover:bg-gray-800">
-                    3+ anos vendas
-                  </Badge>
-                  <Badge className="bg-gray-800 text-white hover:bg-gray-800">
-                    Top Performer
-                  </Badge>
-                  <Badge className="bg-gray-800 text-white hover:bg-gray-800">
-                    150% quota
-                  </Badge>
+                  <Badge className="bg-gray-800 text-white hover:bg-gray-800">3+ anos vendas</Badge>
+                  <Badge className="bg-gray-800 text-white hover:bg-gray-800">Top Performer</Badge>
+                  <Badge className="bg-gray-800 text-white hover:bg-gray-800">150% quota</Badge>
                   <Badge className="bg-gray-800 text-white hover:bg-gray-800">
                     Certificado SaaS
                   </Badge>

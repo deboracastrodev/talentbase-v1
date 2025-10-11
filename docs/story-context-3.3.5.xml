@@ -1,0 +1,356 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>3.3.5</storyId>
+    <title>Admin Manual Candidate Creation</title>
+    <status>ContextReadyDraft</status>
+    <generatedAt>2025-10-10</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>/Users/debor/Documents/sistemas/talentbase-v1/docs/stories/story-3.3.5.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>administrador</asA>
+    <iWant>criar candidatos manualmente no sistema</iWant>
+    <soThat>eu possa adicionar candidatos descobertos através de networking, indicações de parceiros, ou contato direto que não vieram via CSV ou auto-cadastro</soThat>
+    <mvpNote>MVP simplificado: Envio de email de boas-vindas é OPCIONAL via checkbox no formulário (default unchecked). Muitos candidatos podem ser cadastrados como inativos sem necessidade de ativação imediata. Task 3 (Celery email) pode ser postergada se necessário.</mvpNote>
+    <tasks>
+      <task id="1">Estender User model com campos de password reset</task>
+      <task id="2">Criar API endpoint de criação de candidato pelo admin</task>
+      <task id="3">Criar Celery task e email template</task>
+      <task id="4">Criar API endpoint de definição de senha</task>
+      <task id="5">Adicionar route Django para endpoints</task>
+      <task id="6">Criar frontend form de criação de candidato</task>
+      <task id="7">Atualizar admin candidates page com botão "Criar Candidato"</task>
+      <task id="8">Criar frontend página de definição de senha</task>
+      <task id="9">Criar testes backend</task>
+      <task id="10">Criar testes E2E frontend</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">Admin vê botão "Criar Candidato" em /admin/candidates (ao lado de "Importar CSV")</criterion>
+    <criterion id="2">Clicar em "Criar Candidato" abre formulário em /admin/candidates/new</criterion>
+    <criterion id="3">Formulário contém campos: Nome Completo*, Email*, Telefone*, Cidade (optional), Posição Atual (optional)</criterion>
+    <criterion id="4">Botão "Criar Candidato" (primary button)</criterion>
+    <criterion id="5">Botão "Cancelar" (secondary button, volta para /admin/candidates)</criterion>
+    <criterion id="6">Client-side validation antes de submit (campos obrigatórios, formato email válido)</criterion>
+    <criterion id="7">Submit chama POST /api/v1/admin/candidates/create com token JWT de admin</criterion>
+    <criterion id="8">Backend cria User com role='candidate', password_reset_required=True, password_reset_token=UUID, password_reset_token_expires=now + 7 days</criterion>
+    <criterion id="9">Backend cria CandidateProfile com full_name, phone, city, current_position, import_source='admin_created', import_date=now</criterion>
+    <criterion id="10">Backend envia welcome email via Celery task send_admin_created_candidate_welcome_email.delay(user_id)</criterion>
+    <criterion id="11">Email template usa HTML template em templates/emails/welcome_admin_created_candidate.html</criterion>
+    <criterion id="12">Response da API retorna 201 Created com { success: true, candidate: { id, email, full_name } }</criterion>
+    <criterion id="13">Frontend mostra toast success: "Candidato criado com sucesso! Email de boas-vindas enviado."</criterion>
+    <criterion id="14">Redirect para /admin/candidates?created=true após sucesso</criterion>
+    <criterion id="15">Se email já existe: backend retorna 400 Bad Request com { error: 'Email already exists' }</criterion>
+    <criterion id="16">Frontend exibe erro abaixo do campo email se duplicado</criterion>
+    <criterion id="17">Link no email direciona para /auth/set-password?token=xxx</criterion>
+    <criterion id="18">Página /auth/set-password valida token (server-side loader)</criterion>
+    <criterion id="19">Se token inválido/expirado: mostra erro e link para "Solicitar nova senha"</criterion>
+    <criterion id="20">Formulário de definição de senha contém: Nova Senha, Confirmar Senha, Botão "Definir Senha e Continuar"</criterion>
+    <criterion id="21">Submit chama POST /api/v1/auth/set-password com { token, password }</criterion>
+    <criterion id="22">Backend valida token, atualiza User: define password (hashed), password_reset_required=False, password_reset_token=None</criterion>
+    <criterion id="23">Response retorna access token JWT</criterion>
+    <criterion id="24">Frontend salva token em cookie/localStorage</criterion>
+    <criterion id="25">Redirect para /candidate/profile/create para completar perfil</criterion>
+    <criterion id="26">Após completar perfil → redirect para /candidate/dashboard</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/arquitetura/authentication.md</path>
+        <title>Authentication &amp; Authorization</title>
+        <section>User Roles and Registration Flow</section>
+        <snippet>Sistema de autenticação baseado em tokens (DRF Token + JWT), com roles: admin, candidate, company. User model usa email como identificador único.</snippet>
+      </doc>
+      <doc>
+        <path>docs/bestpraticies/BACKEND_BEST_PRACTICES.md</path>
+        <title>Backend Best Practices</title>
+        <section>API Design and Security</section>
+        <snippet>Guidelines for API endpoints, permissions, validation, and secure password handling</snippet>
+      </doc>
+      <doc>
+        <path>docs/bestpraticies/FRONTEND_BEST_PRACTICES.md</path>
+        <title>Frontend Best Practices</title>
+        <section>Forms and Validation</section>
+        <snippet>Best practices for form handling, client-side validation, and error display in Remix</snippet>
+      </doc>
+      <doc>
+        <path>docs/development/EMAIL_TESTING.md</path>
+        <title>Email Testing Guide</title>
+        <section>Development Email Setup</section>
+        <snippet>MailHog configuration for local email testing (SMTP localhost:1025, Web UI :8025)</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics/tech-spec-epic-3.md</path>
+        <title>Epic 3: Candidate Profile Management</title>
+        <section>Story 3.3.5: Admin Manual Candidate Creation</section>
+        <snippet>Complete technical specification for admin-created candidates with password reset flow, welcome emails, and minimal field collection (lines 749-1498)</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>apps/api/authentication/models.py</path>
+        <kind>model</kind>
+        <symbol>User</symbol>
+        <lines>62-110</lines>
+        <reason>Base User model that needs extension with password_reset_required, password_reset_token, and password_reset_token_expires fields for Story 3.3.5</reason>
+      </artifact>
+      <artifact>
+        <path>apps/api/authentication/models.py</path>
+        <kind>model</kind>
+        <symbol>UserManager</symbol>
+        <lines>13-59</lines>
+        <reason>User manager with create_user method that will be used when admin creates candidates</reason>
+      </artifact>
+      <artifact>
+        <path>apps/api/candidates/models.py</path>
+        <kind>model</kind>
+        <symbol>CandidateProfile</symbol>
+        <lines>31-150</lines>
+        <reason>Candidate profile model that needs import_source field to distinguish admin_created candidates from csv_import and self_registration</reason>
+      </artifact>
+      <artifact>
+        <path>apps/api/core/tasks.py</path>
+        <kind>task</kind>
+        <symbol>send_email_task</symbol>
+        <lines>21-142</lines>
+        <reason>Existing Celery email task pattern to follow for new send_admin_created_candidate_welcome_email task with HTML templates and retry logic</reason>
+      </artifact>
+      <artifact>
+        <path>apps/api/core/models.py</path>
+        <kind>model</kind>
+        <symbol>EmailLog</symbol>
+        <reason>Model for logging email sends - should be used in new welcome email task</reason>
+      </artifact>
+      <artifact>
+        <path>packages/web/app/routes/admin.candidates.tsx</path>
+        <kind>route</kind>
+        <symbol>AdminCandidates</symbol>
+        <lines>1-100</lines>
+        <reason>Existing admin candidates page where "Create Candidate" button needs to be added (AC1)</reason>
+      </artifact>
+      <artifact>
+        <path>packages/web/app/utils/auth.server.ts</path>
+        <kind>utility</kind>
+        <symbol>requireAdmin</symbol>
+        <reason>Auth utility for protecting admin routes - will be used in new /admin/candidates/new route</reason>
+      </artifact>
+      <artifact>
+        <path>packages/web/app/components/layouts/AdminLayout.tsx</path>
+        <kind>component</kind>
+        <symbol>AdminLayout</symbol>
+        <reason>Admin layout component that wraps all admin pages including the new create candidate route</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <backend>
+        <python version="^3.11"/>
+        <django version="^5.0"/>
+        <djangorestframework version="^3.14"/>
+        <celery version="^5.3.0" usage="Async email tasks"/>
+        <redis version="^5.0.0" usage="Celery broker"/>
+        <djangorestframework-simplejwt version="^5.5.1" usage="JWT tokens"/>
+        <bleach version="^6.2.0" usage="Input sanitization"/>
+        <boto3 version="^1.40.49" usage="AWS S3 for file storage"/>
+      </backend>
+      <frontend>
+        <remix version="^2.14.0"/>
+        <react version="^18.2.0"/>
+        <tailentbase-design-system version="workspace:*" usage="UI components (Button, Input, Select, etc.)"/>
+        <lucide-react version="^0.544.0" usage="Icons"/>
+        <cpf-cnpj-validator version="^1.0.3" usage="Brazilian ID validation"/>
+      </frontend>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint id="1" category="architecture">
+      <rule>Follow Django REST Framework API-based views pattern (function-based views with @api_view decorator)</rule>
+      <reason>Existing codebase uses DRF function-based views, not ViewSets</reason>
+    </constraint>
+    <constraint id="2" category="authentication">
+      <rule>Use IsAdmin permission class for admin-only endpoints</rule>
+      <reason>Consistent with existing admin endpoints in authentication and user_management modules</reason>
+    </constraint>
+    <constraint id="3" category="email">
+      <rule>Send emails via Celery shared_task with send_email_task pattern</rule>
+      <reason>Story 2.7 established async email pattern with retry logic and EmailLog integration</reason>
+    </constraint>
+    <constraint id="4" category="email">
+      <rule>Email templates must have both .html and .txt versions in templates/emails/</rule>
+      <reason>Multipart emails required for better compatibility and accessibility</reason>
+    </constraint>
+    <constraint id="5" category="security">
+      <rule>Password reset tokens must be UUID v4, expire after 7 days, and be single-use</rule>
+      <reason>Security best practice - cryptographically random, time-limited, non-reusable</reason>
+    </constraint>
+    <constraint id="6" category="security">
+      <rule>Never expose temporary passwords to admin or logs</rule>
+      <reason>Security best practice - passwords are sensitive credentials</reason>
+    </constraint>
+    <constraint id="7" category="frontend">
+      <rule>Use Remix loader/action pattern for data fetching and mutations</rule>
+      <reason>Remix framework convention for server-side data handling</reason>
+    </constraint>
+    <constraint id="8" category="frontend">
+      <rule>Use design-system components (Button, Input, Select, Card) instead of raw HTML/Tailwind</rule>
+      <reason>Consistent UI/UX across application, established in Epic 1 and 2</reason>
+    </constraint>
+    <constraint id="9" category="testing">
+      <rule>Backend tests must use pytest-django with DJANGO_SETTINGS_MODULE=talentbase.settings.test</rule>
+      <reason>Established testing pattern in existing test files</reason>
+    </constraint>
+    <constraint id="10" category="testing">
+      <rule>E2E tests use Playwright with @playwright/test framework</rule>
+      <reason>Frontend E2E testing standard established in package.json scripts</reason>
+    </constraint>
+    <constraint id="11" category="data">
+      <rule>CandidateProfile.import_source must be 'admin_created' for admin-created candidates</rule>
+      <reason>Distinguishes from 'csv_import' (Story 3.3) and 'self_registration' (Story 3.1)</reason>
+    </constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>POST /api/v1/admin/candidates/create</name>
+      <kind>REST API Endpoint</kind>
+      <signature>
+        Request: { email: string, full_name: string, phone: string, city?: string, current_position?: string }
+        Response 201: { success: true, candidate: { id: string, email: string, full_name: string } }
+        Response 400: { error: string }
+      </signature>
+      <path>apps/api/candidates/views.py</path>
+      <notes>Admin-only endpoint (IsAdmin permission). Creates User + CandidateProfile + sends welcome email</notes>
+    </interface>
+    <interface>
+      <name>POST /api/v1/auth/set-password</name>
+      <kind>REST API Endpoint</kind>
+      <signature>
+        Request: { token: string, password: string }
+        Response 200: { access_token: string, user: { id: string, email: string, role: string } }
+        Response 400: { error: string }
+      </signature>
+      <path>apps/api/authentication/views.py</path>
+      <notes>Public endpoint (AllowAny). Validates token, sets password, returns JWT token</notes>
+    </interface>
+    <interface>
+      <name>send_admin_created_candidate_welcome_email</name>
+      <kind>Celery Task</kind>
+      <signature>
+        @shared_task
+        def send_admin_created_candidate_welcome_email(user_id: str) -> str
+      </signature>
+      <path>apps/api/core/tasks.py</path>
+      <notes>Async task to send welcome email with password set link. Uses send_email_task pattern with HTML/text templates</notes>
+    </interface>
+    <interface>
+      <name>requireAdmin</name>
+      <kind>Remix Server Utility</kind>
+      <signature>
+        async function requireAdmin(request: Request): Promise&lt;{ token: string, user: User }&gt;
+      </signature>
+      <path>packages/web/app/utils/auth.server.ts</path>
+      <notes>Server-side auth check for admin routes. Throws redirect if not authenticated or not admin role</notes>
+    </interface>
+    <interface>
+      <name>AdminLayout</name>
+      <kind>React Component</kind>
+      <signature>
+        &lt;AdminLayout pageTitle: string, activeItem: string, user: User&gt;{children}&lt;/AdminLayout&gt;
+      </signature>
+      <path>packages/web/app/components/layouts/AdminLayout.tsx</path>
+      <notes>Layout wrapper for all admin pages with sidebar navigation</notes>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>
+      Backend testing uses pytest-django with fixtures and mocks. Test classes group related tests with descriptive names (TestClassName). Each test method follows arrange-act-assert pattern with clear docstrings mapping to Acceptance Criteria. Mock external dependencies (Celery tasks, email) using unittest.mock.patch. Tests run with DJANGO_SETTINGS_MODULE=talentbase.settings.test.
+
+      Frontend E2E testing uses Playwright with @playwright/test. Tests simulate real user flows from login through feature completion. Use descriptive test names (e.g., 'admin creates candidate and receives email'). Tests run against local dev server (localhost:3000 for frontend, API on configured backend).
+
+      Test coverage expectations: 100% for critical paths (authentication, data creation), 80%+ for business logic, 60%+ overall. All tests must pass before PR merge.
+    </standards>
+    <locations>
+      <location>
+        <path>apps/api/authentication/tests/</path>
+        <description>Backend tests for User model extensions and authentication endpoints</description>
+        <examples>test_models.py, test_views.py, test_services.py</examples>
+      </location>
+      <location>
+        <path>apps/api/candidates/tests/</path>
+        <description>Backend tests for CandidateProfile creation and admin endpoints</description>
+        <examples>test_admin_creation.py (NEW for this story)</examples>
+      </location>
+      <location>
+        <path>apps/api/core/tests/</path>
+        <description>Backend tests for Celery tasks and email sending</description>
+        <examples>test_tasks.py (extend with new welcome email task test)</examples>
+      </location>
+      <location>
+        <path>packages/web/tests/e2e/</path>
+        <description>Frontend E2E tests using Playwright</description>
+        <examples>admin-create-candidate.spec.ts (NEW for this story)</examples>
+      </location>
+    </locations>
+    <ideas>
+      <test-idea ac="8,9,10,12" priority="critical">
+        <name>test_admin_creates_candidate_success</name>
+        <description>Admin creates candidate with minimal fields (email, name, phone). Verify User created with role='candidate', password_reset_required=True, token generated, expiration set to +7 days. Verify CandidateProfile created with import_source='admin_created'. Verify email task queued with correct user_id. Check 201 response with candidate data.</description>
+        <location>apps/api/candidates/tests/test_admin_creation.py</location>
+      </test-idea>
+      <test-idea ac="15,16" priority="critical">
+        <name>test_admin_creates_duplicate_email_fails</name>
+        <description>Attempt to create candidate with existing email. Verify 400 Bad Request response with error message 'Email already exists'. Verify no new User or CandidateProfile created. Verify no email sent.</description>
+        <location>apps/api/candidates/tests/test_admin_creation.py</location>
+      </test-idea>
+      <test-idea ac="21,22,23" priority="critical">
+        <name>test_set_password_with_valid_token</name>
+        <description>Create candidate with password_reset_token and expiration. Call set-password endpoint with valid token and password. Verify password updated (hashed), password_reset_required=False, token cleared. Verify JWT access token returned in response with correct user data.</description>
+        <location>apps/api/authentication/tests/test_views.py</location>
+      </test-idea>
+      <test-idea ac="19" priority="high">
+        <name>test_set_password_with_expired_token</name>
+        <description>Create candidate with expired token (password_reset_token_expires in past). Call set-password endpoint. Verify 400 Bad Request response with 'Invalid or expired token' error. Verify password NOT updated.</description>
+        <location>apps/api/authentication/tests/test_views.py</location>
+      </test-idea>
+      <test-idea ac="19" priority="high">
+        <name>test_set_password_with_invalid_token</name>
+        <description>Call set-password endpoint with non-existent UUID token. Verify 400 Bad Request response with 'Invalid or expired token' error.</description>
+        <location>apps/api/authentication/tests/test_views.py</location>
+      </test-idea>
+      <test-idea ac="7" priority="high">
+        <name>test_non_admin_cannot_create_candidate</name>
+        <description>Authenticate as candidate or company role. Attempt to call admin/candidates/create endpoint. Verify 403 Forbidden response. Verify no candidate created.</description>
+        <location>apps/api/candidates/tests/test_admin_creation.py</location>
+      </test-idea>
+      <test-idea ac="10,11" priority="high">
+        <name>test_welcome_email_sent_with_correct_content</name>
+        <description>Mock send_email_task. Create candidate via admin endpoint. Verify Celery task called with template_name='welcome_admin_created_candidate', correct context (candidate_name, password_set_url with token), recipient_email, and subject. Verify EmailLog entry created.</description>
+        <location>apps/api/core/tests/test_tasks.py</location>
+      </test-idea>
+      <test-idea ac="1,2,3,4,5,6,13,14" priority="critical">
+        <name>E2E: admin creates candidate successfully</name>
+        <description>Login as admin → navigate to /admin/candidates → click "Criar Candidato" button → fill form with name, email, phone, city, position → submit → verify redirect to /admin/candidates?created=true → verify toast success message → verify candidate appears in table</description>
+        <location>packages/web/tests/e2e/admin-create-candidate.spec.ts</location>
+      </test-idea>
+      <test-idea ac="16" priority="high">
+        <name>E2E: duplicate email shows error</name>
+        <description>Login as admin → create candidate with email A → try to create another candidate with same email A → verify error message displayed below email field → verify no redirect → verify form still showing with data</description>
+        <location>packages/web/tests/e2e/admin-create-candidate.spec.ts</location>
+      </test-idea>
+      <test-idea ac="17,18,20,21,24,25,26" priority="critical">
+        <name>E2E: candidate sets password and completes profile</name>
+        <description>Admin creates candidate → extract token from email (MailHog API) → navigate to /auth/set-password?token=xxx → fill password fields → submit → verify redirect to /candidate/profile/create → complete profile → verify redirect to /candidate/dashboard</description>
+        <location>packages/web/tests/e2e/admin-create-candidate.spec.ts</location>
+      </test-idea>
+      <test-idea ac="19" priority="medium">
+        <name>E2E: expired token shows error</name>
+        <description>Navigate to /auth/set-password with expired/invalid token → verify error message displayed → verify "Solicitar nova senha" link present</description>
+        <location>packages/web/tests/e2e/admin-create-candidate.spec.ts</location>
+      </test-idea>
+    </ideas>
+  </tests>
+</story-context>

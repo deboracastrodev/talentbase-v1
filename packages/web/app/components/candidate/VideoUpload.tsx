@@ -4,6 +4,7 @@
  */
 
 import { useState, useRef } from 'react';
+
 import { useS3Upload } from '~/hooks/useS3Upload';
 
 interface VideoUploadProps {
@@ -20,9 +21,7 @@ export function VideoUpload({
   disabled = false,
 }: VideoUploadProps) {
   const { uploadState, uploadFile, reset } = useS3Upload();
-  const [uploadMethod, setUploadMethod] = useState<'s3' | 'youtube'>(
-    currentVideoType || 's3'
-  );
+  const [uploadMethod, setUploadMethod] = useState<'s3' | 'youtube'>(currentVideoType || 's3');
   const [youtubeUrl, setYoutubeUrl] = useState(
     currentVideoType === 'youtube' ? currentVideoUrl || '' : ''
   );
@@ -139,8 +138,8 @@ export function VideoUpload({
               {uploadState.isUploading
                 ? 'Enviando...'
                 : videoUrl && uploadMethod === 's3'
-                ? 'Alterar Vídeo'
-                : 'Escolher Vídeo'}
+                  ? 'Alterar Vídeo'
+                  : 'Escolher Vídeo'}
             </label>
 
             {videoUrl && uploadMethod === 's3' && !uploadState.isUploading && (
@@ -166,9 +165,7 @@ export function VideoUpload({
           )}
 
           {/* Error message */}
-          {uploadState.error && (
-            <p className="text-sm text-red-600">{uploadState.error}</p>
-          )}
+          {uploadState.error && <p className="text-sm text-red-600">{uploadState.error}</p>}
 
           {/* Help text */}
           <p className="text-sm text-gray-500">MP4, MOV ou AVI, máximo 50MB</p>
@@ -211,9 +208,7 @@ export function VideoUpload({
             </div>
           )}
 
-          <p className="text-sm text-gray-500">
-            Cole a URL completa do vídeo no YouTube
-          </p>
+          <p className="text-sm text-gray-500">Cole a URL completa do vídeo no YouTube</p>
         </div>
       )}
 

@@ -12,9 +12,9 @@
  * across multiple forms, following DRY principle.
  */
 
-import { ReactNode } from 'react';
 import { Input, InputProps } from '@talentbase/design-system';
 import { AlertCircle, CheckCircle } from 'lucide-react';
+import { ReactNode } from 'react';
 
 export interface FormFieldProps extends Omit<InputProps, 'variant'> {
   label: ReactNode; // Can be string or JSX element for flexibility
@@ -81,10 +81,10 @@ export function FormField({
             hasError
               ? `${id}-error`
               : hasSuccess
-              ? `${id}-success`
-              : helperText
-              ? `${id}-helper`
-              : undefined
+                ? `${id}-success`
+                : helperText
+                  ? `${id}-helper`
+                  : undefined
           }
           className="w-full"
           {...inputProps}
@@ -93,11 +93,7 @@ export function FormField({
 
       {/* Error Message */}
       {hasError && (
-        <p
-          id={`${id}-error`}
-          className="text-sm text-red-500 flex items-center gap-1"
-          role="alert"
-        >
+        <p id={`${id}-error`} className="text-sm text-red-500 flex items-center gap-1" role="alert">
           <AlertCircle className="h-4 w-4" aria-hidden="true" />
           {error}
         </p>
@@ -105,10 +101,7 @@ export function FormField({
 
       {/* Success Message */}
       {hasSuccess && successMessage && (
-        <p
-          id={`${id}-success`}
-          className="text-sm text-green-500 flex items-center gap-1"
-        >
+        <p id={`${id}-success`} className="text-sm text-green-500 flex items-center gap-1">
           <CheckCircle className="h-4 w-4" aria-hidden="true" />
           {successMessage}
         </p>

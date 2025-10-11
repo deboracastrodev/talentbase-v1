@@ -1,12 +1,9 @@
-import type { Config } from 'tailwindcss';
 import designSystemConfig from '@talentbase/design-system/tailwind.config';
+import type { Config } from 'tailwindcss';
 
 export default {
   presets: [designSystemConfig],
-  content: [
-    './app/**/*.{js,jsx,ts,tsx}',
-    '../design-system/src/**/*.{js,jsx,ts,tsx}',
-  ],
+  content: ['./app/**/*.{js,jsx,ts,tsx}', '../design-system/src/**/*.{js,jsx,ts,tsx}'],
   theme: {
     extend: {
       animation: {

@@ -78,7 +78,7 @@ class TestCandidateRegistrationView:
         auth_cookie = response.cookies["auth_token"]
         assert auth_cookie.value == response.data["token"]
         assert auth_cookie["httponly"] is True
-        assert auth_cookie["max-age"] == 604800  # 7 days
+        assert auth_cookie["max-age"] == 604800  # 7 days (DRF Token - registration not migrated to JWT yet)
         assert auth_cookie["path"] == "/"
         # In development, secure should be False; in production, True
         # SameSite should be 'Lax' in dev, 'Strict' in prod
@@ -327,7 +327,7 @@ class TestLoginView:
         auth_cookie = response.cookies["auth_token"]
         assert auth_cookie.value == response.data["token"]
         assert auth_cookie["httponly"] is True
-        assert auth_cookie["max-age"] == 604800  # 7 days
+        assert auth_cookie["max-age"] == 3600  # 1 hour (JWT access token expiration)
         assert auth_cookie["path"] == "/"
 
     def test_login_company_success(self):

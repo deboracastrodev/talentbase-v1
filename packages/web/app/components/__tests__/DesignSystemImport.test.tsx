@@ -1,6 +1,6 @@
+import { Button, Input, FormField, VideoPlayer } from '@talentbase/design-system';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
-import { Button, Input, FormField, VideoPlayer } from '@talentbase/design-system';
 
 describe('Design System Components', () => {
   it('renders Button component', () => {
@@ -18,9 +18,7 @@ describe('Design System Components', () => {
   });
 
   it('renders VideoPlayer with valid YouTube URL', () => {
-    const { container } = render(
-      <VideoPlayer url="https://youtube.com/watch?v=abc12345678" />
-    );
+    const { container } = render(<VideoPlayer url="https://youtube.com/watch?v=abc12345678" />);
     const iframe = container.querySelector('iframe');
     expect(iframe).toBeInTheDocument();
     expect(iframe?.src).toContain('youtube.com/embed/abc12345678');

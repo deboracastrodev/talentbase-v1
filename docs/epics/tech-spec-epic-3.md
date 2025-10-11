@@ -2,9 +2,10 @@
 
 **Epic:** Epic 3 - Candidate Management System
 **Timeline:** Weeks 4-7
-**Stories:** 3.1 - 3.7
+**Stories:** 3.1, 3.2, 3.3, 3.3.5, 3.4, 3.5, 3.6, 3.7
 **Author:** BMad Architecture Agent
 **Date:** 2025-10-01
+**Last Updated:** 2025-10-10 (Added Story 3.3.5)
 
 ---
 
@@ -745,6 +746,758 @@ def import_candidates_csv(records, column_mapping):
 
 ---
 
+## Story 3.3.5: Admin Manual Candidate Creation
+
+### Business Context
+
+Permite que admins criem candidatos manualmente através de um formulário simplificado, gerando credenciais automáticas e enviando email de boas-vindas ao candidato para que complete seu perfil.
+
+**Use Cases:**
+- Candidato indicado por parceiro (não veio do CSV)
+- Candidato descoberto em evento/networking
+- Candidato que entrou em contato direto (sem se registrar)
+- Criação de perfil inicial para posterior completude pelo próprio candidato
+
+**Diferenciação:**
+- `import_source: 'admin_created'` (vs `csv_import` or `self_registered`)
+- Senha temporária gerada automaticamente
+- Email de convite enviado com link para completar perfil
+- Campos essenciais preenchidos pelo admin, candidato completa o resto
+
+### Architecture Context
+
+**Form Strategy:**
+- **Admin preenche campos mínimos**: Nome, email, telefone, posição, cidade
+- **Sistema gera automaticamente**: Senha temporária, token de ativação
+- **Candidato completa depois**: Bio, experiências, habilidades, vídeo, foto
+
+**Authentication Flow:**
+1. Admin cria candidato → `User` criado com `password_reset_required=True`
+2. Email enviado → "Bem-vindo ao TalentBase! Complete seu perfil"
+3. Candidato clica no link → Redireciona para `/auth/set-password?token=xxx`
+4. Candidato define senha → Redireciona para `/candidate/profile/create`
+5. Candidato completa perfil → Perfil ativo
+
+**Email Template:**
+```
+Assunto: Bem-vindo ao TalentBase - Complete seu Perfil
+
+Olá [Nome],
+
+Você foi adicionado ao TalentBase por nossa equipe!
+
+Complete seu perfil de vendedor para começar a receber oportunidades de vagas:
+[Link para definir senha e completar perfil]
+
+Este link expira em 7 dias.
+
+Qualquer dúvida, responda este email.
+
+Atenciosamente,
+Equipe TalentBase
+```
+
+### Implementation Steps
+
+**1. Update User Model with Password Reset Flag:**
+
+`apps/api/authentication/models.py`:
+```python
+from django.contrib.auth.models import AbstractBaseUser
+from django.db import models
+from core.models import BaseModel
+import uuid
+
+class User(AbstractBaseUser, BaseModel):
+    email = models.EmailField(unique=True)
+    role = models.CharField(max_length=20, choices=[('admin', 'Admin'), ('candidate', 'Candidate'), ('company', 'Company')])
+    is_active = models.BooleanField(default=True)
+    password_reset_required = models.BooleanField(default=False)  # NEW FIELD
+    password_reset_token = models.UUIDField(null=True, blank=True, unique=True)  # NEW FIELD
+    password_reset_token_expires = models.DateTimeField(null=True, blank=True)  # NEW FIELD
+
+    USERNAME_FIELD = 'email'
+
+    def __str__(self):
+        return self.email
+```
+
+**2. Create Admin Candidate Creation API:**
+
+`apps/api/candidates/views.py`:
+```python
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAdminUser
+from rest_framework.response import Response
+from rest_framework import status
+from django.utils import timezone
+from datetime import timedelta
+import uuid
+from authentication.models import User
+from candidates.models import CandidateProfile
+from core.tasks import send_welcome_email
+
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def admin_create_candidate(request):
+    """
+    Admin creates candidate manually with minimal fields.
+    Generates temp password, sends welcome email with profile completion link.
+    """
+    # Validate required fields
+    email = request.data.get('email')
+    full_name = request.data.get('full_name')
+    phone = request.data.get('phone')
+    city = request.data.get('city', '')
+    current_position = request.data.get('current_position', '')
+
+    if not email or not full_name or not phone:
+        return Response(
+            {'error': 'Email, full_name, and phone are required'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # Check if user already exists
+    if User.objects.filter(email=email).exists():
+        return Response(
+            {'error': f'User with email {email} already exists'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # Create User with password reset required
+    password_reset_token = uuid.uuid4()
+    user = User.objects.create(
+        email=email,
+        role='candidate',
+        password_reset_required=True,
+        password_reset_token=password_reset_token,
+        password_reset_token_expires=timezone.now() + timedelta(days=7)
+    )
+    user.set_unusable_password()  # No login until password is set
+    user.save()
+
+    # Create minimal CandidateProfile
+    candidate = CandidateProfile.objects.create(
+        user=user,
+        full_name=full_name,
+        phone=phone,
+        city=city,
+        current_position=current_position,
+        import_source='admin_created'  # NEW FIELD (add to model)
+    )
+
+    # Send welcome email with profile completion link
+    completion_url = f"https://www.salesdog.click/auth/set-password?token={password_reset_token}"
+    send_welcome_email.delay(
+        email=email,
+        full_name=full_name,
+        completion_url=completion_url
+    )
+
+    return Response({
+        'id': str(candidate.id),
+        'email': email,
+        'full_name': full_name,
+        'message': 'Candidate created successfully. Welcome email sent.',
+        'completion_url': completion_url  # For testing
+    }, status=status.HTTP_201_CREATED)
+```
+
+**3. Add `import_source` Field to CandidateProfile Model:**
+
+`apps/api/candidates/models.py`:
+```python
+class CandidateProfile(BaseModel):
+    # ... existing fields ...
+
+    # Import tracking
+    import_source = models.CharField(
+        max_length=20,
+        choices=[
+            ('self_registered', 'Self Registered'),
+            ('csv_import', 'CSV Import'),
+            ('admin_created', 'Admin Created'),
+        ],
+        default='self_registered',
+        help_text="How was this candidate added to the system?"
+    )
+```
+
+**4. Create Welcome Email Task:**
+
+`apps/api/core/tasks.py`:
+```python
+from celery import shared_task
+from django.core.mail import send_mail
+from django.conf import settings
+
+@shared_task
+def send_welcome_email(email, full_name, completion_url):
+    """Send welcome email to admin-created candidate"""
+    subject = 'Bem-vindo ao TalentBase - Complete seu Perfil'
+
+    message = f"""
+Olá {full_name},
+
+Você foi adicionado ao TalentBase por nossa equipe!
+
+Complete seu perfil de vendedor para começar a receber oportunidades de vagas em empresas parceiras.
+
+Clique no link abaixo para definir sua senha e completar seu perfil:
+{completion_url}
+
+⚠️ Este link expira em 7 dias.
+
+Qualquer dúvida, responda este email.
+
+Atenciosamente,
+Equipe TalentBase
+    """
+
+    send_mail(
+        subject,
+        message,
+        settings.DEFAULT_FROM_EMAIL,
+        [email],
+        fail_silently=False,
+    )
+```
+
+**5. Create Password Set View:**
+
+`apps/api/authentication/views.py`:
+```python
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+from django.utils import timezone
+from authentication.models import User
+
+@api_view(['POST'])
+def set_password_with_token(request):
+    """
+    Candidate sets password using token from welcome email.
+    """
+    token = request.data.get('token')
+    new_password = request.data.get('password')
+
+    if not token or not new_password:
+        return Response(
+            {'error': 'Token and password are required'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    try:
+        user = User.objects.get(password_reset_token=token)
+    except User.DoesNotExist:
+        return Response(
+            {'error': 'Invalid or expired token'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # Check token expiration
+    if user.password_reset_token_expires < timezone.now():
+        return Response(
+            {'error': 'Token has expired. Please contact admin.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # Set password and clear reset flags
+    user.set_password(new_password)
+    user.password_reset_required = False
+    user.password_reset_token = None
+    user.password_reset_token_expires = None
+    user.save()
+
+    return Response({
+        'message': 'Password set successfully. You can now login.',
+        'email': user.email
+    })
+```
+
+**6. Create Frontend Admin Form:**
+
+`packages/web/app/routes/admin.candidates.new.tsx`:
+```typescript
+import { Form, useActionData, useNavigate } from '@remix-run/react';
+import { json, redirect, type ActionFunctionArgs } from '@remix-run/node';
+import { Button, Input, Select } from '@talentbase/design-system';
+import { requireAuth } from '~/utils/auth.server';
+import { createCandidate } from '~/lib/api/candidates';
+
+export async function action({ request }: ActionFunctionArgs) {
+  const user = await requireAuth(request, 'admin');
+  const formData = await request.formData();
+
+  try {
+    const result = await createCandidate(request, {
+      email: formData.get('email') as string,
+      full_name: formData.get('full_name') as string,
+      phone: formData.get('phone') as string,
+      city: formData.get('city') as string,
+      current_position: formData.get('current_position') as string,
+    });
+
+    // Show success toast and redirect
+    return redirect('/admin/candidates?created=true');
+  } catch (error: any) {
+    return json(
+      { error: error.message || 'Failed to create candidate' },
+      { status: 400 }
+    );
+  }
+}
+
+export default function AdminCreateCandidate() {
+  const actionData = useActionData<typeof action>();
+  const navigate = useNavigate();
+
+  return (
+    <div className="max-w-2xl mx-auto py-8 px-4">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold">Criar Novo Candidato</h1>
+        <p className="text-gray-600 mt-2">
+          Preencha os campos essenciais. O candidato receberá um email para completar o perfil.
+        </p>
+      </div>
+
+      <Form method="post" className="space-y-6 bg-white p-6 rounded-lg shadow">
+        {actionData?.error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+            {actionData.error}
+          </div>
+        )}
+
+        <Input
+          label="Nome Completo *"
+          name="full_name"
+          required
+          placeholder="João Silva"
+        />
+
+        <Input
+          label="Email *"
+          name="email"
+          type="email"
+          required
+          placeholder="joao.silva@email.com"
+          helperText="O candidato receberá um email neste endereço para completar o perfil"
+        />
+
+        <Input
+          label="Telefone *"
+          name="phone"
+          type="tel"
+          required
+          placeholder="(11) 99999-9999"
+        />
+
+        <Input
+          label="Cidade"
+          name="city"
+          placeholder="São Paulo, SP"
+        />
+
+        <Select
+          label="Posição"
+          name="current_position"
+          options={[
+            { value: '', label: 'Selecione...' },
+            { value: 'SDR/BDR', label: 'SDR/BDR' },
+            { value: 'AE/Closer', label: 'Account Executive/Closer' },
+            { value: 'CSM', label: 'Customer Success Manager' },
+          ]}
+        />
+
+        <div className="flex gap-4">
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => navigate('/admin/candidates')}
+          >
+            Cancelar
+          </Button>
+          <Button type="submit">
+            Criar Candidato e Enviar Email
+          </Button>
+        </div>
+      </Form>
+
+      <div className="mt-6 bg-blue-50 border border-blue-200 p-4 rounded">
+        <h3 className="font-semibold text-blue-900 mb-2">O que acontece após criar?</h3>
+        <ul className="text-sm text-blue-800 space-y-1">
+          <li>✉️ Email de boas-vindas enviado ao candidato</li>
+          <li>🔑 Link para definir senha (válido por 7 dias)</li>
+          <li>📝 Candidato completa perfil (bio, experiências, skills, vídeo)</li>
+          <li>✅ Perfil fica disponível para edição e curadoria admin</li>
+        </ul>
+      </div>
+    </div>
+  );
+}
+```
+
+**7. Create Password Set Form (Frontend):**
+
+`packages/web/app/routes/auth.set-password.tsx`:
+```typescript
+import { Form, useActionData, useSearchParams } from '@remix-run/react';
+import { json, redirect, type ActionFunctionArgs } from '@remix-run/node';
+import { Button, Input } from '@talentbase/design-system';
+import { setPasswordWithToken } from '~/lib/api/auth';
+
+export async function action({ request }: ActionFunctionArgs) {
+  const formData = await request.formData();
+  const token = formData.get('token') as string;
+  const password = formData.get('password') as string;
+  const confirmPassword = formData.get('confirm_password') as string;
+
+  if (password !== confirmPassword) {
+    return json({ error: 'Passwords do not match' }, { status: 400 });
+  }
+
+  if (password.length < 8) {
+    return json({ error: 'Password must be at least 8 characters' }, { status: 400 });
+  }
+
+  try {
+    await setPasswordWithToken(token, password);
+    return redirect('/auth/login?password_set=true');
+  } catch (error: any) {
+    return json(
+      { error: error.message || 'Failed to set password' },
+      { status: 400 }
+    );
+  }
+}
+
+export default function SetPassword() {
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get('token');
+  const actionData = useActionData<typeof action>();
+
+  if (!token) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="bg-white p-8 rounded-lg shadow max-w-md">
+          <h1 className="text-2xl font-bold text-red-600 mb-4">Link Inválido</h1>
+          <p className="text-gray-700">
+            Este link é inválido ou expirou. Entre em contato com o suporte.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <div className="bg-white p-8 rounded-lg shadow max-w-md w-full">
+        <h1 className="text-2xl font-bold mb-2">Defina sua Senha</h1>
+        <p className="text-gray-600 mb-6">
+          Crie uma senha segura para acessar sua conta TalentBase.
+        </p>
+
+        <Form method="post" className="space-y-4">
+          <input type="hidden" name="token" value={token} />
+
+          {actionData?.error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm">
+              {actionData.error}
+            </div>
+          )}
+
+          <Input
+            label="Nova Senha"
+            name="password"
+            type="password"
+            required
+            minLength={8}
+            helperText="Mínimo 8 caracteres"
+          />
+
+          <Input
+            label="Confirmar Senha"
+            name="confirm_password"
+            type="password"
+            required
+            minLength={8}
+          />
+
+          <Button type="submit" className="w-full">
+            Definir Senha e Continuar
+          </Button>
+        </Form>
+
+        <p className="mt-6 text-sm text-gray-600 text-center">
+          Após definir sua senha, você será redirecionado para completar seu perfil.
+        </p>
+      </div>
+    </div>
+  );
+}
+```
+
+**8. Add API Client Functions:**
+
+`packages/web/app/lib/api/candidates.ts`:
+```typescript
+import { getApiBaseUrl } from '~/config/api';
+
+export async function createCandidate(request: Request, data: {
+  email: string;
+  full_name: string;
+  phone: string;
+  city?: string;
+  current_position?: string;
+}) {
+  const apiUrl = getApiBaseUrl();
+  const token = await getAuthToken(request);
+
+  const response = await fetch(`${apiUrl}/api/v1/admin/candidates/create`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to create candidate');
+  }
+
+  return response.json();
+}
+```
+
+`packages/web/app/lib/api/auth.ts`:
+```typescript
+import { getApiBaseUrl } from '~/config/api';
+
+export async function setPasswordWithToken(token: string, password: string) {
+  const apiUrl = getApiBaseUrl();
+
+  const response = await fetch(`${apiUrl}/api/v1/auth/set-password`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ token, password }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to set password');
+  }
+
+  return response.json();
+}
+```
+
+**9. Update Admin Candidates Page with "Create" Button:**
+
+`packages/web/app/routes/admin.candidates.tsx`:
+```typescript
+import { Link } from '@remix-run/react';
+import { Button } from '@talentbase/design-system';
+import { ROUTES } from '~/config/routes';
+
+export default function AdminCandidates() {
+  return (
+    <div className="p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Candidatos</h1>
+        <div className="flex gap-3">
+          <Link to={ROUTES.admin.importCandidates}>
+            <Button variant="secondary">Importar CSV</Button>
+          </Link>
+          <Link to="/admin/candidates/new">
+            <Button>+ Criar Candidato</Button>
+          </Link>
+        </div>
+      </div>
+
+      {/* Existing table implementation */}
+    </div>
+  );
+}
+```
+
+**10. Add Route to Django URLs:**
+
+`apps/api/candidates/urls.py`:
+```python
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    # ... existing routes ...
+    path('admin/candidates/create', views.admin_create_candidate, name='admin-create-candidate'),
+]
+```
+
+`apps/api/authentication/urls.py`:
+```python
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    # ... existing routes ...
+    path('auth/set-password', views.set_password_with_token, name='set-password-with-token'),
+]
+```
+
+### Database Migration
+
+```bash
+# Create migration for new fields
+DJANGO_SETTINGS_MODULE=talentbase.settings.development poetry run python manage.py makemigrations authentication candidates --name add_admin_creation_fields
+
+# Apply migration
+DJANGO_SETTINGS_MODULE=talentbase.settings.development poetry run python manage.py migrate
+```
+
+### Testing Approach
+
+**Backend Tests:**
+
+`apps/api/candidates/tests/test_admin_creation.py`:
+```python
+from django.test import TestCase
+from rest_framework.test import APIClient
+from authentication.models import User
+from candidates.models import CandidateProfile
+
+class AdminCandidateCreationTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.admin_user = User.objects.create_user(
+            email='admin@test.com',
+            password='testpass123',
+            role='admin'
+        )
+        self.client.force_authenticate(user=self.admin_user)
+
+    def test_admin_creates_candidate_success(self):
+        response = self.client.post('/api/v1/admin/candidates/create', {
+            'email': 'newcandidate@test.com',
+            'full_name': 'New Candidate',
+            'phone': '11999999999',
+            'city': 'São Paulo',
+            'current_position': 'SDR/BDR'
+        })
+
+        self.assertEqual(response.status_code, 201)
+
+        # Check user created
+        user = User.objects.get(email='newcandidate@test.com')
+        self.assertEqual(user.role, 'candidate')
+        self.assertTrue(user.password_reset_required)
+        self.assertIsNotNone(user.password_reset_token)
+
+        # Check candidate profile created
+        candidate = CandidateProfile.objects.get(user=user)
+        self.assertEqual(candidate.full_name, 'New Candidate')
+        self.assertEqual(candidate.import_source, 'admin_created')
+
+    def test_admin_creates_duplicate_email_fails(self):
+        User.objects.create_user(
+            email='existing@test.com',
+            password='pass',
+            role='candidate'
+        )
+
+        response = self.client.post('/api/v1/admin/candidates/create', {
+            'email': 'existing@test.com',
+            'full_name': 'Test',
+            'phone': '11999999999'
+        })
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('already exists', response.data['error'])
+
+    def test_set_password_with_valid_token(self):
+        user = User.objects.create(
+            email='test@test.com',
+            role='candidate',
+            password_reset_required=True,
+            password_reset_token=uuid.uuid4(),
+            password_reset_token_expires=timezone.now() + timedelta(days=7)
+        )
+
+        response = self.client.post('/api/v1/auth/set-password', {
+            'token': str(user.password_reset_token),
+            'password': 'newpassword123'
+        })
+
+        self.assertEqual(response.status_code, 200)
+
+        user.refresh_from_db()
+        self.assertFalse(user.password_reset_required)
+        self.assertIsNone(user.password_reset_token)
+        self.assertTrue(user.check_password('newpassword123'))
+```
+
+**Frontend E2E Test:**
+
+`packages/web/tests/e2e/admin-create-candidate.spec.ts`:
+```typescript
+import { test, expect } from '@playwright/test';
+
+test('admin creates candidate and receives email', async ({ page }) => {
+  // Login as admin
+  await page.goto('/auth/login');
+  await page.getByLabel('Email').fill('admin@test.com');
+  await page.getByLabel('Password').fill('admin123');
+  await page.getByRole('button', { name: 'Login' }).click();
+
+  // Go to create candidate page
+  await page.goto('/admin/candidates/new');
+
+  // Fill form
+  await page.getByLabel('Nome Completo').fill('João Silva');
+  await page.getByLabel('Email').fill('joao.silva@test.com');
+  await page.getByLabel('Telefone').fill('11999999999');
+  await page.getByLabel('Cidade').fill('São Paulo, SP');
+  await page.getByLabel('Posição').selectOption('SDR/BDR');
+
+  // Submit
+  await page.getByRole('button', { name: 'Criar Candidato' }).click();
+
+  // Verify redirect
+  await expect(page).toHaveURL('/admin/candidates?created=true');
+
+  // Verify success message (toast)
+  await expect(page.getByText('Candidato criado com sucesso')).toBeVisible();
+});
+```
+
+### Success Criteria
+
+- [ ] Admin can create candidate with minimal fields (email, name, phone)
+- [ ] User account created with `password_reset_required=True`
+- [ ] Welcome email sent with password set link (7-day expiration)
+- [ ] Candidate can set password via token link
+- [ ] After password set, candidate redirected to profile creation
+- [ ] CandidateProfile has `import_source='admin_created'`
+- [ ] Duplicate email validation prevents creation
+- [ ] Token expiration enforced (7 days)
+- [ ] Admin table shows "Create Candidate" button
+- [ ] E2E test covers full flow
+
+### Routes Added
+
+**Backend:**
+- `POST /api/v1/admin/candidates/create` - Admin creates candidate
+- `POST /api/v1/auth/set-password` - Candidate sets password with token
+
+**Frontend:**
+- `/admin/candidates/new` - Admin create candidate form
+- `/auth/set-password?token=xxx` - Password set page
+
+---
+
 ## Remaining Stories Summary
 
 ### Story 3.4: Admin Candidate Curation & Editing
@@ -814,6 +1567,7 @@ def import_candidates_csv(records, column_mapping):
 - [ ] Story 3.1: Multi-step profile creation working, S3 upload functional
 - [ ] Story 3.2: Shareable public profiles generated, SEO optimized
 - [ ] Story 3.3: CSV import tool working, Notion data migrated
+- [ ] Story 3.3.5: Admin manual candidate creation working, welcome emails sent
 - [ ] Story 3.4: Admin can edit candidates, set status/verified
 - [ ] Story 3.5: Ranking system implemented, scores assigned
 - [ ] Story 3.6: Candidate dashboard functional

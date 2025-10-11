@@ -17,11 +17,20 @@ const config: StorybookConfig = {
   },
   staticDirs: ['../public'],
   async viteFinal(config, { configType }) {
-    return mergeConfig(config, {
-      base: configType === 'PRODUCTION'
-        ? '/talentbase-v1/'
-        : '/',
-    });
+    if (configType === 'PRODUCTION') {
+      return mergeConfig(config, {
+        base: '/talentbase-v1/',
+        build: {
+          assetsInlineLimit: 0,
+          rollupOptions: {
+            output: {
+              manualChunks: undefined,
+            },
+          },
+        },
+      });
+    }
+    return config;
   },
 };
 

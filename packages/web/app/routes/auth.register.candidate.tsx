@@ -14,12 +14,21 @@
  * - DRY principle applied
  */
 
-import { FormEvent } from 'react';
 import { useNavigate, Link } from '@remix-run/react';
 import { Button, AuthLayout, AuthCard, Alert, AuthFormField } from '@talentbase/design-system';
 import { Loader2 } from 'lucide-react';
+import { FormEvent } from 'react';
 
 // Utilities
+import { API_ENDPOINTS } from '~/config/api';
+import { useFormValidation } from '~/hooks/useFormValidation';
+import { useRegistration } from '~/hooks/useRegistration';
+import { SUCCESS_MESSAGES, HELPER_TEXT } from '~/utils/constants';
+import { formatPhone } from '~/utils/formatting';
+
+// Hooks
+
+// API
 import {
   validateEmail,
   validatePassword,
@@ -27,14 +36,6 @@ import {
   validateFullName,
   validatePhone,
 } from '~/utils/validation';
-import { SUCCESS_MESSAGES, HELPER_TEXT } from '~/utils/constants';
-
-// Hooks
-import { useFormValidation } from '~/hooks/useFormValidation';
-import { useRegistration } from '~/hooks/useRegistration';
-
-// API
-import { API_ENDPOINTS } from '~/config/api';
 
 interface CandidateFormData {
   email: string;
@@ -48,7 +49,13 @@ export default function CandidateRegister() {
   const navigate = useNavigate();
 
   // Form validation hook (without confirmPassword validator to avoid circular reference)
-  const { formData, errors, handleChange, validateForm: baseValidateForm, setErrors } = useFormValidation<CandidateFormData>(
+  const {
+    formData,
+    errors,
+    handleChange,
+    validateForm: baseValidateForm,
+    setErrors,
+  } = useFormValidation<CandidateFormData>(
     {
       email: '',
       password: '',
@@ -70,7 +77,7 @@ export default function CandidateRegister() {
     const confirmResult = validatePasswordConfirmation(formData.password, formData.confirmPassword);
 
     if (!confirmResult.isValid) {
-      setErrors(prev => ({ ...prev, confirmPassword: confirmResult.error }));
+      setErrors((prev) => ({ ...prev, confirmPassword: confirmResult.error }));
       return false;
     }
 
@@ -120,6 +127,12 @@ export default function CandidateRegister() {
     formData.password === formData.confirmPassword &&
     !allErrors.confirmPassword;
 
+  // Check if phone is valid and fully formatted for success indicator
+  const phoneValid =
+    !!formData.phone &&
+    (formData.phone.length === 14 || formData.phone.length === 15) && // (11) 3333-4444 or (11) 99999-9999
+    !allErrors.phone;
+
   return (
     <AuthLayout>
       <AuthCard
@@ -166,8 +179,10 @@ export default function CandidateRegister() {
             type="tel"
             label="Telefone"
             value={formData.phone}
-            onChange={(e) => handleChange('phone', e.target.value)}
+            onChange={(e) => handleChange('phone', formatPhone(e.target.value))}
             error={allErrors.phone}
+            showSuccess={phoneValid}
+            successMessage="Telefone válido"
             helperText={HELPER_TEXT.PHONE_FORMAT}
             placeholder="(11) 99999-9999"
             autoComplete="tel"

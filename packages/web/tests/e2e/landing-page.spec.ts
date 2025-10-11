@@ -8,7 +8,9 @@ test.describe('Landing Page', () => {
     await expect(page.getByRole('heading', { name: /parceiro de IA/i })).toBeVisible();
 
     // CTA buttons
-    await expect(page.getByRole('button', { name: /Quero meu headhunter pessoal/i }).first()).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: /Quero meu headhunter pessoal/i }).first()
+    ).toBeVisible();
 
     // How It Works sections
     await expect(page.getByRole('heading', { name: 'Como funciona a TalentBase?' })).toBeVisible();

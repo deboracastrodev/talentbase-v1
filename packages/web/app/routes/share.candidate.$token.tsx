@@ -8,7 +8,6 @@
 
 import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/node';
 import { useLoaderData, Link } from '@remix-run/react';
-import { useState } from 'react';
 import {
   PublicProfileHero,
   Timeline,
@@ -25,6 +24,11 @@ import {
   Alert,
   VideoPlayer,
 } from '@talentbase/design-system';
+import { useState } from 'react';
+
+import { getAppBaseUrl } from '~/config/api';
+import { apiServer } from '~/lib/apiServer';
+import { apiClient, ApiError } from '~/lib/apiClient';
 
 // Types
 interface PublicProfile {
@@ -92,16 +96,8 @@ export async function loader({ params }: LoaderFunctionArgs) {
     throw new Response('Token not found', { status: 404 });
   }
 
-  const apiBaseUrl = process.env.VITE_API_BASE_URL || 'http://localhost:8000';
-
   try {
-    const response = await fetch(`${apiBaseUrl}/api/v1/candidates/public/${token}`);
-
-    if (!response.ok) {
-      throw new Response('Profile not found or sharing is disabled', { status: 404 });
-    }
-
-    const profile: PublicProfile = await response.json();
+    const profile = await apiServer.get<PublicProfile>(`/api/v1/candidates/public/${token}`);
 
     return json({ profile, token });
   } catch (error) {
@@ -116,7 +112,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   }
 
   const { profile } = data;
-  const appBaseUrl = process.env.VITE_APP_BASE_URL || 'http://localhost:3000';
+  const appBaseUrl = getAppBaseUrl();
   const shareUrl = `${appBaseUrl}/share/candidate/${data.token}`;
 
   const title = `${profile.full_name} - ${profile.current_position || 'Profissional de Vendas'} | TalentBase`;
@@ -161,19 +157,7 @@ export default function ShareCandidateProfile() {
     setContactError(null);
 
     try {
-      const apiBaseUrl = process.env.VITE_API_BASE_URL || 'http://localhost:8000';
-      const response = await fetch(`${apiBaseUrl}/api/v1/candidates/public/${token}/contact`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Erro ao enviar mensagem');
-      }
+      await apiClient.post(`/api/v1/candidates/public/${token}/contact`, formData);
 
       setContactSuccess(true);
       setFormData({ name: '', email: '', message: '' });
@@ -183,8 +167,13 @@ export default function ShareCandidateProfile() {
         setIsContactModalOpen(false);
         setContactSuccess(false);
       }, 2000);
-    } catch (error) {
-      setContactError(error instanceof Error ? error.message : 'Erro ao enviar mensagem');
+    } catch (err) {
+      if (err instanceof ApiError) {
+        const errorData = err.data as any;
+        setContactError(errorData?.error || 'Erro ao enviar mensagem');
+      } else {
+        setContactError('Erro ao enviar mensagem');
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -281,16 +270,23 @@ export default function ShareCandidateProfile() {
                       {profile.experience_summary.sales && (
                         <ul className="list-disc list-inside text-sm space-y-1">
                           {profile.experience_summary.sales.outbound_years && (
-                            <li>Outbound: {profile.experience_summary.sales.outbound_years} anos</li>
+                            <li>
+                              Outbound: {profile.experience_summary.sales.outbound_years} anos
+                            </li>
                           )}
                           {profile.experience_summary.sales.inbound_years && (
                             <li>Inbound: {profile.experience_summary.sales.inbound_years} anos</li>
                           )}
                           {profile.experience_summary.sales.inside_sales_years && (
-                            <li>Inside Sales: {profile.experience_summary.sales.inside_sales_years} anos</li>
+                            <li>
+                              Inside Sales: {profile.experience_summary.sales.inside_sales_years}{' '}
+                              anos
+                            </li>
                           )}
                           {profile.experience_summary.sales.field_sales_years && (
-                            <li>Field Sales: {profile.experience_summary.sales.field_sales_years} anos</li>
+                            <li>
+                              Field Sales: {profile.experience_summary.sales.field_sales_years} anos
+                            </li>
                           )}
                           {profile.experience_summary.sales.arr_range && (
                             <li>ARR: {profile.experience_summary.sales.arr_range}</li>
@@ -415,11 +411,7 @@ export default function ShareCandidateProfile() {
             <div className="sticky top-6 space-y-4">
               <Card>
                 <CardContent className="pt-6">
-                  <Button
-                    onClick={() => setIsContactModalOpen(true)}
-                    className="w-full"
-                    size="lg"
-                  >
+                  <Button onClick={() => setIsContactModalOpen(true)} className="w-full" size="lg">
                     <svg
                       className="w-5 h-5 mr-2"
                       fill="none"
