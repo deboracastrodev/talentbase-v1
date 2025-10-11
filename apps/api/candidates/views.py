@@ -1045,17 +1045,30 @@ def list_candidates(request):
 @permission_classes([IsAuthenticated])
 def admin_create_candidate(request):
     """
-    Create candidate manually (admin only).
+    Create candidate manually with complete profile (admin only).
 
-    Story 3.3.5 - AC 7, 8, 9, 10, 12, 15: Admin creates candidate with minimal fields.
+    Story 3.3.5 (Extended): Admin creates candidate with ALL CandidateProfile fields.
 
     POST /api/v1/admin/candidates/create
     Body: {
+        # Required fields
         email: str (required),
         full_name: str (required),
         phone: str (required),
-        city: str (optional),
-        current_position: str (optional),
+        city: str (required),
+
+        # All other CandidateProfile fields (optional):
+        # - Basic: linkedin, cpf, zip_code, profile_photo_url
+        # - Professional: current_position, years_of_experience, sales_type, sales_cycle,
+        #                 avg_ticket, academic_degree, bio
+        # - Skills: top_skills[], tools_software[], solutions_sold[], departments_sold_to[], languages[]
+        # - Preferences: work_model, relocation_availability, travel_availability, accepts_pj,
+        #                pcd, is_pcd, position_interest, minimum_salary, salary_notes,
+        #                has_drivers_license, has_vehicle
+        # - Media: pitch_video_url, pitch_video_type
+        # - Admin: contract_signed, interview_date
+        # - Experience fields: active_prospecting_experience, inbound_qualification_experience, etc.
+
         send_welcome_email: bool (optional, default=False)
     }
 
@@ -1094,11 +1107,12 @@ def admin_create_candidate(request):
 
     try:
         validated_data = serializer.validated_data
+
+        # Extract required fields
         email = validated_data["email"]
         full_name = validated_data["full_name"]
         phone = validated_data["phone"]
-        city = validated_data.get("city", "")
-        current_position = validated_data.get("current_position", "")
+        city = validated_data["city"]
         send_welcome_email = validated_data.get("send_welcome_email", False)
 
         # Generate temporary password
@@ -1130,13 +1144,60 @@ def admin_create_candidate(request):
                 user.password_reset_token_expires = password_reset_token_expires
                 user.save()
 
-            # Create CandidateProfile
+            # Create CandidateProfile with ALL fields from validated_data
             profile = CandidateProfile.objects.create(
                 user=user,
+                # Required fields
                 full_name=full_name,
                 phone=phone,
                 city=city,
-                current_position=current_position,
+                # Basic optional fields
+                linkedin=validated_data.get("linkedin", ""),
+                cpf=validated_data.get("cpf", ""),
+                zip_code=validated_data.get("zip_code", ""),
+                profile_photo_url=validated_data.get("profile_photo_url", ""),
+                # Professional fields
+                current_position=validated_data.get("current_position", ""),
+                years_of_experience=validated_data.get("years_of_experience"),
+                sales_type=validated_data.get("sales_type", ""),
+                sales_cycle=validated_data.get("sales_cycle", ""),
+                avg_ticket=validated_data.get("avg_ticket", ""),
+                academic_degree=validated_data.get("academic_degree", ""),
+                bio=validated_data.get("bio", ""),
+                # Skills (JSON fields)
+                top_skills=validated_data.get("top_skills", []),
+                tools_software=validated_data.get("tools_software", []),
+                solutions_sold=validated_data.get("solutions_sold", []),
+                departments_sold_to=validated_data.get("departments_sold_to", []),
+                languages=validated_data.get("languages", []),
+                # Work preferences
+                work_model=validated_data.get("work_model", "hybrid"),
+                relocation_availability=validated_data.get("relocation_availability", ""),
+                travel_availability=validated_data.get("travel_availability", ""),
+                accepts_pj=validated_data.get("accepts_pj", False),
+                pcd=validated_data.get("pcd", False),
+                is_pcd=validated_data.get("is_pcd", False),
+                position_interest=validated_data.get("position_interest", ""),
+                minimum_salary=validated_data.get("minimum_salary"),
+                salary_notes=validated_data.get("salary_notes", ""),
+                has_drivers_license=validated_data.get("has_drivers_license", False),
+                has_vehicle=validated_data.get("has_vehicle", False),
+                # Video pitch
+                pitch_video_url=validated_data.get("pitch_video_url", ""),
+                pitch_video_type=validated_data.get("pitch_video_type", ""),
+                # Admin-specific fields
+                contract_signed=validated_data.get("contract_signed", False),
+                interview_date=validated_data.get("interview_date"),
+                # CSV/Notion experience fields
+                active_prospecting_experience=validated_data.get("active_prospecting_experience", ""),
+                inbound_qualification_experience=validated_data.get("inbound_qualification_experience", ""),
+                portfolio_retention_experience=validated_data.get("portfolio_retention_experience", ""),
+                portfolio_expansion_experience=validated_data.get("portfolio_expansion_experience", ""),
+                portfolio_size=validated_data.get("portfolio_size", ""),
+                inbound_sales_experience=validated_data.get("inbound_sales_experience", ""),
+                outbound_sales_experience=validated_data.get("outbound_sales_experience", ""),
+                field_sales_experience=validated_data.get("field_sales_experience", ""),
+                inside_sales_experience=validated_data.get("inside_sales_experience", ""),
             )
 
             # Queue welcome email if requested

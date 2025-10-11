@@ -72,7 +72,7 @@ export const MultiStepWizard = React.forwardRef<HTMLDivElement, MultiStepWizardP
     };
 
     return (
-      <div ref={ref} className={cn('w-full max-w-4xl mx-auto', className)}>
+      <div ref={ref} className={cn('w-full mx-auto', className)}>
         {/* Progress Indicator */}
         <div className="mb-8">
           {/* Step Counter */}

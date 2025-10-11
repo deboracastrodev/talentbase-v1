@@ -90,6 +90,7 @@ class TestAdminCreateCandidate:
             "email": "newcandidate2@test.com",
             "full_name": "Maria Santos",
             "phone": "11988888888",
+            "city": "Rio de Janeiro",
             "send_welcome_email": True,
         }
 
@@ -154,6 +155,128 @@ class TestAdminCreateCandidate:
         )
 
         assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_admin_creates_candidate_with_all_fields(self):
+        """
+        Test: Admin can create candidate with ALL optional fields.
+        Story 3.3.5 (Extended): Full profile creation with all CandidateProfile fields.
+        """
+        self.client.force_authenticate(user=self.admin)
+
+        data = {
+            # Required fields
+            "email": "fullprofile@test.com",
+            "full_name": "Candidato Completo",
+            "phone": "11999999999",
+            "city": "São Paulo",
+            # Basic optional fields
+            "linkedin": "https://linkedin.com/in/fullprofile",
+            "cpf": "12345678901",
+            "zip_code": "01310-100",
+            "profile_photo_url": "https://s3.amazonaws.com/talentbase/photo.jpg",
+            # Professional fields
+            "current_position": "SDR/BDR",
+            "years_of_experience": 5,
+            "sales_type": "Outbound",
+            "sales_cycle": "30-60 dias",
+            "avg_ticket": "R$ 10k-50k MRR",
+            "academic_degree": "Ensino Superior Completo",
+            "bio": "Profissional de vendas com 5 anos de experiência em tech",
+            # Skills (JSON fields)
+            "top_skills": ["Negociação", "Prospecção", "Cold Call"],
+            "tools_software": ["Salesforce", "HubSpot", "Apollo.io"],
+            "solutions_sold": ["SaaS B2B", "Fintech"],
+            "departments_sold_to": ["C-Level", "Marketing", "Vendas"],
+            "languages": [
+                {"name": "Português", "level": "Nativo"},
+                {"name": "Inglês", "level": "Fluente"}
+            ],
+            # Work preferences
+            "work_model": "remote",
+            "relocation_availability": "Sim",
+            "travel_availability": "Sim semanalmente",
+            "accepts_pj": True,
+            "pcd": False,
+            "is_pcd": False,
+            "position_interest": "Account Executive",
+            "minimum_salary": "8000.00",
+            "salary_notes": "Flexível para pacote completo",
+            "has_drivers_license": True,
+            "has_vehicle": False,
+            # Video pitch
+            "pitch_video_url": "https://youtube.com/watch?v=test",
+            "pitch_video_type": "youtube",
+            # Admin-specific fields
+            "contract_signed": True,
+            "interview_date": "2025-10-15",
+            # CSV/Notion experience fields
+            "active_prospecting_experience": "Entre 3 e 5 anos",
+            "inbound_qualification_experience": "Entre 1 e 3 anos",
+            "outbound_sales_experience": "Entre 3 e 5 anos",
+            # Admin option
+            "send_welcome_email": False
+        }
+
+        response = self.client.post(
+            "/api/v1/candidates/admin/candidates/create", data, format="json"
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.data["success"] is True
+        assert response.data["email_sent"] is False
+
+        # Verify User created
+        user = User.objects.get(email="fullprofile@test.com")
+        assert user.role == "candidate"
+
+        # Verify CandidateProfile created with ALL fields
+        profile = CandidateProfile.objects.get(user=user)
+
+        # Basic fields
+        assert profile.full_name == "Candidato Completo"
+        assert profile.phone == "11999999999"
+        assert profile.city == "São Paulo"
+        assert profile.linkedin == "https://linkedin.com/in/fullprofile"
+        assert profile.cpf == "12345678901"
+        assert profile.zip_code == "01310-100"
+
+        # Professional fields
+        assert profile.current_position == "SDR/BDR"
+        assert profile.years_of_experience == 5
+        assert profile.sales_type == "Outbound"
+        assert profile.sales_cycle == "30-60 dias"
+        assert profile.academic_degree == "Ensino Superior Completo"
+        assert "5 anos de experiência" in profile.bio
+
+        # Skills
+        assert "Negociação" in profile.top_skills
+        assert "Salesforce" in profile.tools_software
+        assert "SaaS B2B" in profile.solutions_sold
+        assert "C-Level" in profile.departments_sold_to
+        assert len(profile.languages) == 2
+        assert profile.languages[0]["name"] == "Português"
+
+        # Preferences
+        assert profile.work_model == "remote"
+        assert profile.accepts_pj is True
+        assert profile.pcd is False
+        assert profile.position_interest == "Account Executive"
+        assert profile.minimum_salary == 8000.00
+        assert profile.has_drivers_license is True
+        assert profile.has_vehicle is False
+
+        # Media
+        assert "youtube.com" in profile.pitch_video_url
+        assert profile.pitch_video_type == "youtube"
+
+        # Admin fields
+        assert profile.contract_signed is True
+        assert str(profile.interview_date) == "2025-10-15"
+
+        # Experience fields
+        assert profile.active_prospecting_experience == "Entre 3 e 5 anos"
+        assert profile.inbound_qualification_experience == "Entre 1 e 3 anos"
+        assert profile.outbound_sales_experience == "Entre 3 e 5 anos"
 
 
 @pytest.mark.django_db
