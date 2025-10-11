@@ -1,12 +1,22 @@
 /**
  * Step 5: Work Preferences
  * Admin Candidate Creation Wizard
+ *
+ * Collects work preferences including:
+ * - Work model (remote/hybrid/onsite)
+ * - Relocation and travel availability
+ * - Contract preferences (PJ)
+ * - PCD status
+ * - Position interest
+ * - Salary expectations
+ * - Driver's license and vehicle ownership
  */
 
-import { Checkbox, Input, Select, Textarea } from '@talentbase/design-system';
+import { Checkbox, FormField, Input, Select, Textarea } from '@talentbase/design-system';
 
 import { WORK_MODEL_OPTIONS } from '~/lib/constants/admin-candidate';
 import type { AdminCandidateFormData } from '~/lib/types/admin-candidate';
+import { formatCurrency, parseCurrency } from '~/utils/formatting';
 
 interface Step5PreferencesProps {
   formData: AdminCandidateFormData;
@@ -20,10 +30,7 @@ export function Step5Preferences({ formData, onUpdate }: Step5PreferencesProps) 
       <p className="text-sm text-gray-600">Todos os campos desta etapa são opcionais</p>
 
       <div className="space-y-4">
-        <div>
-          <label htmlFor="work_model" className="block text-sm font-medium text-gray-700 mb-2">
-            Modelo de Trabalho
-          </label>
+        <FormField label="Modelo de Trabalho">
           <Select
             id="work_model"
             value={formData.work_model || ''}
@@ -32,37 +39,25 @@ export function Step5Preferences({ formData, onUpdate }: Step5PreferencesProps) 
             }
             options={WORK_MODEL_OPTIONS}
           />
-        </div>
+        </FormField>
 
-        <div>
-          <label
-            htmlFor="relocation_availability"
-            className="block text-sm font-medium text-gray-700 mb-2"
-          >
-            Disponibilidade para Mudança
-          </label>
+        <FormField label="Disponibilidade para Mudança">
           <Input
             id="relocation_availability"
             placeholder="Ex: Sim, Não, Depende da oportunidade"
             value={formData.relocation_availability || ''}
             onChange={(e) => onUpdate({ relocation_availability: e.target.value })}
           />
-        </div>
+        </FormField>
 
-        <div>
-          <label
-            htmlFor="travel_availability"
-            className="block text-sm font-medium text-gray-700 mb-2"
-          >
-            Disponibilidade para Viagens
-          </label>
+        <FormField label="Disponibilidade para Viagens">
           <Input
             id="travel_availability"
             placeholder="Ex: Sim semanalmente, Eventualmente, Não"
             value={formData.travel_availability || ''}
             onChange={(e) => onUpdate({ travel_availability: e.target.value })}
           />
-        </div>
+        </FormField>
 
         <div className="flex items-center space-x-2">
           <Checkbox
@@ -91,39 +86,37 @@ export function Step5Preferences({ formData, onUpdate }: Step5PreferencesProps) 
           </label>
         </div>
 
-        <div>
-          <label
-            htmlFor="position_interest"
-            className="block text-sm font-medium text-gray-700 mb-2"
-          >
-            Posição de Interesse
-          </label>
+        <FormField label="Posição de Interesse">
           <Input
             id="position_interest"
             placeholder="Ex: Account Manager/CSM, SDR, AE"
             value={formData.position_interest || ''}
             onChange={(e) => onUpdate({ position_interest: e.target.value })}
           />
-        </div>
+        </FormField>
 
-        <div>
-          <label htmlFor="minimum_salary" className="block text-sm font-medium text-gray-700 mb-2">
-            Remuneração Mínima Mensal (R$)
-          </label>
+        <FormField label="Remuneração Mínima Mensal (R$)" hint="Digite o valor em reais">
           <Input
             id="minimum_salary"
-            type="number"
-            step="0.01"
-            placeholder="0.00"
-            value={formData.minimum_salary || ''}
-            onChange={(e) => onUpdate({ minimum_salary: e.target.value })}
+            type="text"
+            placeholder="0,00"
+            value={
+              formData.minimum_salary
+                ? formatCurrency(String(parseFloat(formData.minimum_salary) * 100))
+                : ''
+            }
+            onChange={(e) => {
+              const formatted = formatCurrency(e.target.value);
+              const parsed = parseCurrency(formatted);
+              onUpdate({ minimum_salary: parsed });
+            }}
           />
-        </div>
+        </FormField>
 
-        <div>
-          <label htmlFor="salary_notes" className="block text-sm font-medium text-gray-700 mb-2">
-            Observações sobre Remuneração
-          </label>
+        <FormField
+          label="Observações sobre Remuneração"
+          hint="Informações adicionais sobre expectativas salariais"
+        >
           <Textarea
             id="salary_notes"
             placeholder="Ex: Valores negociáveis, preferência por variável, etc."
@@ -131,7 +124,7 @@ export function Step5Preferences({ formData, onUpdate }: Step5PreferencesProps) 
             onChange={(e) => onUpdate({ salary_notes: e.target.value })}
             rows={3}
           />
-        </div>
+        </FormField>
 
         <div className="flex items-center space-x-2">
           <Checkbox
