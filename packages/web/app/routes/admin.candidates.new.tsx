@@ -1,48 +1,46 @@
 /**
- * Admin Create Candidate Manually
+ * Admin Create Candidate - Complete Profile Wizard
  *
- * Story 3.3.5 - AC 1, 2, 3, 4, 5, 6, 7, 13, 14, 16
+ * Story 3.3.5 (Extended) - Admin can create candidate with ALL CandidateProfile fields
  * Route: /admin/candidates/new
- * Admin can manually create a candidate with minimal fields
+ *
+ * 6-Step Wizard:
+ * 1. Informações Básicas (email, nome, telefone, cidade, linkedin, cpf, zip, foto)
+ * 2. Posição & Experiência (position, years, sales_type, cycle, ticket, degree, bio)
+ * 3. Ferramentas & Habilidades (tools, top_skills, languages)
+ * 4. Soluções & Departamentos (solutions, departments)
+ * 5. Preferências de Trabalho (work_model, relocation, travel, PJ, PCD, salary, CNH)
+ * 6. Histórico & Vídeo (experiences, video, contract_signed, interview_date, send_email)
  */
 
 import { json, redirect } from '@remix-run/node';
 import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node';
-import { useActionData, useNavigate, Form, useNavigation } from '@remix-run/react';
+import { useNavigate, useActionData } from '@remix-run/react';
+import { MultiStepWizard, Button, Alert, Logo } from '@talentbase/design-system';
+import { ArrowLeft } from 'lucide-react';
+import { useState, useEffect } from 'react';
+
 import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-  Input,
-  Select,
-  Button,
-  Alert,
-  Checkbox,
-} from '@talentbase/design-system';
-import { ArrowLeft, UserPlus, Loader2 } from 'lucide-react';
-import { useState } from 'react';
-
+  Step1BasicInfo,
+  Step2Position,
+  Step3Skills,
+  Step4Solutions,
+  Step5Preferences,
+  Step6History,
+} from '~/components/admin/candidate-wizard';
 import { apiServer } from '~/lib/apiServer';
+import {
+  AUTO_SAVE_INTERVAL,
+  DRAFT_STORAGE_KEY,
+  WIZARD_STEPS,
+} from '~/lib/constants/admin-candidate';
+import type {
+  AdminCandidateActionData,
+  AdminCandidateFormData,
+  CreateCandidateResponse,
+} from '~/lib/types/admin-candidate';
+import { validateWizardStep } from '~/lib/validation/admin-candidate';
 import { requireAdmin } from '~/utils/auth.server';
-import { formatPhone } from '~/utils/formatting';
-import { validatePhone } from '~/utils/validation';
-
-interface ActionData {
-  error?: string;
-  fieldErrors?: {
-    email?: string;
-    full_name?: string;
-    phone?: string;
-  };
-  success?: boolean;
-  candidate?: {
-    id: string;
-    email: string;
-    full_name: string;
-  };
-  email_sent?: boolean;
-}
 
 /**
  * Loader - Check admin authentication
@@ -59,50 +57,13 @@ export async function action({ request }: ActionFunctionArgs) {
   const { token } = await requireAdmin(request);
 
   const formData = await request.formData();
-  const email = formData.get('email')?.toString() || '';
-  const full_name = formData.get('full_name')?.toString() || '';
-  const phone = formData.get('phone')?.toString() || '';
-  const city = formData.get('city')?.toString() || '';
-  const current_position = formData.get('current_position')?.toString() || '';
-  const send_welcome_email = formData.get('send_welcome_email') === 'on';
-
-  // Client-side validation
-  const fieldErrors: ActionData['fieldErrors'] = {};
-
-  if (!email || !email.includes('@')) {
-    fieldErrors.email = 'Email válido é obrigatório';
-  }
-
-  if (!full_name || full_name.length < 3) {
-    fieldErrors.full_name = 'Nome completo é obrigatório (mínimo 3 caracteres)';
-  }
-
-  if (!phone) {
-    fieldErrors.phone = 'Telefone é obrigatório';
-  } else if (!validatePhone(phone)) {
-    fieldErrors.phone = 'Telefone inválido (formato: (11) 99999-9999)';
-  }
-
-  if (Object.keys(fieldErrors).length > 0) {
-    return json<ActionData>({ fieldErrors }, { status: 400 });
-  }
+  const data = JSON.parse(formData.get('data')?.toString() || '{}');
 
   try {
     // Call API to create candidate
-    const response = await apiServer.post<{
-      success: boolean;
-      candidate: { id: string; email: string; full_name: string };
-      email_sent: boolean;
-    }>(
+    const response = await apiServer.post<CreateCandidateResponse>(
       '/api/v1/candidates/admin/candidates/create',
-      {
-        email,
-        full_name,
-        phone,
-        city,
-        current_position,
-        send_welcome_email,
-      },
+      data,
       { token }
     );
 
@@ -113,7 +74,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
     // Handle duplicate email error
     if (error.status === 400 && error.data?.email) {
-      return json<ActionData>(
+      return json<AdminCandidateActionData>(
         {
           fieldErrors: {
             email: 'Este email já está cadastrado no sistema',
@@ -124,7 +85,7 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     // Generic error
-    return json<ActionData>(
+    return json<AdminCandidateActionData>(
       {
         error: 'Erro ao criar candidato. Tente novamente.',
       },
@@ -133,230 +94,160 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 }
 
-// Note: AdminLayout is applied by parent route (admin.tsx)
-export default function AdminCreateCandidatePage() {
-  const actionData = useActionData<typeof action>();
-  const navigation = useNavigation();
+export default function AdminCreateCandidateWizard() {
   const navigate = useNavigate();
+  const actionData = useActionData<typeof action>();
 
-  const [phone, setPhone] = useState('');
-  const [sendEmail, setSendEmail] = useState(false);
+  // Wizard state
+  const [currentStep, setCurrentStep] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const isSubmitting = navigation.state === 'submitting';
+  // Initialize form data
+  const [formData, setFormData] = useState<AdminCandidateFormData>({
+    email: '',
+    full_name: '',
+    phone: '',
+    city: '',
+    current_position: '',
+    years_of_experience: 0,
+    sales_type: '',
+    tools_software: [],
+    solutions_sold: [],
+    departments_sold_to: [],
+    send_welcome_email: false,
+  });
 
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatPhone(e.target.value);
-    setPhone(formatted);
+  // Load draft from localStorage on mount
+  useEffect(() => {
+    const draft = localStorage.getItem(DRAFT_STORAGE_KEY);
+    if (draft) {
+      try {
+        const parsed = JSON.parse(draft);
+        setFormData(parsed);
+      } catch (e) {
+        console.error('Failed to load draft:', e);
+      }
+    }
+  }, []);
+
+  // Auto-save draft
+  useEffect(() => {
+    const interval = setInterval(() => {
+      localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(formData));
+    }, AUTO_SAVE_INTERVAL);
+
+    return () => clearInterval(interval);
+  }, [formData]);
+
+  const updateFormData = (updates: Partial<AdminCandidateFormData>) => {
+    setFormData((prev) => ({ ...prev, ...updates }));
+  };
+
+  const handleNext = () => {
+    if (validateWizardStep(currentStep, formData)) {
+      setCurrentStep((prev) => Math.min(prev + 1, WIZARD_STEPS.length - 1));
+    }
+  };
+
+  const handlePrevious = () => {
+    setCurrentStep((prev) => Math.max(prev - 1, 0));
+  };
+
+  const handleSaveDraft = () => {
+    localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(formData));
+    alert('Rascunho salvo com sucesso!');
+  };
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+
+    const form = new FormData();
+    form.append('data', JSON.stringify(formData));
+
+    try {
+      const response = await fetch('', {
+        method: 'POST',
+        body: form,
+      });
+
+      if (response.ok) {
+        // Clear draft
+        localStorage.removeItem(DRAFT_STORAGE_KEY);
+      }
+    } catch (error) {
+      console.error('Submit error:', error);
+      setIsSubmitting(false);
+    }
+  };
+
+  const renderStepContent = () => {
+    const emailError = actionData?.fieldErrors?.email;
+
+    switch (currentStep) {
+      case 0:
+        return (
+          <Step1BasicInfo formData={formData} onUpdate={updateFormData} emailError={emailError} />
+        );
+      case 1:
+        return <Step2Position formData={formData} onUpdate={updateFormData} />;
+      case 2:
+        return <Step3Skills formData={formData} onUpdate={updateFormData} />;
+      case 3:
+        return <Step4Solutions formData={formData} onUpdate={updateFormData} />;
+      case 4:
+        return <Step5Preferences formData={formData} onUpdate={updateFormData} />;
+      case 5:
+        return <Step6History formData={formData} onUpdate={updateFormData} />;
+      default:
+        return null;
+    }
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" onClick={() => navigate('/admin/candidates')}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Voltar
-        </Button>
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Criar Candidato Manualmente</h2>
-          <p className="text-gray-600 mt-1">Adicione um candidato com informações básicas</p>
+    <div className="min-h-screen bg-gray-50 py-4">
+      <div className="mx-auto px-4">
+        {/* Header */}
+        <div className="mb-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate('/admin/candidates')}
+            className="mb-4"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Voltar para Candidatos
+          </Button>
+
+          <div className="flex items-center gap-4 mb-2">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Criar Candidato Completo</h1>
+              <p className="text-gray-600 mt-1">Preencha o perfil completo do candidato</p>
+            </div>
+          </div>
         </div>
+
+        {/* Error Alert */}
+        {actionData?.error && (
+          <Alert variant="destructive" className="mb-6">
+            {actionData.error}
+          </Alert>
+        )}
+
+        {/* Multi-Step Wizard */}
+        <MultiStepWizard
+          steps={WIZARD_STEPS}
+          currentStep={currentStep}
+          onNext={handleNext}
+          onPrevious={handlePrevious}
+          onSaveDraft={handleSaveDraft}
+          onSubmit={handleSubmit}
+          isLoading={isSubmitting}
+          canGoNext={validateWizardStep(currentStep, formData)}
+          submitLabel="Criar Candidato"
+        >
+          {renderStepContent()}
+        </MultiStepWizard>
       </div>
-
-      {/* Error Alert */}
-      {actionData?.error && (
-        <Alert variant="destructive" title="Erro">
-          {actionData.error}
-        </Alert>
-      )}
-
-      {/* Form Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Informações do Candidato</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Form method="post" className="space-y-6">
-            {/* Required Fields Section */}
-            <div className="space-y-4">
-              <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
-                Campos Obrigatórios
-              </h3>
-
-              {/* Full Name */}
-              <div>
-                <label htmlFor="full_name" className="block text-sm font-medium text-gray-700 mb-2">
-                  Nome Completo <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  id="full_name"
-                  name="full_name"
-                  type="text"
-                  placeholder="Ex: João Silva"
-                  required
-                  error={actionData?.fieldErrors?.full_name}
-                  disabled={isSubmitting}
-                />
-                {actionData?.fieldErrors?.full_name && (
-                  <p className="mt-1 text-sm text-red-600">{actionData.fieldErrors.full_name}</p>
-                )}
-              </div>
-
-              {/* Email */}
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                  Email <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  placeholder="Ex: joao@example.com"
-                  required
-                  error={actionData?.fieldErrors?.email}
-                  disabled={isSubmitting}
-                />
-                {actionData?.fieldErrors?.email && (
-                  <p className="mt-1 text-sm text-red-600">{actionData.fieldErrors.email}</p>
-                )}
-              </div>
-
-              {/* Phone */}
-              <div>
-                <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
-                  Telefone <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  id="phone"
-                  name="phone"
-                  type="tel"
-                  placeholder="(11) 99999-9999"
-                  value={phone}
-                  onChange={handlePhoneChange}
-                  required
-                  error={actionData?.fieldErrors?.phone}
-                  disabled={isSubmitting}
-                />
-                {actionData?.fieldErrors?.phone && (
-                  <p className="mt-1 text-sm text-red-600">{actionData.fieldErrors.phone}</p>
-                )}
-                <p className="mt-1 text-sm text-gray-500">Formato: (11) 99999-9999</p>
-              </div>
-            </div>
-
-            {/* Optional Fields Section */}
-            <div className="space-y-4 pt-6 border-t border-gray-200">
-              <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
-                Campos Opcionais
-              </h3>
-
-              {/* City */}
-              <div>
-                <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-2">
-                  Cidade
-                </label>
-                <Input
-                  id="city"
-                  name="city"
-                  type="text"
-                  placeholder="Ex: São Paulo, SP"
-                  disabled={isSubmitting}
-                />
-                <p className="mt-1 text-sm text-gray-500">Opcional</p>
-              </div>
-
-              {/* Current Position */}
-              <div>
-                <label
-                  htmlFor="current_position"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Posição Atual
-                </label>
-                <Select
-                  id="current_position"
-                  name="current_position"
-                  disabled={isSubmitting}
-                  options={[
-                    { value: '', label: 'Selecione (opcional)' },
-                    { value: 'SDR/BDR', label: 'SDR/BDR' },
-                    { value: 'Account Executive', label: 'Account Executive' },
-                    { value: 'Customer Success', label: 'Customer Success' },
-                    { value: 'Inside Sales', label: 'Inside Sales' },
-                    { value: 'Field Sales', label: 'Field Sales' },
-                  ]}
-                />
-                <p className="mt-1 text-sm text-gray-500">Opcional</p>
-              </div>
-            </div>
-
-            {/* Email Options Section */}
-            <div className="space-y-4 pt-6 border-t border-gray-200">
-              <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
-                Opções de Email
-              </h3>
-
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div className="flex items-start gap-3">
-                  <Checkbox
-                    id="send_welcome_email"
-                    name="send_welcome_email"
-                    checked={sendEmail}
-                    onCheckedChange={(checked) => setSendEmail(checked as boolean)}
-                    disabled={isSubmitting}
-                  />
-                  <div className="flex-1">
-                    <label
-                      htmlFor="send_welcome_email"
-                      className="block text-sm font-medium text-gray-900 cursor-pointer"
-                    >
-                      Enviar email de boas-vindas
-                    </label>
-                    <p className="mt-1 text-sm text-gray-600">
-                      O candidato receberá um email com link para definir sua senha e completar o
-                      perfil. O link expira em 7 dias.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {!sendEmail && (
-                <Alert variant="info" title="Modo Registro Rápido">
-                  <p className="text-sm">
-                    O candidato será criado como <strong>inativo</strong> sem receber email. Útil
-                    para manter registros de candidatos que ainda não precisam acessar o sistema.
-                  </p>
-                </Alert>
-              )}
-            </div>
-
-            {/* Actions */}
-            <div className="flex items-center justify-end gap-3 pt-6 border-t border-gray-200">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => navigate('/admin/candidates')}
-                disabled={isSubmitting}
-              >
-                Cancelar
-              </Button>
-              <Button type="submit" variant="default" disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Criando...
-                  </>
-                ) : (
-                  <>
-                    <UserPlus className="h-4 w-4 mr-2" />
-                    Criar Candidato
-                  </>
-                )}
-              </Button>
-            </div>
-          </Form>
-        </CardContent>
-      </Card>
     </div>
   );
 }
