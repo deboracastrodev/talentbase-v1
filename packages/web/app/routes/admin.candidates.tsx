@@ -8,7 +8,7 @@
 
 import { json } from '@remix-run/node';
 import type { LoaderFunctionArgs } from '@remix-run/node';
-import { useLoaderData, useSearchParams, Link } from '@remix-run/react';
+import { useLoaderData, useSearchParams, useNavigate } from '@remix-run/react';
 import {
   Card,
   CardHeader,
@@ -139,6 +139,7 @@ export default function AdminCandidatesPage() {
   const { candidates, totalCount, currentPage, hasNext, hasPrevious, filters, user } =
     useLoaderData<typeof loader>();
 
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [localSearch, setLocalSearch] = useState(filters.search || '');
 
@@ -227,18 +228,14 @@ export default function AdminCandidatesPage() {
             </p>
           </div>
           <div className="flex gap-3">
-            <Link to="/admin/candidates/new">
-              <Button variant="default">
-                <UserPlus className="h-4 w-4 mr-2" />
-                Criar Candidato
-              </Button>
-            </Link>
-            <Link to="/admin/import/candidates">
-              <Button variant="outline">
-                <Upload className="h-4 w-4 mr-2" />
-                Importar CSV
-              </Button>
-            </Link>
+            <Button variant="default" onClick={() => navigate('/admin/candidates/new')}>
+              <UserPlus className="h-4 w-4 mr-2" />
+              Criar Candidato
+            </Button>
+            <Button variant="outline" onClick={() => navigate('/admin/import/candidates')}>
+              <Upload className="h-4 w-4 mr-2" />
+              Importar CSV
+            </Button>
           </div>
         </div>
 
@@ -302,12 +299,10 @@ export default function AdminCandidatesPage() {
                 <p className="text-sm text-gray-500 mb-4">
                   Importe candidatos via CSV ou aguarde que candidatos se registrem
                 </p>
-                <Link to="/admin/import/candidates">
-                  <Button variant="default">
-                    <Upload className="h-4 w-4 mr-2" />
-                    Importar Candidatos
-                  </Button>
-                </Link>
+                <Button variant="default" onClick={() => navigate('/admin/import/candidates')}>
+                  <Upload className="h-4 w-4 mr-2" />
+                  Importar Candidatos
+                </Button>
               </div>
             ) : (
               <div className="overflow-x-auto">
