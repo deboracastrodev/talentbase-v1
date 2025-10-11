@@ -29,9 +29,9 @@ import {
 import { Search, Upload, Eye, User, UserPlus } from 'lucide-react';
 import { useState } from 'react';
 
+import { apiServer } from '~/lib/apiServer';
 import { requireAdmin, getUserFromToken } from '~/utils/auth.server';
 import { formatDate } from '~/utils/formatting';
-import { apiServer } from '~/lib/apiServer';
 
 interface Candidate {
   id: string;

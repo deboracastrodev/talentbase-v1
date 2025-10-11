@@ -20,12 +20,12 @@
  * ```
  */
 
-import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from '@remix-run/react';
+import { useMutation } from '@tanstack/react-query';
 
+import { API_ENDPOINTS } from '~/config/api';
 import { apiClient, ApiError } from '~/lib/apiClient';
 import { queryClient, queryKeys } from '~/lib/queryClient';
-import { API_ENDPOINTS } from '~/config/api';
 
 export interface LoginCredentials {
   email: string;

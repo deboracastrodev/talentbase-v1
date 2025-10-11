@@ -1,31 +1,37 @@
 /**
- * React Query Configuration
+ * React Query Configuration for Remix SSR
  *
- * Central configuration for TanStack Query (React Query).
+ * Central configuration for TanStack Query (React Query) with SSR support.
  * Provides caching, data synchronization, and server state management.
  *
  * Features:
  * - Smart caching with automatic background refetching
+ * - Server-side prefetching with dehydration/hydration
  * - Optimistic updates
  * - Request deduplication
  * - Automatic retry logic
  * - DevTools integration (development only)
  *
- * @see https://tanstack.com/query/latest/docs/react/overview
+ * SSR Pattern:
+ * 1. Server (loader): prefetchQuery() + dehydrate()
+ * 2. Client (component): HydrationBoundary + useQuery()
+ *
+ * @see https://tanstack.com/query/latest/docs/framework/react/guides/ssr
+ * @see https://tanstack.com/query/latest/docs/framework/react/guides/advanced-ssr
  */
 
-import { QueryClient } from '@tanstack/react-query';
+import { QueryClient, defaultShouldDehydrateQuery } from '@tanstack/react-query';
 
 /**
- * Default QueryClient configuration
- * Exported as a function to create new instances for SSR
+ * Default QueryClient configuration for SSR
+ * Optimized for Remix with server-side prefetching
  */
 const queryClientConfig = {
   defaultOptions: {
     queries: {
-      // Cache time
-      staleTime: 1 * 60 * 1000, // 1 minute - data is fresh for this long
-      gcTime: 5 * 60 * 1000, // 5 minutes - cache garbage collection time (renamed from cacheTime in v5)
+      // Cache time - Important for SSR to avoid immediate refetch
+      staleTime: 60 * 1000, // 60 seconds - data is fresh for this long
+      gcTime: 5 * 60 * 1000, // 5 minutes - cache garbage collection time
 
       // Retry configuration
       retry: (failureCount, error: any) => {
@@ -36,27 +42,28 @@ const queryClientConfig = {
         // Retry up to 2 times on 5xx errors
         return failureCount < 2;
       },
-      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
 
-      // Refetch behavior
-      refetchOnWindowFocus: false, // Don't refetch when user returns to tab (can be enabled per-query)
+      // Refetch behavior - Optimized for SSR
+      refetchOnWindowFocus: false, // Avoid unnecessary refetches after SSR
       refetchOnReconnect: true, // Refetch when internet connection is restored
-      refetchOnMount: true, // Refetch when component mounts
+      refetchOnMount: false, // Don't refetch on mount if we have data from SSR
 
       // Network mode
-      networkMode: 'online', // Only fetch when online
+      networkMode: 'online',
     },
     mutations: {
-      // Retry mutations only once on failure
       retry: 1,
       retryDelay: 1000,
-
-      // Global mutation error handler
       onError: (error: any) => {
         console.error('[Mutation Error]:', error);
-        // You can add toast notifications here if needed
-        // toast.error(error?.message || 'Algo deu errado. Tente novamente.');
       },
+    },
+    // SSR-specific: Configure which queries should be dehydrated
+    dehydrate: {
+      // Include queries with these conditions in SSR payload
+      shouldDehydrateQuery: (query) =>
+        defaultShouldDehydrateQuery(query) || query.state.status === 'pending', // Include pending queries for streaming
     },
   },
 };

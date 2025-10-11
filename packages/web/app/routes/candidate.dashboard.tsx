@@ -21,8 +21,8 @@ import { Share2, Copy, Eye, EyeOff, CheckCircle, ExternalLink } from 'lucide-rea
 import { useState } from 'react';
 
 import { getAppBaseUrl } from '~/config/api';
-import { formatDateTime } from '~/utils/formatting';
 import { apiClient, ApiError } from '~/lib/apiClient';
+import { formatDateTime } from '~/utils/formatting';
 
 // Types
 interface CandidateProfile {

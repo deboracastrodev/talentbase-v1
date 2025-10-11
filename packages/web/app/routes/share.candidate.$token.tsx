@@ -27,8 +27,8 @@ import {
 import { useState } from 'react';
 
 import { getAppBaseUrl } from '~/config/api';
-import { apiServer } from '~/lib/apiServer';
 import { apiClient, ApiError } from '~/lib/apiClient';
+import { apiServer } from '~/lib/apiServer';
 
 // Types
 interface PublicProfile {

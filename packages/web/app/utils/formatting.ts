@@ -7,8 +7,8 @@
  * - Phone: (XX) XXXXX-XXXX or (XX) XXXX-XXXX
  */
 
-import { formatInTimeZone } from 'date-fns-tz';
 import { ptBR } from 'date-fns/locale';
+import { formatInTimeZone } from 'date-fns-tz';
 
 /**
  * Format CNPJ as user types: XX.XXX.XXX/XXXX-XX

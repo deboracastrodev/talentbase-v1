@@ -35,14 +35,13 @@ import {
   Alert,
   RadioGroup,
   ProgressBar,
-  Badge,
 } from '@talentbase/design-system';
 import type { Step } from '@talentbase/design-system';
-import { FileDown, Upload, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
+import { FileDown, CheckCircle, XCircle } from 'lucide-react';
 import { useState, useCallback } from 'react';
 
-import { requireAdmin, getUserFromToken } from '~/utils/auth.server';
 import { apiClient, ApiError } from '~/lib/apiClient';
+import { requireAdmin, getUserFromToken } from '~/utils/auth.server';
 
 /**
  * Loader - Ensure admin access and fetch user data

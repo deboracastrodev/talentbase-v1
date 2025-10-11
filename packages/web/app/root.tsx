@@ -7,16 +7,15 @@ import {
   ScrollRestoration,
   useRouteError,
   isRouteErrorResponse,
-  useLoaderData,
 } from '@remix-run/react';
-import { QueryClientProvider, HydrationBoundary } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { ToastProvider } from '@talentbase/design-system';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { useState } from 'react';
 
 import globals from './globals.css?url';
-import { createQueryClient } from './lib/queryClient';
 import { useHydrated } from './hooks/useHydrated';
+import { createQueryClient } from './lib/queryClient';
 
 export const links: LinksFunction = () => [{ rel: 'stylesheet', href: globals }];
 

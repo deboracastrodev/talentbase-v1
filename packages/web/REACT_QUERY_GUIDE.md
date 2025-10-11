@@ -56,6 +56,7 @@ app/
 ### Mutations (Modificar Dados)
 
 #### `useLogin()`
+
 Login de usuário com redirecionamento automático.
 
 ```typescript
@@ -67,14 +68,15 @@ const loginMutation = useLogin();
 loginMutation.mutate({ email, password });
 
 // Estados disponíveis
-loginMutation.isPending    // Está carregando?
-loginMutation.isError      // Houve erro?
-loginMutation.isSuccess    // Foi bem-sucedido?
-loginMutation.error        // Objeto de erro (ApiError)
-loginMutation.data         // Dados da resposta
+loginMutation.isPending; // Está carregando?
+loginMutation.isError; // Houve erro?
+loginMutation.isSuccess; // Foi bem-sucedido?
+loginMutation.error; // Objeto de erro (ApiError)
+loginMutation.data; // Dados da resposta
 ```
 
 #### `useRegistration()`
+
 Registro de candidato ou empresa.
 
 ```typescript
@@ -84,13 +86,14 @@ const registerMutation = useRegistration();
 
 registerMutation.mutate({
   endpoint: '/api/v1/auth/register/candidate',
-  data: { email, password, full_name, phone }
+  data: { email, password, full_name, phone },
 });
 ```
 
 ### Queries (Buscar Dados)
 
 #### `useCurrentUser()`
+
 Busca dados do usuário autenticado.
 
 ```typescript
@@ -105,6 +108,7 @@ return <div>Olá, {user.name}!</div>;
 ```
 
 #### `useAdminCandidates()`
+
 Lista de candidatos no painel admin (com cache e paginação).
 
 ```typescript
@@ -113,7 +117,7 @@ import { useAdminCandidates } from '~/hooks/queries/useAdminCandidates';
 const { data, isLoading } = useAdminCandidates(token, {
   page: 1,
   search: 'John',
-  status: 'available'
+  status: 'available',
 });
 ```
 
@@ -124,6 +128,7 @@ const { data, isLoading } = useAdminCandidates(token, {
 ### Exemplo 1: Form de Login
 
 **Antes (sem React Query):**
+
 ```typescript
 const { login, isLoading, error } = useLogin();
 const [email, setEmail] = useState('');
@@ -147,6 +152,7 @@ return (
 ```
 
 **Depois (com React Query):**
+
 ```typescript
 const loginMutation = useLogin();
 const [email, setEmail] = useState('');
@@ -183,7 +189,7 @@ function useCreateCandidate() {
     onSuccess: () => {
       // Invalida lista de candidatos para forçar refetch
       queryClient.invalidateQueries({
-        queryKey: queryKeys.admin.candidates.all
+        queryKey: queryKeys.admin.candidates.all,
       });
     },
   });
@@ -202,27 +208,19 @@ function useUpdateProfile() {
     // Atualiza UI imediatamente (antes da resposta)
     onMutate: async (newData) => {
       await queryClient.cancelQueries({
-        queryKey: queryKeys.candidate.profile.current()
+        queryKey: queryKeys.candidate.profile.current(),
       });
 
-      const previous = queryClient.getQueryData(
-        queryKeys.candidate.profile.current()
-      );
+      const previous = queryClient.getQueryData(queryKeys.candidate.profile.current());
 
-      queryClient.setQueryData(
-        queryKeys.candidate.profile.current(),
-        newData
-      );
+      queryClient.setQueryData(queryKeys.candidate.profile.current(), newData);
 
       return { previous };
     },
 
     // Rollback em caso de erro
     onError: (err, variables, context) => {
-      queryClient.setQueryData(
-        queryKeys.candidate.profile.current(),
-        context.previous
-      );
+      queryClient.setQueryData(queryKeys.candidate.profile.current(), context.previous);
     },
   });
 }
@@ -235,6 +233,7 @@ function useUpdateProfile() {
 ### De `useState` para `useMutation`
 
 **Antes:**
+
 ```typescript
 const [isLoading, setIsLoading] = useState(false);
 const [error, setError] = useState(null);
@@ -254,6 +253,7 @@ const doSomething = async () => {
 ```
 
 **Depois:**
+
 ```typescript
 const mutation = useMutation({
   mutationFn: (data) => api.post(..., data),
@@ -266,19 +266,21 @@ const mutation = useMutation({
 ### De `useEffect` + `fetch` para `useQuery`
 
 **Antes:**
+
 ```typescript
 const [data, setData] = useState(null);
 const [loading, setLoading] = useState(true);
 
 useEffect(() => {
   fetch('/api/data')
-    .then(res => res.json())
+    .then((res) => res.json())
     .then(setData)
     .finally(() => setLoading(false));
 }, []);
 ```
 
 **Depois:**
+
 ```typescript
 const { data, isLoading } = useQuery({
   queryKey: ['data'],
@@ -315,12 +317,12 @@ import { queryKeys } from '~/lib/queryClient';
 
 // Invalidar todas as queries de candidatos
 queryClient.invalidateQueries({
-  queryKey: queryKeys.admin.candidates.all
+  queryKey: queryKeys.admin.candidates.all,
 });
 
 // Invalidar apenas lista com filtros específicos
 queryClient.invalidateQueries({
-  queryKey: queryKeys.admin.candidates.list({ status: 'active' })
+  queryKey: queryKeys.admin.candidates.list({ status: 'active' }),
 });
 ```
 
