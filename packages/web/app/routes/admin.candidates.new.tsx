@@ -16,19 +16,21 @@
  * - ✅ Centralized routes (no hardcoded URLs)
  * - ✅ Toast notifications instead of alert()
  * - ✅ Proper logging (no console.error)
- * - ✅ Custom hooks for draft & submission
+ * - ✅ Custom hooks for draft management
  * - ✅ Componentized header & error display
  * - ✅ Type-safe error handling
  * - ✅ JSDoc documentation
  * - ✅ useCallback for performance
  * - ✅ ARIA labels for accessibility
+ * - ✅ Remix Form for proper submission (no manual fetch)
+ * - ✅ Complete initialData with all fields
  */
 
 import { json, redirect } from '@remix-run/node';
 import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node';
-import { useNavigate, useActionData } from '@remix-run/react';
+import { useNavigate, useActionData, Form, useNavigation } from '@remix-run/react';
 import { MultiStepWizard, useToast } from '@talentbase/design-system';
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useState, useEffect, useRef } from 'react';
 
 import {
   Step1BasicInfo,
@@ -48,6 +50,7 @@ import {
   DRAFT_STORAGE_KEY,
   WIZARD_STEPS,
 } from '~/lib/constants/admin-candidate';
+import { createInitialCandidateFormData } from '~/lib/constants/admin-candidate-initial-data';
 import type {
   AdminCandidateActionData,
   AdminCandidateFormData,
@@ -156,29 +159,21 @@ export async function action({ request }: ActionFunctionArgs) {
 export default function AdminCreateCandidateWizard() {
   const navigate = useNavigate();
   const actionData = useActionData<typeof action>();
+  const navigation = useNavigation();
   const { toast } = useToast();
+  const formRef = useRef<HTMLFormElement>(null);
+
+  // Check if form is submitting via Remix
+  const isSubmitting = navigation.state === 'submitting';
 
   // Wizard state
   const [currentStep, setCurrentStep] = useState(0);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Draft auto-save hook
+  // Draft auto-save hook with complete initial data
   const { formData, updateFormData, clearDraft, saveDraft } =
     useDraftAutoSave<AdminCandidateFormData>({
       storageKey: DRAFT_STORAGE_KEY,
-      initialData: {
-        email: '',
-        full_name: '',
-        phone: '',
-        city: '',
-        current_position: '',
-        years_of_experience: 0,
-        sales_type: '',
-        tools_software: [],
-        solutions_sold: [],
-        departments_sold_to: [],
-        send_welcome_email: false,
-      },
+      initialData: createInitialCandidateFormData(),
       autoSaveInterval: AUTO_SAVE_INTERVAL,
     });
 
@@ -214,36 +209,22 @@ export default function AdminCreateCandidateWizard() {
   }, [saveDraft, toast]);
 
   /**
-   * Submit form
+   * Submit form using Remix Form
+   * This properly integrates with Remix's action system
    */
-  const handleSubmit = useCallback(async () => {
-    setIsSubmitting(true);
+  const handleSubmit = useCallback(() => {
+    if (!formRef.current) return;
 
-    const form = new FormData();
-    form.append('data', JSON.stringify(formData));
+    // Create hidden input with form data
+    const dataInput = document.createElement('input');
+    dataInput.type = 'hidden';
+    dataInput.name = 'data';
+    dataInput.value = JSON.stringify(formData);
 
-    try {
-      const response = await fetch('', {
-        method: 'POST',
-        body: form,
-      });
-
-      if (response.ok) {
-        // Clear draft on success
-        clearDraft();
-        toast.success('Candidato criado com sucesso!');
-      } else {
-        // Error will be handled by actionData
-        setIsSubmitting(false);
-      }
-    } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('[Submit] Client error:', error);
-      }
-      toast.error('Erro ao enviar formulário. Tente novamente.');
-      setIsSubmitting(false);
-    }
-  }, [formData, clearDraft, toast]);
+    // Add to form and submit
+    formRef.current.appendChild(dataInput);
+    formRef.current.requestSubmit();
+  }, [formData]);
 
   /**
    * Render current step content
@@ -279,8 +260,21 @@ export default function AdminCreateCandidateWizard() {
     if (actionData?.fieldErrors?.email) {
       // Scroll to top to show field error
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      // Go back to first step if email error
+      setCurrentStep(0);
     }
   }, [actionData, toast]);
+
+  // Clear draft on successful submission (detected by navigation)
+  useEffect(() => {
+    if (
+      navigation.state === 'loading' &&
+      navigation.location?.pathname === ROUTES.admin.candidates
+    ) {
+      clearDraft();
+      toast.success('Candidato criado com sucesso!');
+    }
+  }, [navigation, clearDraft, toast]);
 
   return (
     <div className="min-h-screen bg-gray-50 py-4" role="main">
@@ -290,6 +284,9 @@ export default function AdminCreateCandidateWizard() {
 
         {/* Error Display */}
         <FormErrorDisplay error={actionData?.error} fieldErrors={actionData?.fieldErrors} />
+
+        {/* Hidden Remix Form for submission */}
+        <Form ref={formRef} method="post" style={{ display: 'none' }} />
 
         {/* Multi-Step Wizard */}
         <MultiStepWizard
