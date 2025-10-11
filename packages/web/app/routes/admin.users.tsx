@@ -22,7 +22,6 @@ import { useState } from 'react';
 
 import { UserDetailModal } from '~/components/admin/UserDetailModal';
 import { UserTable } from '~/components/admin/UserTable';
-import { AdminLayout } from '~/components/layouts/AdminLayout';
 import { fetchUsers, fetchUserDetail, updateUserStatus } from '~/lib/api/admin';
 import type { User, UserDetail, UsersFilters } from '~/lib/api/admin';
 import { requireAdmin, getUserFromToken } from '~/utils/auth.server';
@@ -80,6 +79,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   });
 }
 
+// Note: AdminLayout is applied by parent route (admin.tsx)
 export default function AdminUsersPage() {
   const { users, totalCount, currentPage, hasNext, hasPrevious, filters, user, token } =
     useLoaderData<typeof loader>();
@@ -186,119 +186,117 @@ export default function AdminUsersPage() {
   };
 
   return (
-    <AdminLayout pageTitle="User Management" activeItem="users" user={user}>
-      <div className="space-y-6">
-        {/* Header */}
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Gerenciamento de Usuários</h2>
-          <p className="mt-1 text-gray-600">
-            {totalCount} {totalCount === 1 ? 'usuário encontrado' : 'usuários encontrados'}
-          </p>
-        </div>
-
-        {/* Filters */}
-        <Card className="mb-6">
-          <div className="p-6">
-            <form onSubmit={handleSearchSubmit} className="space-y-4">
-              {/* Search */}
-              <div>
-                <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-2">
-                  Buscar por nome ou email
-                </label>
-                <div className="flex gap-2">
-                  <Input
-                    id="search"
-                    type="text"
-                    placeholder="Digite o nome ou email..."
-                    value={localSearch}
-                    onChange={(e) => setLocalSearch(e.target.value)}
-                    className="flex-1"
-                  />
-                  <Button type="submit" variant="default">
-                    Buscar
-                  </Button>
-                </div>
-              </div>
-
-              {/* Filters Row */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-2">
-                    Filtrar por função
-                  </label>
-                  <Select
-                    id="role"
-                    value={filters.role || 'all'}
-                    onChange={(e) => handleFilterChange('role', e.target.value)}
-                    options={[
-                      { value: 'all', label: 'Todas' },
-                      { value: 'admin', label: 'Admin' },
-                      { value: 'candidate', label: 'Candidato' },
-                      { value: 'company', label: 'Empresa' },
-                    ]}
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-2">
-                    Filtrar por status
-                  </label>
-                  <Select
-                    id="status"
-                    value={filters.status || 'all'}
-                    onChange={(e) => handleFilterChange('status', e.target.value)}
-                    options={[
-                      { value: 'all', label: 'Todos' },
-                      { value: 'active', label: 'Ativo' },
-                      { value: 'pending', label: 'Pendente' },
-                      { value: 'inactive', label: 'Inativo' },
-                    ]}
-                  />
-                </div>
-              </div>
-            </form>
-          </div>
-        </Card>
-
-        {/* Users Table */}
-        <Card>
-          <UserTable users={users} onUserClick={handleUserClick} />
-
-          {/* Pagination */}
-          {(hasNext || hasPrevious) && (
-            <div className="flex items-center justify-between px-6 py-4 border-t">
-              <Button
-                variant="secondary"
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={!hasPrevious}
-              >
-                Anterior
-              </Button>
-              <span className="text-sm text-gray-600">Página {currentPage}</span>
-              <Button
-                variant="secondary"
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={!hasNext}
-              >
-                Próxima
-              </Button>
-            </div>
-          )}
-        </Card>
-
-        {/* User Detail Modal */}
-        <UserDetailModal
-          isOpen={isModalOpen}
-          onClose={() => {
-            setIsModalOpen(false);
-            setSelectedUser(null);
-            setSelectedUserId(null);
-          }}
-          user={selectedUser}
-          onStatusChange={handleStatusChange}
-          isUpdating={isUpdatingStatus}
-        />
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h2 className="text-2xl font-bold text-gray-900">Gerenciamento de Usuários</h2>
+        <p className="mt-1 text-gray-600">
+          {totalCount} {totalCount === 1 ? 'usuário encontrado' : 'usuários encontrados'}
+        </p>
       </div>
-    </AdminLayout>
+
+      {/* Filters */}
+      <Card className="mb-6">
+        <div className="p-6">
+          <form onSubmit={handleSearchSubmit} className="space-y-4">
+            {/* Search */}
+            <div>
+              <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-2">
+                Buscar por nome ou email
+              </label>
+              <div className="flex gap-2">
+                <Input
+                  id="search"
+                  type="text"
+                  placeholder="Digite o nome ou email..."
+                  value={localSearch}
+                  onChange={(e) => setLocalSearch(e.target.value)}
+                  className="flex-1"
+                />
+                <Button type="submit" variant="default">
+                  Buscar
+                </Button>
+              </div>
+            </div>
+
+            {/* Filters Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-2">
+                  Filtrar por função
+                </label>
+                <Select
+                  id="role"
+                  value={filters.role || 'all'}
+                  onChange={(e) => handleFilterChange('role', e.target.value)}
+                  options={[
+                    { value: 'all', label: 'Todas' },
+                    { value: 'admin', label: 'Admin' },
+                    { value: 'candidate', label: 'Candidato' },
+                    { value: 'company', label: 'Empresa' },
+                  ]}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-2">
+                  Filtrar por status
+                </label>
+                <Select
+                  id="status"
+                  value={filters.status || 'all'}
+                  onChange={(e) => handleFilterChange('status', e.target.value)}
+                  options={[
+                    { value: 'all', label: 'Todos' },
+                    { value: 'active', label: 'Ativo' },
+                    { value: 'pending', label: 'Pendente' },
+                    { value: 'inactive', label: 'Inativo' },
+                  ]}
+                />
+              </div>
+            </div>
+          </form>
+        </div>
+      </Card>
+
+      {/* Users Table */}
+      <Card>
+        <UserTable users={users} onUserClick={handleUserClick} />
+
+        {/* Pagination */}
+        {(hasNext || hasPrevious) && (
+          <div className="flex items-center justify-between px-6 py-4 border-t">
+            <Button
+              variant="secondary"
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={!hasPrevious}
+            >
+              Anterior
+            </Button>
+            <span className="text-sm text-gray-600">Página {currentPage}</span>
+            <Button
+              variant="secondary"
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={!hasNext}
+            >
+              Próxima
+            </Button>
+          </div>
+        )}
+      </Card>
+
+      {/* User Detail Modal */}
+      <UserDetailModal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedUser(null);
+          setSelectedUserId(null);
+        }}
+        user={selectedUser}
+        onStatusChange={handleStatusChange}
+        isUpdating={isUpdatingStatus}
+      />
+    </div>
   );
 }

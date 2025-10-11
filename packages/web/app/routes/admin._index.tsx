@@ -17,7 +17,6 @@ import { Card, CardHeader, CardTitle, CardContent } from '@talentbase/design-sys
 import { Users, AlertCircle, Briefcase, UserCheck, Activity } from 'lucide-react';
 
 import { StatCard } from '~/components/admin/StatCard';
-import { AdminLayout } from '~/components/layouts/AdminLayout';
 import { ROUTES, QUICK_ROUTES } from '~/config/routes';
 import { getAdminStats, type AdminStats } from '~/lib/api/admin';
 import { requireAdmin, getUserFromToken } from '~/utils/auth.server';
@@ -66,128 +65,127 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 /**
  * Admin Dashboard Component
+ * Note: AdminLayout is applied by parent route (admin.tsx)
  */
 export default function AdminDashboard() {
   const { stats, user } = useLoaderData<typeof loader>();
 
   return (
-    <AdminLayout pageTitle="Dashboard" activeItem="dashboard" user={user}>
-      <div className="space-y-6">
-        {/* Welcome message */}
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Welcome back, {user.name}!</h2>
-          <p className="text-gray-600 mt-1">
-            Here&apos;s what&apos;s happening with your platform today.
-          </p>
-        </div>
-
-        {/* Stats grid - AC8: Widgets overview */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Total Users widget with breakdown - AC8 */}
-          <StatCard
-            title="Total Users"
-            value={stats.total_users}
-            icon={Users}
-            breakdown={[
-              { label: 'Candidates', value: stats.total_candidates },
-              { label: 'Companies', value: stats.total_companies },
-              { label: 'Admins', value: stats.total_admins },
-            ]}
-          />
-
-          {/* Pending Approvals widget - AC8, AC10: Clicável */}
-          <StatCard
-            title="Pending Approvals"
-            value={stats.pending_approvals}
-            subtitle="Companies awaiting approval"
-            icon={AlertCircle}
-            href="/admin/users?status=pending&role=company"
-          />
-
-          {/* Active Jobs widget - AC8 */}
-          <StatCard
-            title="Active Jobs"
-            value={stats.active_jobs}
-            subtitle="Job postings available"
-            icon={Briefcase}
-          />
-
-          {/* Total Candidates widget - AC8 */}
-          <StatCard
-            title="Total Candidates"
-            value={stats.total_candidates}
-            subtitle="Available candidates"
-            icon={UserCheck}
-          />
-        </div>
-
-        {/* Recent Activity widget - AC8 */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Activity size={20} className="text-gray-600" />
-              <CardTitle>Recent Activity</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {stats.recent_activity && stats.recent_activity.length > 0 ? (
-              <div className="space-y-3">
-                {stats.recent_activity.map((activity, index) => (
-                  <div
-                    key={activity.id || index}
-                    className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0"
-                  >
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">
-                        New {activity.user_role} registration
-                      </p>
-                      <p className="text-xs text-gray-600">{activity.user_email}</p>
-                    </div>
-                    <span className="text-xs text-gray-500">
-                      {formatDateTime(activity.timestamp)}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-gray-600">No recent activity</p>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Quick actions */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Link to={ROUTES.admin.users}>
-                <button className="w-full px-4 py-3 text-left bg-primary-50 hover:bg-primary-100 rounded-lg transition-colors">
-                  <p className="font-medium text-primary-700">Manage Users</p>
-                  <p className="text-sm text-primary-600">View and manage all users</p>
-                </button>
-              </Link>
-
-              <Link to={QUICK_ROUTES.pendingCompanyApprovals}>
-                <button className="w-full px-4 py-3 text-left bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors">
-                  <p className="font-medium text-orange-700">Review Approvals</p>
-                  <p className="text-sm text-orange-600">{stats.pending_approvals} pending</p>
-                </button>
-              </Link>
-
-              <button
-                disabled
-                className="w-full px-4 py-3 text-left bg-gray-50 rounded-lg cursor-not-allowed opacity-50"
-              >
-                <p className="font-medium text-gray-700">Manage Jobs</p>
-                <p className="text-sm text-gray-600">Coming in Epic 4</p>
-              </button>
-            </div>
-          </CardContent>
-        </Card>
+    <div className="space-y-6">
+      {/* Welcome message */}
+      <div>
+        <h2 className="text-2xl font-bold text-gray-900">Welcome back, {user.name}!</h2>
+        <p className="text-gray-600 mt-1">
+          Here&apos;s what&apos;s happening with your platform today.
+        </p>
       </div>
-    </AdminLayout>
+
+      {/* Stats grid - AC8: Widgets overview */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Total Users widget with breakdown - AC8 */}
+        <StatCard
+          title="Total Users"
+          value={stats.total_users}
+          icon={Users}
+          breakdown={[
+            { label: 'Candidates', value: stats.total_candidates },
+            { label: 'Companies', value: stats.total_companies },
+            { label: 'Admins', value: stats.total_admins },
+          ]}
+        />
+
+        {/* Pending Approvals widget - AC8, AC10: Clicável */}
+        <StatCard
+          title="Pending Approvals"
+          value={stats.pending_approvals}
+          subtitle="Companies awaiting approval"
+          icon={AlertCircle}
+          href="/admin/users?status=pending&role=company"
+        />
+
+        {/* Active Jobs widget - AC8 */}
+        <StatCard
+          title="Active Jobs"
+          value={stats.active_jobs}
+          subtitle="Job postings available"
+          icon={Briefcase}
+        />
+
+        {/* Total Candidates widget - AC8 */}
+        <StatCard
+          title="Total Candidates"
+          value={stats.total_candidates}
+          subtitle="Available candidates"
+          icon={UserCheck}
+        />
+      </div>
+
+      {/* Recent Activity widget - AC8 */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Activity size={20} className="text-gray-600" />
+            <CardTitle>Recent Activity</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {stats.recent_activity && stats.recent_activity.length > 0 ? (
+            <div className="space-y-3">
+              {stats.recent_activity.map((activity, index) => (
+                <div
+                  key={activity.id || index}
+                  className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0"
+                >
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">
+                      New {activity.user_role} registration
+                    </p>
+                    <p className="text-xs text-gray-600">{activity.user_email}</p>
+                  </div>
+                  <span className="text-xs text-gray-500">
+                    {formatDateTime(activity.timestamp)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-600">No recent activity</p>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Quick actions */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Quick Actions</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Link to={ROUTES.admin.users}>
+              <button className="w-full px-4 py-3 text-left bg-primary-50 hover:bg-primary-100 rounded-lg transition-colors">
+                <p className="font-medium text-primary-700">Manage Users</p>
+                <p className="text-sm text-primary-600">View and manage all users</p>
+              </button>
+            </Link>
+
+            <Link to={QUICK_ROUTES.pendingCompanyApprovals}>
+              <button className="w-full px-4 py-3 text-left bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors">
+                <p className="font-medium text-orange-700">Review Approvals</p>
+                <p className="text-sm text-orange-600">{stats.pending_approvals} pending</p>
+              </button>
+            </Link>
+
+            <button
+              disabled
+              className="w-full px-4 py-3 text-left bg-gray-50 rounded-lg cursor-not-allowed opacity-50"
+            >
+              <p className="font-medium text-gray-700">Manage Jobs</p>
+              <p className="text-sm text-gray-600">Coming in Epic 4</p>
+            </button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 

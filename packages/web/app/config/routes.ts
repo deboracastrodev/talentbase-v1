@@ -30,6 +30,7 @@ export const ROUTES = {
     users: '/admin/users',
     companies: '/admin/companies',
     candidates: '/admin/candidates',
+    candidatesNew: '/admin/candidates/new',
     jobs: '/admin/jobs',
     applications: '/admin/applications',
     matching: '/admin/matching',
@@ -112,6 +113,46 @@ export function buildAdminUsersRoute(params?: {
 
   const query = searchParams.toString();
   return query ? `${ROUTES.admin.users}?${query}` : ROUTES.admin.users;
+}
+
+/**
+ * Admin Candidates Route Builder
+ *
+ * @example
+ * // Success after creating candidate
+ * buildAdminCandidatesRoute({ created: true, email_sent: true })
+ * // => '/admin/candidates?created=true&email_sent=true'
+ */
+export function buildAdminCandidatesRoute(params?: {
+  created?: boolean;
+  email_sent?: boolean;
+  search?: string;
+  page?: number;
+}): string {
+  if (!params) {
+    return ROUTES.admin.candidates;
+  }
+
+  const searchParams = new URLSearchParams();
+
+  if (params.created !== undefined) {
+    searchParams.set('created', String(params.created));
+  }
+
+  if (params.email_sent !== undefined) {
+    searchParams.set('email_sent', String(params.email_sent));
+  }
+
+  if (params.search) {
+    searchParams.set('search', params.search);
+  }
+
+  if (params.page && params.page > 1) {
+    searchParams.set('page', params.page.toString());
+  }
+
+  const query = searchParams.toString();
+  return query ? `${ROUTES.admin.candidates}?${query}` : ROUTES.admin.candidates;
 }
 
 /**

@@ -5,8 +5,8 @@
  * Story 2.4 - Task 3
  */
 
-import { apiServer } from '~/lib/apiServer';
 import { API_ENDPOINTS } from '~/config/api';
+import { apiServer } from '~/lib/apiServer';
 
 export interface User {
   id: string;

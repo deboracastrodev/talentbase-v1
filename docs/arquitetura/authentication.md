@@ -322,6 +322,7 @@ navigate('/login');
 CORS_ALLOWED_ORIGINS = [
     "https://salesdog.click",
     "https://www.salesdog.click",
+    "https://dev.salesdog.click"
 ]
 
 # CSRF
