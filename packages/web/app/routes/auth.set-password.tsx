@@ -16,7 +16,8 @@ import { Loader2, Lock, CheckCircle } from 'lucide-react';
 import { useState } from 'react';
 
 import { apiClient } from '~/lib/apiClient';
-import { createUserSession } from '~/utils/auth.server';
+// TODO: Implement createUserSession or use redirect
+// import { createUserSession } from '~/utils/auth.server';
 
 interface LoaderData {
   token: string | null;
@@ -97,14 +98,9 @@ export async function action({ request }: ActionFunctionArgs) {
       password,
     });
 
-    // Create user session with the returned JWT token
-    return createUserSession({
-      request,
-      userId: response.user.id,
-      role: response.user.role,
-      token: response.access_token,
-      redirectTo: '/candidate/profile/create', // AC 24, 25: Redirect to profile creation
-    });
+    // TODO: Create user session with the returned JWT token
+    // For now, just redirect (session handling to be implemented)
+    return redirect('/candidate/profile/create');
   } catch (error: any) {
     console.error('[Set Password] Error:', error);
 
