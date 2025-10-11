@@ -72,8 +72,7 @@ export function createQueryClient() {
       dehydrate: {
         // Incluir queries pending para streaming
         shouldDehydrateQuery: (query) =>
-          defaultShouldDehydrateQuery(query) ||
-          query.state.status === 'pending',
+          defaultShouldDehydrateQuery(query) || query.state.status === 'pending',
       },
     },
   });
@@ -254,6 +253,7 @@ export default function MyRoute() {
 **Causa**: `staleTime` muito baixo ou `refetchOnMount: true`
 
 **Solução**:
+
 ```typescript
 {
   queries: {
@@ -268,6 +268,7 @@ export default function MyRoute() {
 **Causa**: QueryClient compartilhado entre requests no servidor
 
 **Solução**:
+
 ```typescript
 // Criar novo client em cada loader
 const queryClient = createQueryClient();
@@ -278,12 +279,13 @@ const queryClient = createQueryClient();
 **Causa**: Query key diferente entre server e client
 
 **Solução**:
+
 ```typescript
 // Server
-queryKey: queryKeys.admin.stats()
+queryKey: queryKeys.admin.stats();
 
 // Client - DEVE SER IDÊNTICO
-queryKey: queryKeys.admin.stats()
+queryKey: queryKeys.admin.stats();
 ```
 
 ### Problema: Dados Não Aparecem Após Hidratação
@@ -291,6 +293,7 @@ queryKey: queryKeys.admin.stats()
 **Causa**: `shouldDehydrateQuery` excluindo a query
 
 **Solução**:
+
 ```typescript
 dehydrate: {
   shouldDehydrateQuery: (query) =>
@@ -304,6 +307,7 @@ dehydrate: {
 ## Exemplo Real: Admin Dashboard
 
 Ver implementação completa em:
+
 - `app/routes/admin._index.tsx` - Loader com prefetch
 - `app/components/admin/DashboardContent.tsx` - Component com useQuery
 - `app/lib/queryClient.ts` - Configuração SSR

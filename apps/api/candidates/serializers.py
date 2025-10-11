@@ -553,45 +553,118 @@ class ImportResultSerializer(serializers.Serializer):
 
 class AdminCreateCandidateSerializer(serializers.Serializer):
     """
-    Serializer for admin manual candidate creation.
+    Extended serializer for admin manual candidate creation with ALL CandidateProfile fields.
 
-    Story 3.3.5: Admin creates candidate with minimal fields.
+    Story 3.3.5: Admin creates candidate with complete profile data.
 
     Fields:
         email (required): Candidate email (must be unique)
         full_name (required): Candidate full name
         phone (required): Phone number
-        city (optional): City name
-        current_position (optional): One of: SDR/BDR, Account Executive, Customer Success, Inside Sales, Field Sales
-        send_welcome_email (optional): Boolean flag to send welcome email (default: False)
+        city (required): City name
+
+        All other CandidateProfile fields (optional):
+        - Basic info: linkedin, cpf, zip_code, profile_photo_url
+        - Professional: current_position, years_of_experience, sales_type, sales_cycle, avg_ticket, academic_degree, bio
+        - Skills: top_skills, tools_software, solutions_sold, departments_sold_to, languages
+        - Preferences: work_model, relocation_availability, travel_availability, accepts_pj, pcd, is_pcd
+        - Salary: position_interest, minimum_salary, salary_notes
+        - Logistics: has_drivers_license, has_vehicle
+        - Media: pitch_video_url, pitch_video_type
+        - Admin: contract_signed, interview_date
+        - Experience fields: active_prospecting_experience, inbound_qualification_experience, etc.
 
     Validates:
-        - Email format
-        - Email uniqueness
+        - Email format and uniqueness
         - Phone format (Brazilian format)
-        - current_position is one of allowed choices
     """
 
+    # Required fields
     email = serializers.EmailField(required=True, help_text="Email único do candidato")
     full_name = serializers.CharField(
         required=True, max_length=255, help_text="Nome completo do candidato"
     )
     phone = serializers.CharField(required=True, max_length=20, help_text="Telefone do candidato")
     city = serializers.CharField(
-        required=False, allow_blank=True, max_length=255, help_text="Cidade (opcional)"
+        required=True, max_length=255, help_text="Cidade do candidato"
     )
-    current_position = serializers.ChoiceField(
-        choices=[
-            ("SDR/BDR", "SDR/BDR"),
-            ("Account Executive", "Account Executive"),
-            ("Customer Success", "Customer Success"),
-            ("Inside Sales", "Inside Sales"),
-            ("Field Sales", "Field Sales"),
-        ],
+
+    # Basic optional fields
+    linkedin = serializers.URLField(required=False, allow_blank=True, help_text="LinkedIn URL")
+    cpf = serializers.CharField(required=False, allow_blank=True, max_length=14, help_text="CPF")
+    zip_code = serializers.CharField(required=False, allow_blank=True, max_length=10, help_text="CEP")
+    profile_photo_url = serializers.URLField(required=False, allow_blank=True, help_text="URL da foto de perfil (S3)")
+
+    # Professional fields
+    current_position = serializers.CharField(
         required=False,
         allow_blank=True,
-        help_text="Posição atual (opcional)",
+        max_length=50,
+        help_text="Posição atual"
     )
+    years_of_experience = serializers.IntegerField(required=False, allow_null=True, help_text="Anos de experiência")
+    sales_type = serializers.CharField(required=False, allow_blank=True, max_length=50, help_text="Tipo de vendas")
+    sales_cycle = serializers.CharField(required=False, allow_blank=True, max_length=100, help_text="Ciclo de vendas")
+    avg_ticket = serializers.CharField(required=False, allow_blank=True, max_length=100, help_text="Ticket médio")
+    academic_degree = serializers.CharField(required=False, allow_blank=True, max_length=200, help_text="Formação acadêmica")
+    bio = serializers.CharField(required=False, allow_blank=True, help_text="Bio profissional")
+
+    # Skills (JSON fields)
+    top_skills = serializers.ListField(child=serializers.CharField(), required=False, help_text="Principais habilidades")
+    tools_software = serializers.ListField(child=serializers.CharField(), required=False, help_text="Ferramentas e software")
+    solutions_sold = serializers.ListField(child=serializers.CharField(), required=False, help_text="Soluções vendidas")
+    departments_sold_to = serializers.ListField(child=serializers.CharField(), required=False, help_text="Departamentos")
+    languages = serializers.JSONField(required=False, help_text="Idiomas: [{'name': 'Português', 'level': 'Nativo'}]")
+
+    # Work preferences
+    work_model = serializers.ChoiceField(
+        choices=[('remote', 'Remoto'), ('hybrid', 'Híbrido'), ('onsite', 'Presencial')],
+        required=False,
+        allow_blank=True,
+        help_text="Modelo de trabalho"
+    )
+    relocation_availability = serializers.CharField(required=False, allow_blank=True, max_length=100, help_text="Disponibilidade para mudança")
+    travel_availability = serializers.CharField(required=False, allow_blank=True, max_length=100, help_text="Disponibilidade para viagens")
+    accepts_pj = serializers.BooleanField(required=False, default=False, help_text="Aceita PJ")
+    pcd = serializers.BooleanField(required=False, default=False, help_text="Pessoa com Deficiência")
+    is_pcd = serializers.BooleanField(required=False, default=False, help_text="PCD (campo alternativo)")
+    position_interest = serializers.CharField(required=False, allow_blank=True, max_length=200, help_text="Posição de interesse")
+    minimum_salary = serializers.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        required=False,
+        allow_null=True,
+        help_text="Remuneração mínima mensal"
+    )
+    salary_notes = serializers.CharField(required=False, allow_blank=True, help_text="Observações sobre remuneração")
+    has_drivers_license = serializers.BooleanField(required=False, default=False, help_text="Possui CNH")
+    has_vehicle = serializers.BooleanField(required=False, default=False, help_text="Possui veículo próprio")
+
+    # Video pitch
+    pitch_video_url = serializers.URLField(required=False, allow_blank=True, help_text="URL do vídeo pitch")
+    pitch_video_type = serializers.ChoiceField(
+        choices=[('s3', 'S3 Upload'), ('youtube', 'YouTube')],
+        required=False,
+        allow_blank=True,
+        help_text="Tipo de vídeo"
+    )
+
+    # Admin-specific fields
+    contract_signed = serializers.BooleanField(required=False, default=False, help_text="Contrato assinado")
+    interview_date = serializers.DateField(required=False, allow_null=True, help_text="Data da entrevista")
+
+    # CSV/Notion experience fields (text ranges)
+    active_prospecting_experience = serializers.CharField(required=False, allow_blank=True, max_length=100, help_text="Experiência em prospecção ativa")
+    inbound_qualification_experience = serializers.CharField(required=False, allow_blank=True, max_length=100, help_text="Experiência em qualificação inbound")
+    portfolio_retention_experience = serializers.CharField(required=False, allow_blank=True, max_length=100, help_text="Experiência em retenção de carteira")
+    portfolio_expansion_experience = serializers.CharField(required=False, allow_blank=True, max_length=100, help_text="Experiência em expansão de carteira")
+    portfolio_size = serializers.CharField(required=False, allow_blank=True, max_length=100, help_text="Tamanho da carteira")
+    inbound_sales_experience = serializers.CharField(required=False, allow_blank=True, max_length=100, help_text="Experiência em vendas inbound")
+    outbound_sales_experience = serializers.CharField(required=False, allow_blank=True, max_length=100, help_text="Experiência em vendas outbound")
+    field_sales_experience = serializers.CharField(required=False, allow_blank=True, max_length=100, help_text="Experiência em field sales")
+    inside_sales_experience = serializers.CharField(required=False, allow_blank=True, max_length=100, help_text="Experiência em inside sales")
+
+    # Admin option
     send_welcome_email = serializers.BooleanField(
         required=False,
         default=False,

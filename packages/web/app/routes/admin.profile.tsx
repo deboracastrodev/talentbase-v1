@@ -89,11 +89,11 @@ export default function AdminProfile() {
   };
 
   return (
-    <div className="space-y-6 max-w-4xl">
+    <div className="space-y-8">
       {/* Page Header */}
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900">Meu Perfil</h2>
-        <p className="text-gray-600 mt-1">Visualize suas informações de conta</p>
+      <div className="space-y-2">
+        <h2 className="text-3xl font-bold text-gray-900">Meu Perfil</h2>
+        <p className="text-base text-gray-600">Visualize suas informações de conta</p>
       </div>
 
       {/* Profile Card */}
@@ -107,61 +107,71 @@ export default function AdminProfile() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="space-y-6">
+          <div className="space-y-10 pt-4">
             {/* Avatar and Name */}
-            <div className="flex items-center gap-4">
-              <div className="flex items-center justify-center w-20 h-20 rounded-full bg-primary-500 text-white text-2xl font-semibold">
+            <div className="flex items-center gap-6 pb-10 border-b border-gray-100">
+              <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary-500 text-white text-xl font-semibold shadow-md">
                 {profile.name.charAt(0).toUpperCase()}
               </div>
-              <div>
-                <h3 className="text-xl font-semibold text-gray-900">{profile.name}</h3>
-                <p className="text-sm text-gray-600">{getRoleName(profile.role)}</p>
+              <div className="flex-1">
+                <h3 className="text-2xl font-semibold text-gray-900">{profile.name}</h3>
+                <p className="text-base text-gray-600 mt-1">{getRoleName(profile.role)}</p>
               </div>
             </div>
 
-            {/* Profile Details */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-gray-200">
+            {/* Profile Details - Grid layout for better space usage */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pt-2">
               {/* Email */}
-              <div className="flex items-start gap-3">
-                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100">
-                  <Mail size={20} className="text-gray-600" />
+              <div className="flex items-start gap-4">
+                <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-primary-50">
+                  <Mail size={20} className="text-primary-600" />
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-700">Email</p>
-                  <p className="text-sm text-gray-900">{profile.email}</p>
-                </div>
-              </div>
-
-              {/* User ID */}
-              <div className="flex items-start gap-3">
-                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100">
-                  <User size={20} className="text-gray-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-700">ID do Usuário</p>
-                  <p className="text-sm text-gray-900 font-mono">{profile.id}</p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                    Email
+                  </p>
+                  <p className="text-base text-gray-900 truncate">{profile.email}</p>
                 </div>
               </div>
 
               {/* Role */}
-              <div className="flex items-start gap-3">
-                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100">
-                  <Shield size={20} className="text-gray-600" />
+              <div className="flex items-start gap-4">
+                <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-primary-50">
+                  <Shield size={20} className="text-primary-600" />
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-700">Função</p>
-                  <p className="text-sm text-gray-900">{getRoleName(profile.role)}</p>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                    Função
+                  </p>
+                  <p className="text-base text-gray-900">{getRoleName(profile.role)}</p>
                 </div>
               </div>
 
               {/* Status */}
-              <div className="flex items-start gap-3">
-                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100">
-                  <User size={20} className="text-gray-600" />
+              <div className="flex items-start gap-4">
+                <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-primary-50">
+                  <User size={20} className="text-primary-600" />
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-700">Status da Conta</p>
-                  <p className="text-sm text-gray-900">{profile.is_active ? 'Ativa' : 'Inativa'}</p>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                    Status da Conta
+                  </p>
+                  <p className="text-base text-gray-900">
+                    {profile.is_active ? 'Ativa' : 'Inativa'}
+                  </p>
+                </div>
+              </div>
+
+              {/* User ID - Full width on smaller screens */}
+              <div className="flex items-start gap-4 md:col-span-2 lg:col-span-3">
+                <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-primary-50">
+                  <User size={20} className="text-primary-600" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                    ID do Usuário
+                  </p>
+                  <p className="text-base text-gray-900 font-mono truncate">{profile.id}</p>
                 </div>
               </div>
             </div>
@@ -175,32 +185,34 @@ export default function AdminProfile() {
           <CardTitle>Informações de Segurança</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between py-3 border-b border-gray-200">
-              <div>
-                <p className="text-sm font-medium text-gray-900">Senha</p>
-                <p className="text-xs text-gray-600">
+          <div className="space-y-6">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 py-4 border-b border-gray-100">
+              <div className="flex-1">
+                <p className="text-base font-semibold text-gray-900 mb-1">Senha</p>
+                <p className="text-sm text-gray-600">
                   Última atualização: Contate o suporte para alterar
                 </p>
               </div>
               <button
                 disabled
-                className="px-4 py-2 text-sm text-gray-400 bg-gray-100 rounded-md cursor-not-allowed"
+                className="px-6 py-2.5 text-sm font-medium text-gray-400 bg-gray-50 rounded-lg cursor-not-allowed whitespace-nowrap"
               >
                 Em breve
               </button>
             </div>
 
-            <div className="flex items-center justify-between py-3">
-              <div>
-                <p className="text-sm font-medium text-gray-900">Autenticação de dois fatores</p>
-                <p className="text-xs text-gray-600">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 py-4">
+              <div className="flex-1">
+                <p className="text-base font-semibold text-gray-900 mb-1">
+                  Autenticação de dois fatores
+                </p>
+                <p className="text-sm text-gray-600">
                   Adicione uma camada extra de segurança à sua conta
                 </p>
               </div>
               <button
                 disabled
-                className="px-4 py-2 text-sm text-gray-400 bg-gray-100 rounded-md cursor-not-allowed"
+                className="px-6 py-2.5 text-sm font-medium text-gray-400 bg-gray-50 rounded-lg cursor-not-allowed whitespace-nowrap"
               >
                 Em breve
               </button>
