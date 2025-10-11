@@ -6,7 +6,7 @@
 import type { Language } from '~/components/admin/LanguageInput';
 import type { Experience } from '~/components/candidate/ExperienceEditor';
 
-export interface AdminCandidateFormData {
+export interface AdminCandidateFormData extends Record<string, unknown> {
   // Step 1: Informações Básicas
   email: string;
   full_name: string;

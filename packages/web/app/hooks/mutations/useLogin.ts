@@ -55,8 +55,25 @@ export function useLogin() {
       // Cache the current user
       queryClient.setQueryData(queryKeys.auth.currentUser(), data.user);
 
-      // Redirect to the appropriate page
-      navigate(data.redirect_url);
+      // Store user data in localStorage (non-sensitive info only)
+      localStorage.setItem('user', JSON.stringify(data.user));
+
+      // Redirect to the appropriate page with fallback
+      const targetUrl = data.redirect_url;
+
+      try {
+        navigate(targetUrl, { replace: true });
+
+        // Fallback: if still on same page after 500ms, force redirect
+        setTimeout(() => {
+          if (window.location.pathname === '/auth/login') {
+            window.location.href = targetUrl;
+          }
+        }, 500);
+      } catch (error) {
+        // If navigate fails, use window.location
+        window.location.href = targetUrl;
+      }
     },
 
     onError: (error: ApiError) => {

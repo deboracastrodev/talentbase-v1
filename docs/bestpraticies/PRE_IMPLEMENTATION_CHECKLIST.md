@@ -16,7 +16,9 @@ Este checklist DEVE ser lido e seguido antes de iniciar a implementação de qua
  * SEMPRE componetizar quando alguma pagina estiver ficando muito grande.
  * SEMPRE utilize o ambiente docker DOCKER.md
  * SEMPRE que for criar componentes, consultar sua existencia no design system antes, se não existir e se for um componente genérico, de contexto reutilizavel criar no design system e depois utilizar. Detalhes packages/web/CLAUDE.md, se atulizar algo, atualize essa documentação também
-
+ * NUNCA use rotas em hardcode packages/web/app/config/ROUTES_USAGE.md
+ * SEMPRE incluir mascaras no formulário, quando forem indicadas no placeholder, por exemplo: placeholder aparece com formatação de telefone, então inclusa a máscara no input.
+ 
  - BACKEND:
  * Nunca criar migrations manualmente
  * SEMPRE utilize o ambiente docker DOCKER.md

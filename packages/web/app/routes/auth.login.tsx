@@ -14,7 +14,7 @@
  * - "Forgot password" placeholder link (AC9)
  */
 
-import { useNavigate, Link } from '@remix-run/react';
+import { useNavigate, Link, useSearchParams } from '@remix-run/react';
 import { Button, AuthLayout, AuthCard, Alert, AuthFormField } from '@talentbase/design-system';
 import { Loader2 } from 'lucide-react';
 import { FormEvent } from 'react';
@@ -34,6 +34,8 @@ interface LoginFormData {
 
 export default function Login() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectTo = searchParams.get('redirectTo');
 
   // Form validation hook
   const { formData, errors, handleChange, validateForm } = useFormValidation<LoginFormData>(
@@ -59,7 +61,7 @@ export default function Login() {
   /**
    * Handle form submission
    * AC3: Call POST /api/v1/auth/login
-   * AC6: Redirect based on role and status
+   * AC6: Redirect based on role and status or redirectTo param
    */
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -77,8 +79,35 @@ export default function Login() {
       // Store user data in localStorage (non-sensitive info only)
       localStorage.setItem('user', JSON.stringify(result.user));
 
-      // AC6: Redirect based on role
-      navigate(result.redirect_url);
+      // AC6: Redirect based on redirectTo param or role
+      const targetUrl = redirectTo || result.redirect_url;
+
+      // Log redirect for debugging
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Login] Redirecting to:', targetUrl);
+      }
+
+      try {
+        // Try Remix navigate first (with replace to avoid back button issues)
+        navigate(targetUrl, { replace: true });
+
+        // Add a small timeout as fallback
+        setTimeout(() => {
+          // If still on login page after 500ms, force redirect
+          if (window.location.pathname === '/auth/login') {
+            if (process.env.NODE_ENV === 'development') {
+              console.warn('[Login] Navigate timeout, forcing redirect with window.location');
+            }
+            window.location.href = targetUrl;
+          }
+        }, 500);
+      } catch (navError) {
+        // Fallback to window.location if navigate fails immediately
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[Login] Navigate failed:', navError);
+        }
+        window.location.href = targetUrl;
+      }
     }
   };
 
