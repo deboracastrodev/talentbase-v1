@@ -17,9 +17,10 @@
 import { QueryClient } from '@tanstack/react-query';
 
 /**
- * Create QueryClient instance with default configuration
+ * Default QueryClient configuration
+ * Exported as a function to create new instances for SSR
  */
-export const queryClient = new QueryClient({
+const queryClientConfig = {
   defaultOptions: {
     queries: {
       // Cache time
@@ -58,7 +59,21 @@ export const queryClient = new QueryClient({
       },
     },
   },
-});
+};
+
+/**
+ * Factory function to create a new QueryClient instance
+ * Use this in SSR contexts to avoid state sharing between requests
+ */
+export function createQueryClient() {
+  return new QueryClient(queryClientConfig);
+}
+
+/**
+ * Default QueryClient instance for client-side usage
+ * Note: In SSR, create a new instance per request using createQueryClient()
+ */
+export const queryClient = createQueryClient();
 
 /**
  * Query Keys Factory
